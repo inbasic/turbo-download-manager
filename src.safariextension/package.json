@@ -1,0 +1,24 @@
+{
+  "fullName": "Turbo Download Manager",
+  "name": "itdmanager",
+  "description": "a download manager with multi-threading support",
+  "id": "jid0-dsq67mf5kjjhiiju2dfb6kk8dfw",
+  "license": "Mozilla Public License, version 2.0",
+  "version": "0.1.2",
+  "author": "InBasic",
+  "lib": "lib",
+  "main": "common",
+  "url": "http://add0n.com/turbo-download-manager.html",
+  "icon": "data/icons/32.png",
+  "icon64": "data/icons/64.png",
+  "permissions": {
+    "private-browsing": true
+  },
+  "preferences": [{
+    "name": "openOptions",
+    "title": "Open Options",
+    "label": "Options",
+    "type": "control",
+    "value": "this is the default string value"
+  }]
+}

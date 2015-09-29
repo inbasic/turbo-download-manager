@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Download Manager - Turbo Download Manager</title>
+    <link rel="stylesheet" href="fonts/fontello.css">
+    <link rel="stylesheet" href="index.css">
+    <link rel="shortcut icon" href="../icons/16.png">
+    <meta name=viewport content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div id="menu" align="right">
+      <div class="icon-" data-role="button" data-toggle="close"></div>
+      <ul align="left">
+        <li data-role="done">Clear completed items</li>
+        <li data-role="error">Clear failed items</li>
+        <li data-role="bug">Open a bug report</li>
+        <li data-role="faqs">Open FAQs page</li>
+      </ul>
+    </div>
+    <div id="toolbar">
+      <input type="search" placeholder="Filter results; Type and press Enter">
+    </div>
+
+    <div class="item" data-type="new" data-id="-1">
+      <span class="icon-"></span>
+      <div style="overflow: hidden;">
+        <div data-type="name">-</div>
+        <div>
+          <div data-type="overal">
+            <div></div>
+          </div>
+          <div data-type="partial">
+          </div>
+        </div>
+        <div style="white-space: nowrap;">
+          Percent: <span data-type="percent">0.0%</span>,
+          Size: <span data-type="size">0 Byte</span>,
+          Threads: <span data-type="threads">0</span>,
+          Speed: <span data-type="speed">-</span>,
+          Time left: <span data-type="time">-</span>,
+        </div>
+      </div>
+      <table>
+        <tr><td><i class="icon-" data-cmd="info" title="Get infomation"></i></td></tr>
+        <tr><td><i class="icon-" data-cmd="pause" title="Pause or resume download"></i></td></tr>
+        <tr><td><i class="icon-" data-cmd="cancel" title="Cancel download"></i></td></tr>
+        <tr><td><i class="icon-" data-cmd="trash" title="Remove download"></i></td></tr>
+      </table>
+    </div>
+    <div id="no-active">
+      No active download!
+    </div>
+    <div id="add" class="icon-"></div>
+    <div id="loader" data-visible="false">
+      <iframe></iframe>
+    </div>
+    <script src="shadow_index.js"></script>
+  </body>
+</html>

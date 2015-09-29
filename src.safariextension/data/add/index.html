@@ -1,0 +1,40 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Add a new Job - Turbo Download Manager</title>
+    <link rel="stylesheet" href="index.css">
+    <meta name=viewport content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <div>
+      <table>
+        <tbody>
+          <tr>
+            <td>Download:</td>
+            <td><input data-id="url" type="text" placeholder="http(s)://a-downloadable-link"></td>
+          </tr>
+          <tr>
+            <td>Referring page:</td>
+            <td><input data-id="referrer" type="text" placeholder=""></td>
+          </tr>
+          <tr>
+            <td>Description:</td>
+            <td><input data-id="description" type="text"></td>
+          </tr>
+          <tr>
+            <td>Number of threads:</td>
+            <td><input data-id="threads" type="number" min=1 max=10 placeholder="5"></td>
+          </tr>
+          <tr>
+            <td>Thread timeout (in seconds):</td>
+            <td><input data-id="timeout" type="number" min=5 max=120 placeholder="30"></td>
+          </tr>
+        </tbody>
+      </table>
+      <div id="add">
+        <input type="button" value="Add as new Job">
+      </div>
+    </div>
+    <script src="shadow_index.js"></script>
+  </body>
+</html>

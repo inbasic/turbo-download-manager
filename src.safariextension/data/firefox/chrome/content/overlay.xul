@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/css" href="chrome://itdmanager/content/overlay.css"?>
+
+<overlay id="itdmanager-saveas" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+  <radiogroup id="mode">
+    <hbox flex="1">
+      <radio id="itdmanager-radio" label="Download with Turbo Download Manager" disabled="true"/>
+    </hbox>
+  </radiogroup>
+  <script type="application/x-javascript" src="chrome://itdmanager/content/overlay.js"/>
+</overlay>

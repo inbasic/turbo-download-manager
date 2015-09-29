@@ -1,0 +1,67 @@
+<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<html>
+<head>
+  <title>Options - Template Extension</title>
+  <meta charset="utf-8" />
+  <link rel="icon" type="image/png" href="../icons/16.png">
+  <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body class="flex">
+  <div id="header" class="flex">
+    <div style="">
+      <span type=title>Extension Name</span>
+      <br/>
+      <span class="note" type=inshort>In Short</span>
+    </div>
+  </div>
+
+  <div id="content" class="flex">
+    <table width="100%">
+      <tr>
+        <td>Category 1</td>
+        <td>
+          <!-- Pref 1 -->
+          <span>This is an integer pref:</span>
+          <input data-pref="options.intPref" type="number" min="10"></input>
+          <p class="note">Description of option 1</p>
+          <p class="spacer"></p>
+          <!-- Pref 2 -->
+          <label>
+            <span>This is a Boolean pref:</span>
+            <input type="checkbox" data-pref="options.bolPref">
+          </label>
+          <p class="note">Description of option 2</p>
+          <p class="spacer"></p>
+          <!-- Pref 3 -->
+          <div class="box">
+            <label>This is text Pref:</label>
+            <input type="text" data-pref="options.strPref"/>
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td>Popup</td>
+        <td>
+          <span>Popup width is (in pixels):</span> <input data-pref="popup.width" type="number" min="200"></input>
+          <p class="note">Minimum popup width is 200px.</p>
+          <p class="spacer"></p>
+          <span>Popup height is (in pixels):</span> <input data-pref="popup.height" type="number" min="200"></input>
+          <p class="note">Minimum popup height is 200px.</p>
+          <p class="spacer"></p>
+        </td>
+      </tr>
+      <tr>
+        <td>Misc</td>
+        <td>
+          <label>
+            <span>Show welcome page on upgrade:</span> <input type="checkbox" data-pref="welcome.show">
+          </label>
+          <p class="note">If this option is checked, the extension displays welcome page after each upgrade to notify you about the recent changes.</p>
+          <p class="spacer"></p>
+        </td>
+      </tr>
+    </table>
+  </div>
+  <script type='text/javascript' src="shadow_index.js"></script>
+</body>
+</html>
