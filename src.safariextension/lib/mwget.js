@@ -114,6 +114,13 @@ if (typeof require !== 'undefined') {
     }
     app.timer.setTimeout(count, 500);
   };
+  mwget.cancel = function (index) {
+    let wget = instances[index];
+    if (wget) {
+      wget.event.emit('cancel');
+    }
+    app.timer.setTimeout(count, 500);
+  };
   mwget.remove = function (index) {
     let wget = instances[index];
     if (wget) {

@@ -40,7 +40,6 @@ function download (obj) {
   obj.threads = obj.threads || config.wget.threads;
   obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
   obj.retries = obj.retries || config.wget.retrie;
-console.error(obj);
   mwget.download(obj);
 }
 /* connect */
@@ -97,6 +96,9 @@ app.manager.receive('cmd', function (obj) {
   }
   if (obj.cmd === 'trash') {
     mwget.remove(obj.id);
+  }
+  if (obj.cmd === 'cancel') {
+    mwget.cancel(obj.id);
   }
 });
 app.manager.receive('open', function (cmd) {

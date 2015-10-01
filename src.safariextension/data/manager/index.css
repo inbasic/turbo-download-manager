@@ -173,7 +173,7 @@ body {
 .item[data-type=error] div[data-type=partial]>div {
   display: none;
 }
-.item[data-type=pause]>table i[data-cmd=cancel],
+.item:not([data-type=pause])>table i[data-cmd=cancel],
 .item[data-type=new]>table i[data-cmd=pause],
 .item[data-type=new]>table i[data-cmd=cancel],
 .item[data-type=new]>table i[data-cmd=info] {

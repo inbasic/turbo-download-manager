@@ -162,8 +162,7 @@ exports.tab = {
 };
 unload.when(function () {
   exports.tab.list().then(function (tabs) {
-    tabs.filter(t => t.url.indexOf(data.url('manager/index.html')) === 0).forEach(t => t.close());
-    tabs.filter(t => t.url.indexOf(data.url('add/index.html')) === 0).forEach(t => t.close());
+    tabs.filter(t => t.url.indexOf(data.url('')) === 0).forEach(t => t.close());
   });
 });
 

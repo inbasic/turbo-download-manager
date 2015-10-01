@@ -278,6 +278,11 @@ if (typeof require !== 'undefined') {
         schedule();
       }
     });
+    // cancel
+    event.on('cancel', function () {
+      status = 'error';
+      event.emit('status', status);
+    });
     // getting header
     app.Promise.race([obj.url, obj.url, obj.url].map(head))
       .then(

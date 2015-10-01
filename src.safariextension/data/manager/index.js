@@ -66,6 +66,9 @@ var toolbar = (function (search) {
 // items
 var get = function (id) {
   var parent = document.querySelector('.item[data-id="' + id + '"]');
+  if (!parent) {
+    return null;
+  }
   var overal = parent.querySelector('[data-type=overal]>div');
   var percent = parent.querySelector('[data-type=percent]');
   var size = parent.querySelector('[data-type=size]');
@@ -198,6 +201,9 @@ document.addEventListener('click', function (e) {
       if (target.dataset.cmd === 'trash') {
         background.send('cmd', {id: i.dataset.id, cmd: target.dataset.cmd});
         remove(i.dataset.id);
+      }
+      if (target.dataset.cmd === 'cancel') {
+        background.send('cmd', {id: i.dataset.id, cmd: target.dataset.cmd});
       }
     });
   }
