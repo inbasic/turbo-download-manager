@@ -23,7 +23,6 @@
   "background": {
     "page": "lib/chrome/background.html"
   },
-  "options_page": "data/options/index.html",
   "homepage_url": "http://add0n.com/turbo-download-manager.html",
   "icons": {
     "16": "data/icons/16.png",

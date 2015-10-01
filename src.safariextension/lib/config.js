@@ -22,59 +22,6 @@ config.icon = {
   timeout: 5 // seconds
 };
 
-config.options = {
-  get intPref () {
-    return +app.storage.read('intPref') || 10;  // default value is 10
-  },
-  set intPref (val) {
-    val = +val;
-    if (val < 5) {
-      val = 5;
-    }
-    app.storage.write('intPref', val);
-  },
-  get bolPref () {
-    return app.storage.read('bolPref') === 'false' ? false : true; // default is true
-  },
-  set bolPref (val) {
-    app.storage.write('bolPref', val);
-  },
-  get strPref () {
-    return app.storage.read('strPref') || 'default string';
-  },
-  set strPref (val) {
-    app.storage.write('strPref', val);
-  }
-};
-
-config.popup = {
-  get width () {
-    return +app.storage.read('width') || 200;
-  },
-  set width (val) {
-    val = +val;
-    if (val < 200) {
-      val = 200;
-    }
-    app.storage.write('width', val);
-  },
-  get height () {
-    return +app.storage.read('height') || 200;
-  },
-  set height (val) {
-    val = +val;
-    if (val < 200) {
-      val = 200;
-    }
-    app.storage.write('height', val);
-  }
-};
-
-config.ui = {
-  badge: true,
-  backgroundColor: '#3366CC',
-};
-
 config.welcome = {
   get version () {
     return app.storage.read('version');
@@ -90,6 +37,7 @@ config.welcome = {
     app.storage.write('show', val);
   }
 };
+
 // Complex get and set
 config.get = function (name) {
   return name.split('.').reduce(function (p, c) {

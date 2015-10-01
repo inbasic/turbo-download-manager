@@ -13,12 +13,5 @@
   "icon64": "data/icons/64.png",
   "permissions": {
     "private-browsing": true
-  },
-  "preferences": [{
-    "name": "openOptions",
-    "title": "Open Options",
-    "label": "Options",
-    "type": "control",
-    "value": "this is the default string value"
-  }]
+  }
 }

@@ -7,7 +7,6 @@ var self          = require('sdk/self'),
     prefs         = sp.prefs,
     pageMod       = require('sdk/page-mod'),
     notifications = require('sdk/notifications'),
-    pageWorker    = require('sdk/page-worker'),
     tabs          = require('sdk/tabs'),
     timers        = require('sdk/timers'),
     platform      = require('sdk/system').platform,
@@ -18,9 +17,9 @@ var self          = require('sdk/self'),
     {on, off, once, emit} = require('sdk/event/core'),
     {Ci, Cc, Cu, components}  = require('chrome');
 
+var {Services} = Cu.import('resource://gre/modules/Services.jsm');
 var {NetUtil} = Cu.import('resource://gre/modules/NetUtil.jsm');
 var {FileUtils} = Cu.import('resource://gre/modules/FileUtils.jsm');
-var {Services} = Cu.import('resource://gre/modules/Services.jsm');
 
 var desktop = ['winnt', 'linux', 'darwin'].indexOf(platform) !== -1;
 
@@ -32,7 +31,7 @@ exports.Promise = {defer, all, race, resolve};
 exports.XMLHttpRequest = xhr.XMLHttpRequest;
 
 exports.EventEmitter = function () {
-  var tmp = {};
+  let tmp = {};
   tmp.on = on.bind(null, tmp);
   tmp.once = once.bind(null, tmp);
   tmp.emit = emit.bind(null, tmp);
@@ -194,59 +193,6 @@ exports.notification = function (text) {
   });
 };
 
-exports.play = function (url) {
-  var worker = pageWorker.Page({
-    contentScript: "var audio = new Audio('" + url + "'); audio.addEventListener('ended', function () {self.postMessage()}); audio.volume = 1; audio.play();",
-    contentURL: data.url('firefox/sound.html'),
-    onMessage: function() {
-      worker.destroy();
-    }
-  });
-};
-
-exports.options = (function () {
-  var workers = [], options_arr = [];
-  pageMod.PageMod({
-    include: data.url('options/index.html'),
-    contentScriptFile: [data.url('options/firefox/firefox.js'), data.url('options/index.js')],
-    contentScriptWhen: 'ready',
-    onAttach: function(worker) {
-      array.add(workers, worker);
-      worker.on('pageshow', function() { array.add(workers, this); });
-      worker.on('pagehide', function() { array.remove(workers, this); });
-      worker.on('detach', function() { array.remove(workers, this); });
-
-      options_arr.forEach(function (arr) {
-        worker.port.on(arr[0], arr[1]);
-      });
-    }
-  });
-  sp.on('openOptions', function() {
-    exports.tab.open(data.url('options/index.html'));
-  });
-  unload.when(function () {
-    exports.tab.list().then(function (tabs) {
-      tabs.forEach(function (tab) {
-        if (tab.url === data.url('options/index.html')) {
-          tab.close();
-        }
-      });
-    });
-  });
-
-  return {
-    send: function (id, data) {
-      workers.forEach(function (worker) {
-        if (!worker || !worker.url) {
-          return;
-        }
-        worker.port.emit(id, data);
-      });
-    },
-    receive: (id, callback) => options_arr.push([id, callback])
-  };
-})();
-
 exports.File = function (obj) { // {name, path, mime}
   var file, flushed = false;
   return {
@@ -257,19 +203,19 @@ exports.File = function (obj) { // {name, path, mime}
       return file.path;
     },
     write: function (offset, content) {
-      var d = defer();
-      var ostream = Cc['@mozilla.org/network/file-output-stream;1']
+      let d = defer();
+      let ostream = Cc['@mozilla.org/network/file-output-stream;1']
         .createInstance(Ci.nsIFileOutputStream);
       ostream.init(file, 0x08| 0x02, 0, 0);  // 0x08: Create File, 0x02: Write only
 
-      var seekstream = ostream.QueryInterface(Ci.nsISeekableStream);
+      let seekstream = ostream.QueryInterface(Ci.nsISeekableStream);
       seekstream.seek(0x00, offset); // 0x00: Offset is relative to the start of the stream.
 
-      var istream = Cc['@mozilla.org/io/string-input-stream;1']
+      let istream = Cc['@mozilla.org/io/string-input-stream;1']
           .createInstance(Ci.nsIStringInputStream);
       istream.data = content;
 
-      var bstream = Cc['@mozilla.org/binaryinputstream;1']
+      let bstream = Cc['@mozilla.org/binaryinputstream;1']
         .createInstance(Ci.nsIBinaryInputStream);
       bstream.setInputStream(istream);
 
@@ -287,16 +233,16 @@ exports.File = function (obj) { // {name, path, mime}
       function toHexString(charCode) {
         return ('0' + charCode.toString(16)).slice(-2);
       }
-      var istream = Cc['@mozilla.org/network/file-input-stream;1']
+      let istream = Cc['@mozilla.org/network/file-input-stream;1']
         .createInstance(Ci.nsIFileInputStream);
       istream.init(file, 0x01, 292/*0444*/, 0);
-      var ch = Cc['@mozilla.org/security/hash;1']
+      let ch = Cc['@mozilla.org/security/hash;1']
         .createInstance(Ci.nsICryptoHash);
       ch.init(ch.MD5);
       const PR_UINT32_MAX = 0xffffffff;
       ch.updateFromStream(istream, PR_UINT32_MAX);
-      var hash = ch.finish(false);
-      var s = [toHexString(hash.charCodeAt(i)) for (i in hash)].join('');
+      let hash = ch.finish(false);
+      let s = [toHexString(hash.charCodeAt(i)) for (i in hash)].join('');
       return resolve(s);
     },
     flush: function () {
@@ -315,7 +261,7 @@ exports.File = function (obj) { // {name, path, mime}
   };
 };
 
-//OverlayManager
+// Overlay Manager
 (function () {
   var windows = [];
   function inject (window) {
