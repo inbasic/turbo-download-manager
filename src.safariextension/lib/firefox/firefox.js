@@ -14,11 +14,10 @@ var self          = require('sdk/self'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
     xhr           = require('sdk/net/xhr'),
-    windows       = require('sdk/windows'),
+    {all, defer, race, resolve}  = require('sdk/core/promise'),
     {on, off, once, emit} = require('sdk/event/core'),
     {Ci, Cc, Cu, components}  = require('chrome');
 
-Cu.import('resource://gre/modules/Promise.jsm');
 var {NetUtil} = Cu.import('resource://gre/modules/NetUtil.jsm');
 var {FileUtils} = Cu.import('resource://gre/modules/FileUtils.jsm');
 var {Services} = Cu.import('resource://gre/modules/Services.jsm');
@@ -29,7 +28,7 @@ exports.globals = {
   browser: 'firefox'
 };
 
-exports.Promise = Promise;
+exports.Promise = {defer, all, race, resolve};
 exports.XMLHttpRequest = xhr.XMLHttpRequest;
 
 exports.EventEmitter = function () {
@@ -148,16 +147,16 @@ exports.tab = {
         temp.push(tab);
       }
     }
-    return Promise.resolve(temp);
+    return resolve(temp);
   },
   reload: function (tab) {
     tab.reload();
-    return new Promise.resolve(tab);
+    return resolve(tab);
   },
   activate: function (tab) {
     tab.activate();
     tab.window.activate();
-    return new Promise.resolve(tab);
+    return resolve(tab);
   }
 };
 unload.when(function () {
@@ -258,7 +257,7 @@ exports.File = function (obj) { // {name, path, mime}
       return file.path;
     },
     write: function (offset, content) {
-      var d = Promise.defer();
+      var d = defer();
       var ostream = Cc['@mozilla.org/network/file-output-stream;1']
         .createInstance(Ci.nsIFileOutputStream);
       ostream.init(file, 0x08| 0x02, 0, 0);  // 0x08: Create File, 0x02: Write only
@@ -298,11 +297,11 @@ exports.File = function (obj) { // {name, path, mime}
       ch.updateFromStream(istream, PR_UINT32_MAX);
       var hash = ch.finish(false);
       var s = [toHexString(hash.charCodeAt(i)) for (i in hash)].join('');
-      return Promise.resolve(s);
+      return resolve(s);
     },
     flush: function () {
       flushed = true;
-      return Promise.resolve(file.fileSize);
+      return resolve(file.fileSize);
     },
     remove: function () {
       if (flushed) {
