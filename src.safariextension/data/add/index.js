@@ -21,3 +21,13 @@ background.receive('folder', function (folder) {
     });
   });
 });
+
+background.receive('init', function (obj) {
+  for (let name in obj) {
+    let elem = document.querySelector('[data-id="' + name + '"]');
+    if (elem && obj[name]) {
+      elem.value = obj[name];
+    }
+  }
+});
+background.send('init');

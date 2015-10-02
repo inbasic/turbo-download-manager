@@ -112,6 +112,11 @@ app.manager.receive('open', function (cmd) {
 /* add ui */
 app.add.receive('download', function (obj) {
   app.manager.send('hide');
+  app.storage.write('save-add-ui', JSON.stringify({
+    threads: obj.threads,
+    timeout: obj.timeout,
+    folder: obj.folder
+  }));
   download(obj);
 });
 app.add.receive('cmd', function (obj) {
@@ -119,5 +124,11 @@ app.add.receive('cmd', function (obj) {
     app.disk.browse().then(function (folder) {
       app.add.send('folder', folder);
     }, function () {});
+  }
+});
+app.add.receive('init', function () {
+  var json = app.storage.read('save-add-ui');
+  if (json) {
+    app.add.send('init', JSON.parse(json));
   }
 });
