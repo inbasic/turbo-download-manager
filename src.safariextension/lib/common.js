@@ -114,3 +114,10 @@ app.add.receive('download', function (obj) {
   app.manager.send('hide');
   download(obj);
 });
+app.add.receive('cmd', function (obj) {
+  if (obj.cmd === 'browse') {
+    app.disk.browse().then(function (folder) {
+      app.add.send('folder', folder);
+    }, function () {});
+  }
+});

@@ -112,7 +112,6 @@ var get = function (id) {
 // add
 (function (add, loader, iframe) {
   add.addEventListener('click', function () {
-    console.error(99);
     loader.dataset.visible = true;
     iframe.src = '../add/index.html';
   });

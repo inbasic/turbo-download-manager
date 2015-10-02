@@ -194,7 +194,8 @@ exports.notification = function (text) {
 };
 
 exports.File = function (obj) { // {name, path, mime}
-  var file, flushed = false;
+  let file, flushed = false;
+
   return {
     open: function () {
       file = obj.path ? FileUtils.File(obj.path) : FileUtils.getFile('DfltDwnld', []);
@@ -260,6 +261,28 @@ exports.File = function (obj) { // {name, path, mime}
     }
   };
 };
+
+exports.disk = (function () {
+  let filePicker = Cc['@mozilla.org/filepicker;1']
+    .createInstance(Ci.nsIFilePicker);
+  return {
+    browse: function () {
+      let d = defer();
+      let window = Services.wm.getMostRecentWindow('navigator:browser');
+      filePicker.init(window, 'Save in', Ci.nsIFilePicker.modeGetFolder);
+      filePicker.appendFilters(Ci.nsIFilePicker.filterAll );
+      let pickerStatus = filePicker.show();
+      if (pickerStatus === Ci.nsIFilePicker.returnOK || pickerStatus === Ci.nsIFilePicker.returnReplace) {
+        var path = filePicker.file.path;
+        d.resolve(path);
+      }
+      else {
+        d.reject();
+      }
+      return d.promise;
+    }
+  };
+})();
 
 // Overlay Manager
 (function () {

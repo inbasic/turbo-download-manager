@@ -14,7 +14,7 @@ config.mwget = {
 
 config.wget = {
   threads: 5,
-  timeout: 25, // seconds,
+  timeout: 30, // seconds,
   retrie: 100
 };
 
