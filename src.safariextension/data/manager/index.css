@@ -28,8 +28,14 @@ body {
   content: '\e804';
   font-size: 180%;
   line-height: 30px;
-  margin-right: 0.1em;
   transform: rotate(90deg);
+}
+@-moz-document url-prefix() {
+  .firefox {
+    #menu div[data-role=button]:before {
+      margin-right: 0.1em;
+    }
+  }
 }
 #menu ul {
   width: 150px;

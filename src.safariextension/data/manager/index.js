@@ -54,11 +54,11 @@ var toolbar = (function (search) {
       [].forEach.call(items, i => i.dataset.filtered = false);
     }
   }
-  search.addEventListener('search', filter);
+  search.addEventListener('input', filter);
   return {
     set search (value) {
       search.value = value;
-      search.dispatchEvent(new Event('search'));
+      search.dispatchEvent(new Event('input'));
     }
   };
 })(document.querySelector('#toolbar input[type=search]'));
