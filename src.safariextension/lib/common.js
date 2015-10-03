@@ -40,6 +40,7 @@ function download (obj) {
   obj.threads = obj.threads || config.wget.threads;
   obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
   obj.retries = obj.retries || config.wget.retrie;
+  obj.folder = obj.folder || config.persist.add.folder;
   mwget.download(obj);
 }
 /* connect */
@@ -130,8 +131,9 @@ app.add.receive('cmd', function (obj) {
   }
 });
 app.add.receive('init', function () {
-  var json = app.storage.read('save-add-ui');
+  let json = config.persist.add;
   if (json) {
-    app.add.send('init', JSON.parse(json));
+    app.add.send('init', json);
   }
 });
+

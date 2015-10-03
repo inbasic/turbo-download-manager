@@ -5,6 +5,26 @@ if (typeof require !== 'undefined') {
   var config = exports;
 }
 
+config.persist = (function () {
+  let add;
+  function updateAdd () {
+    let json = app.storage.read('save-add-ui');
+    if (json) {
+      add = JSON.parse(json);
+    }
+  }
+  app.once('load', function () {
+    updateAdd();
+    app.storage.on('save-add-ui', updateAdd);
+  });
+
+  return {
+    get add () {
+      return add;
+    }
+  };
+})();
+
 config.mwget = {
   percent: {
     'rate-total': 1, // seconds

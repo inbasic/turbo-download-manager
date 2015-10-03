@@ -40,6 +40,8 @@ exports.EventEmitter = function () {
   };
   return tmp;
 };
+// this needs to be fired after firefox.js is loaded on all modules
+timers.setTimeout(() => exports.emit('load'), 3000);
 
 // Event Emitter
 exports.on = on.bind(null, exports);
@@ -120,6 +122,9 @@ exports.storage = {
     else {
       prefs[id] = data + '';
     }
+  },
+  on: function (name, callback) {
+    sp.on(name, callback);
   }
 };
 

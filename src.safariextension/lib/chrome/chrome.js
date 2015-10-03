@@ -1,7 +1,6 @@
-/* globals CryptoJS */
+/* globals CryptoJS, app */
 'use strict';
 
-var app = new EventEmitter();
 app.globals = {
   browser: navigator.userAgent.indexOf('OPR') === -1 ? 'chrome' : 'opera'
 };
@@ -31,6 +30,13 @@ app.storage = (function () {
       var tmp = {};
       tmp[id] = data;
       chrome.storage.local.set(tmp, function () {});
+    },
+    on: function (name, callback) {
+      chrome.storage.onChanged.addListener(function (obj) {
+        if (name in obj) {
+          callback();
+        }
+      });
     }
   };
 })();
