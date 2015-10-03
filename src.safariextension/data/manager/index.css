@@ -244,7 +244,7 @@ body {
 
 /* add */
 #add {
-  position: absolute;
+  position: fixed;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -290,4 +290,9 @@ body {
   height: 80%;
   background-color: #fff;
   border: none;
+}
+@media (max-width: 600px) {
+  #loader iframe {
+    width: 90%;
+  }
 }

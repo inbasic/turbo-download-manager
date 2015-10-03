@@ -141,10 +141,13 @@ exports.tab = {
   },
   list: function () {
     var temp = [];
-    for each (var tab in tabs) {
-      if (tab.url) {
-        temp.push(tab);
+    for (let tab of tabs) {
+      try {
+        if (tab && tab.url) {
+          temp.push(tab);
+        }
       }
+      catch (e) {}
     }
     return resolve(temp);
   },
@@ -154,13 +157,15 @@ exports.tab = {
   },
   activate: function (tab) {
     tab.activate();
-    tab.window.activate();
+    if ('window' in tab) {
+      tab.window.activate();
+    }
     return resolve(tab);
   }
 };
 unload.when(function () {
   exports.tab.list().then(function (tabs) {
-    tabs.filter(t => t.url.indexOf(data.url('')) === 0).forEach(t => t.close());
+    tabs.filter(t => t && t.url.indexOf(data.url('')) === 0).forEach(t => t.close());
   });
 });
 
@@ -340,7 +345,7 @@ exports.manager = (function () {
     include: data.url('manager/index.html'),
     contentScriptFile: [data.url('./manager/firefox/firefox.js'), data.url('./manager/index.js')],
     contentScriptWhen: 'ready',
-    attachTo: ['top'],
+    attachTo: ['top', 'existing'],
     contentScriptOptions: {
       base: data.url('.')
     },
@@ -376,7 +381,7 @@ exports.add = (function () {
     include: data.url('add/index.html'),
     contentScriptFile: [data.url('./add/firefox/firefox.js'), data.url('./add/index.js')],
     contentScriptWhen: 'ready',
-    attachTo: ['top', 'frame'],
+    attachTo: ['top', 'frame', 'existing'],
     contentScriptOptions: {
       base: data.url('.')
     },
