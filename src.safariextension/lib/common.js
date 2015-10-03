@@ -63,6 +63,9 @@ mwget.addEventListener('details', function (id, type, value) {
   if (type === 'count') {
     app.manager.send('count', {id, count: value});
   }
+  if (type === 'info') {
+    app.manager.send('size', {id, size: value.length});
+  }
 });
 mwget.addEventListener('percent', function (id, remained, length) {
   let tmp = (length - remained) / length * 100;

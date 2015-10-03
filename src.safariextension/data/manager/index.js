@@ -166,6 +166,12 @@ background.receive('name', function (obj) {
     item.name = obj.name;
   }
 });
+background.receive('size', function (obj) {
+  let item = get(obj.id);
+  if (item) {
+    item.size = obj.size;
+  }
+});
 background.receive('status', function (obj) {
   let item = get(obj.id);
   if (item) {
@@ -207,5 +213,3 @@ document.addEventListener('click', function (e) {
     });
   }
 });
-
-console.error(9);
