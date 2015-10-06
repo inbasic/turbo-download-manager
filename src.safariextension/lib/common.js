@@ -39,6 +39,7 @@ app.button.onCommand(function () {
 function download (obj) {
   obj.threads = obj.threads || config.wget.threads;
   obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
+  obj.update = obj.update * 1000 || config.wget.update * 1000;
   obj.retries = obj.retries || config.wget.retrie;
   obj.folder = obj.folder || config.persist.add.folder;
   mwget.download(obj);
@@ -75,6 +76,9 @@ mwget.addEventListener('percent', function (id, remained, length) {
 mwget.addEventListener('total-percent', function (percent) {
   app.manager.send('total-percent', percent);
 });
+mwget.addEventListener('speed', function (id, speed, remained) {
+  app.manager.send('speed', {id, speed, time: remained / speed});
+});
 mwget.addEventListener('progress', function (id, stat) {
   app.manager.send('progress', {id, stat});
 });
@@ -87,7 +91,8 @@ app.manager.receive('init', function () {
       'size': instance.info ? instance.info.length : 0,
       'percent': instance.info ? (instance.info.length - instance.remained) / instance.info.length * 100 : 0,
       'stats': mwget.stats(id),
-      'status': instance.status
+      'status': instance.status,
+      'speed': instance.speed
     });
   });
 });

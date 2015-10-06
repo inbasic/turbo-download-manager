@@ -10,6 +10,18 @@ function bytesToSize(bytes) {
   var i = Math.floor(Math.log(bytes) / Math.log(k));
   return (bytes / Math.pow(k, i)).toFixed(i ? 1 : 0) + ' ' + sizes[i];
 }
+function intervalToTime (sec) {
+  let x = sec;
+  let seconds = ('00' + parseInt(x % 60)).substr(-2);
+  x /= 60;
+  let minutes = ('00' + parseInt(x % 60)).substr(-2);
+  x /= 60;
+  let hours = ('00' + parseInt(x % 24)).substr(-2);
+  x /= 24;
+  let days = ('00' + parseInt(x)).substr(-2);
+
+  return [days,hours,  minutes, seconds].join(':');
+}
 // menu
 (function (button, menu) {
   // clear
@@ -72,6 +84,8 @@ var get = function (id) {
   var overal = parent.querySelector('[data-type=overal]>div');
   var percent = parent.querySelector('[data-type=percent]');
   var size = parent.querySelector('[data-type=size]');
+  var speed = parent.querySelector('[data-type=speed]');
+  var time = parent.querySelector('[data-type=time]');
   var name = parent.querySelector('[data-type=name]');
   var threads = parent.querySelector('[data-type=threads]');
 
@@ -91,6 +105,12 @@ var get = function (id) {
     },
     set threads (n) { // jshint ignore: line
       threads.textContent = n;
+    },
+    set speed (s) { // jshint ignore: line
+      speed.textContent = bytesToSize(s) + '/s';
+    },
+    set time (s) { // jshint ignore: line
+      time.textContent = s;
     },
     partial: function (id, offset, percent, color) {
       var holder = parent.querySelector('[data-type=partial]');
@@ -146,6 +166,7 @@ background.receive('add', function (obj) {
   item.size = obj.size;
   item.name = obj.name;
   item.status = obj.status;
+  item.speed = obj.speed;
   for (let id in obj.stats) {
     let stat = obj.stats[id];
     item.partial(id, stat.start * 100, stat.width * 100, id);
@@ -158,6 +179,13 @@ background.receive('percent', function (obj) {
   let item = get(obj.id);
   if (item) {
     item.percent = obj.percent;
+  }
+});
+background.receive('speed', function (obj) {
+  let item = get(obj.id);
+  if (item) {
+    item.speed = obj.speed;
+    item.time = intervalToTime(obj.time);
   }
 });
 background.receive('name', function (obj) {

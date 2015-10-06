@@ -6,7 +6,7 @@ if (typeof require !== 'undefined') {
 }
 
 config.persist = (function () {
-  let add;
+  let add = {};
   function updateAdd () {
     let json = app.storage.read('save-add-ui');
     if (json) {
@@ -35,7 +35,8 @@ config.mwget = {
 config.wget = {
   threads: 5,
   timeout: 30, // seconds,
-  retrie: 100
+  retrie: 100,
+  update: 1 // second
 };
 
 config.icon = {

@@ -29,7 +29,7 @@ if (typeof require !== 'undefined') {
     let req = new app.XMLHttpRequest();
     let d = app.Promise.defer();
 
-    req.onprogress = (e) => obj.event.emit('raw-progress', e);
+    req.onprogress = (e) => obj.event.emit('progress@xhr', e);
     req.onerror = () => done('error');
     req.onload = () => done('done');
     req.ontimeout = () => done('timeout');
@@ -77,7 +77,7 @@ if (typeof require !== 'undefined') {
     obj.headers = obj.headers || {};
     obj.headers.Range = `bytes=${range.start}-${range.end}`;
     event.on('length', len => length = len);
-    event.on('raw-progress', function (e) {
+    event.on('progress@xhr', function (e) {
       let tmp = {offset: offset};
       let buffer = app.globals.browser === 'firefox' ? e.target.response : e.target.response.substr(offset);
       tmp.buffer = length && e.loaded > length ? buffer.substr(0, length - offset) : buffer;
@@ -384,7 +384,51 @@ if (typeof require !== 'undefined') {
     });
     return a;
   }
-  wget.download = bget;
+  /* handling speed measurement */
+  function cget (obj) {
+    let b = bget(obj);
+    let id, stats = [0];
+    obj.update = obj.update || 1000;
+
+    function done (a) {
+      app.timer.clearInterval(id);
+      update();
+      return a;
+    }
+    function speed () {
+      return stats.reduce((p, c) => p + c, 0) / stats.length / obj.update * 1000;
+    }
+    function update () {
+      b.event.emit('speed', speed());
+      stats.push(0);
+      stats = stats.slice(-10);
+    }
+    function start () {
+      id = app.timer.setInterval(update, obj.update);
+    }
+
+    b.event.on('progress', function (d, obj) {
+      stats[stats.length - 1] += obj.buffer.length;
+    });
+    b.event.on('pause', function () {
+      stats = [0];
+      done();
+    });
+    b.event.on('resume', start);
+
+    start();
+
+    b.promise.then(done, done);
+
+    Object.defineProperty(b, 'speed', {
+      get: function () {
+        return speed();
+      }
+    });
+
+    return b;
+  }
+  wget.download = cget;
 })();
 /*
 (function (c) {
