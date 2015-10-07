@@ -102,6 +102,7 @@ if (typeof require !== 'undefined') {
       let encoding = req.getResponseHeader('Content-Encoding');
       d.resolve({
         'length': length,
+        'url': req.responseURL,
         'encoding': req.getResponseHeader('Content-Encoding'),
         'mime': req.getResponseHeader('Content-Type'),
         'multi-thread': !!length && encoding === null &&
@@ -244,8 +245,7 @@ if (typeof require !== 'undefined') {
       });
     }
     //
-    event.on('info', function (i) {
-      info = i;
+    event.on('info', function () {
       log('[a]', info);
       if (!info['multi-thread']) {
         obj.threads = 1;
@@ -286,7 +286,13 @@ if (typeof require !== 'undefined') {
     // getting header
     app.Promise.race([obj.url, obj.url, obj.url].map(head))
       .then(
-        event.emit.bind(event, 'info'),
+        function (i) {
+          info = i;
+          if (info.url) { // bypass redirects
+            obj.url = info.url;
+          }
+          event.emit('info', info);
+        },
         () => done('error')
       );
     return {
