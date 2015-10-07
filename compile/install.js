@@ -163,7 +163,7 @@ glob("**/.DS_Store", {}, function (err, files1) {
             break;
           case 4:
             cfx.stdin.write(
-              "cfx --templatedir=../template " + /*--force-mobile*/
+              "cfx --force-mobile --templatedir=../template " + /*--force-mobile*/
               ((program.xpi || program.wget) ? "xpi --output-file ./executables/extension.xpi&&echo step 4" : (
                 "run" + (program.jsconsole ? " --binary-args -jsconsole" : "") + "&&echo step 4"
               )) + "\n"
