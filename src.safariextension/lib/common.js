@@ -42,6 +42,10 @@ function download (obj) {
   obj.update = obj.update * 1000 || config.wget.update * 1000;
   obj.retries = obj.retries || config.wget.retrie;
   obj.folder = obj.folder || config.persist.add.folder;
+  if (!obj.folder && !app.storage.read('notice-download') && app.globals.browser === 'firefox') {
+    app.notification('Saving in the default download directory. Add a new job from manager to change the directory.');
+    app.storage.write('notice-download', 'shown');
+  }
   mwget.download(obj);
 }
 /* connect */
