@@ -19,6 +19,9 @@ background.receive('folder', function (folder) {
     background.send('cmd', {
       cmd: elem.dataset.cmd
     });
+    if (elem.dataset.cmd === 'empty') {
+      document.querySelector('[data-id=folder]').value = '';
+    }
   });
 });
 

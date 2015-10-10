@@ -138,6 +138,11 @@ app.add.receive('cmd', function (obj) {
       app.add.send('folder', folder);
     }, function () {});
   }
+  if (obj.cmd === 'empty') {
+    let tmp = config.persist.add;
+    tmp.folder = '';
+    app.storage.write('save-add-ui', JSON.stringify(tmp));
+  }
 });
 app.add.receive('init', function () {
   let json = config.persist.add;

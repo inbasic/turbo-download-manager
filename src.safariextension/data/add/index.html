@@ -6,12 +6,12 @@
     <meta name=viewport content="width=device-width, initial-scale=1">
   </head>
   <body>
-    <div>
+    <form>
       <table>
         <tbody>
           <tr>
             <td>Download:</td>
-            <td><input data-id="url" type="text" placeholder="http(s)://a-downloadable-link"></td>
+            <td><input data-id="url" type="text" placeholder="http(s)://a-downloadable-link" autofocus></td>
           </tr>
           <tr>
             <td>Referring page:</td>
@@ -31,7 +31,11 @@
           </tr>
           <tr class="firefox">
             <td>Save in<sup>*</sup>:</td>
-            <td><input data-id="folder" type="text" disabled="true" placeholder="use browse button to select a folder"><input type="button" value="Browse" data-cmd="browse"></td>
+            <td>
+              <input data-id="folder" type="text" disabled="true" placeholder="Default downlaod directory">
+              <input type="button" value="Browse" data-cmd="browse">
+              <input type="button" value="Reset" data-cmd="empty">
+            </td>
           </tr>
         </tbody>
       </table>
@@ -39,7 +43,7 @@
         <input type="button" value="Add as a new Job">
         *: This value is stored when a new job is added
       </div>
-    </div>
+    </form>
     <script src="shadow_index.js"></script>
   </body>
 </html>

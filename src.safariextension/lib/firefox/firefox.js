@@ -208,7 +208,17 @@ exports.File = function (obj) { // {name, path, mime}
 
   return {
     open: function () {
-      file = obj.path ? FileUtils.File(obj.path) : FileUtils.getFile('DfltDwnld', []);
+      if (obj.path) {
+        file = FileUtils.File(obj.path);
+      }
+      else {
+        try {
+          file = Services.prefs.getBranch('browser.download.').getComplexValue('dir', Ci.nsILocalFile);
+        }
+        catch (e) {
+          file = FileUtils.getFile('DfltDwnld', []);
+        }
+      }
       file.append(obj.name);
       file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
       return file.path;
