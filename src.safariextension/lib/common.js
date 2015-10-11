@@ -40,6 +40,7 @@ function download (obj) {
   obj.threads = obj.threads || config.wget.threads;
   obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
   obj.update = obj.update * 1000 || config.wget.update * 1000;
+  obj.pause = obj.pause || config.wget.pause;
   obj.retries = obj.retries || config.wget.retrie;
   obj.folder = obj.folder || config.persist.add.folder;
   if (!obj.folder && !app.storage.read('notice-download') && app.globals.browser === 'firefox') {
@@ -72,6 +73,9 @@ mwget.addEventListener('details', function (id, type, value) {
   if (type === 'info') {
     app.manager.send('size', {id, size: value.length});
   }
+  if (type === 'retries') {
+    app.manager.send('retries', {id, retries: value});
+  }
 });
 mwget.addEventListener('percent', function (id, remained, length) {
   let tmp = (length - remained) / length * 100;
@@ -96,7 +100,8 @@ app.manager.receive('init', function () {
       'percent': instance.info ? (instance.info.length - instance.remained) / instance.info.length * 100 : 0,
       'stats': mwget.stats(id),
       'status': instance.status,
-      'speed': instance.speed
+      'speed': instance.speed,
+      'retries': instance.retries
     });
   });
 });

@@ -88,6 +88,7 @@ var get = function (id) {
   var time = parent.querySelector('[data-type=time]');
   var name = parent.querySelector('[data-type=name]');
   var threads = parent.querySelector('[data-type=threads]');
+  var retries = parent.querySelector('[data-type=retries]');
 
   return {
     set percent (p) { // jshint ignore: line
@@ -105,6 +106,9 @@ var get = function (id) {
     },
     set threads (n) { // jshint ignore: line
       threads.textContent = n;
+    },
+    set retries (n) { // jshint ignore: line
+      retries.textContent = n;
     },
     set speed (s) { // jshint ignore: line
       speed.textContent = bytesToSize(s) + '/s';
@@ -167,6 +171,7 @@ background.receive('add', function (obj) {
   item.name = obj.name;
   item.status = obj.status;
   item.speed = obj.speed;
+  item.retries = obj.retries;
   for (let id in obj.stats) {
     let stat = obj.stats[id];
     item.partial(id, stat.start * 100, stat.width * 100, id);
@@ -210,6 +215,12 @@ background.receive('count', function (obj) {
   let item = get(obj.id);
   if (item) {
     item.threads = obj.count;
+  }
+});
+background.receive('retries', function (obj) {
+  let item = get(obj.id);
+  if (item) {
+    item.retries = obj.retries;
   }
 });
 background.receive('progress', function (obj) {

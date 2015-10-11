@@ -75,6 +75,7 @@ if (typeof require !== 'undefined') {
       instance.event.on('status', (c) => callbacks.details.forEach(d => d(index, 'status', c)));
       instance.event.on('count', (c) => callbacks.details.forEach(d => d(index, 'count', c)));
       instance.event.on('md5', (c) => callbacks.details.forEach(d => d(index, 'md5', c)));
+      instance.event.on('retries', (c) => callbacks.details.forEach(d => d(index, 'retries', c)));
       instance.event.once('info', (c) => callbacks.details.forEach(d => d(index, 'info', c)));
       instance.event.on('speed', (s) => callbacks.speed.forEach(d => d(index, s, instance.remained)));
       instance.event.on('percent', function (remained, size) {

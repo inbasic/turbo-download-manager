@@ -31,8 +31,8 @@ if (typeof require !== 'undefined') {
 
     req.onprogress = (e) => obj.event.emit('progress@xhr', e);
     req.onerror = () => done('error');
-    req.onload = () => done('done');
     req.ontimeout = () => done('timeout');
+    req.onload = () => done('done');
 
     req.open('GET', obj.url, true);
     req.timeout = obj.timeout;
@@ -48,19 +48,24 @@ if (typeof require !== 'undefined') {
       status = 'downloading';
     }, obj.delay || 0);
     function abort () {
-      if (status === 'ready' && id) {
-        done('abort');
-      }
       if (status === 'downloading') {
         req.abort();
-        done('abort');
+        return done('abort');
       }
+      return done('abort');
     }
     obj.event.on('abort', abort);
+    function mismatch () {
+      req.abort();
+      done('error');
+    }
+    obj.event.on('size-mismatch', mismatch);
+
     function done (s) {
       status = s || status;
       d.resolve(status);
       obj.event.removeListener('abort', abort);
+      obj.event.removeListener('size-mismatch', mismatch);
       obj.event.emit = function () {};
       app.timer.clearTimeout(id);
     }
@@ -78,15 +83,20 @@ if (typeof require !== 'undefined') {
     obj.headers.Range = `bytes=${range.start}-${range.end}`;
     event.on('length', len => length = len);
     event.on('progress@xhr', function (e) {
-      let tmp = {offset: offset};
-      let buffer = app.globals.browser === 'firefox' ? e.target.response : e.target.response.substr(offset);
-      tmp.buffer = length && e.loaded > length ? buffer.substr(0, length - offset) : buffer;
-      if (tmp.buffer.length) {
-        event.emit('progress', tmp);
+      if (e.total !== range.end - range.start + 1) {
+        event.emit('size-mismatch');
       }
-      offset += tmp.buffer.length;
-      if (length && e.loaded > length) {
-        event.emit('abort');
+      else {
+        let tmp = {offset: offset};
+        let buffer = app.globals.browser === 'firefox' ? e.target.response : e.target.response.substr(offset);
+        tmp.buffer = length && e.loaded > length ? buffer.substr(0, length - offset) : buffer;
+        if (tmp.buffer.length) {
+          event.emit('progress', tmp);
+        }
+        offset += tmp.buffer.length;
+        if (length && e.loaded > length) {
+          event.emit('abort');
+        }
       }
     });
     let segment = xhr(obj);
@@ -207,6 +217,7 @@ if (typeof require !== 'undefined') {
           end: obj.offset + obj.buffer.length + range.start - 1
         });
       });
+      e.on('size-mismatch', () => log('[a]', 'aborting because of size mismatch'));
       let c = chunk(obj, range, e);
       let tmp = {
         get status () {
@@ -232,6 +243,7 @@ if (typeof require !== 'undefined') {
         else {
           if (retries < obj.retries) {
             retries += 1;
+            event.emit('retries', retries);
             // removing locked ranges inside the chunk with error code
             internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
             log('[a]', `chunk exited with error. Number of retries left: ${obj.retries - retries}. Retrying ...`);
@@ -273,6 +285,11 @@ if (typeof require !== 'undefined') {
     event.on('resume', function () {
       if (status === 'pause') {
         retries = 0;
+        event.emit('retries', retries);
+        if (internals.locks.length) {
+          log('[a]', 'internals.locks is not empty');
+          internals.locks = [];
+        }
         status = 'download';
         event.emit('status', status);
         schedule();
@@ -299,6 +316,7 @@ if (typeof require !== 'undefined') {
       event: event,
       promise: d.promise,
       get status () {return status;},
+      get retries () {return retries;},
       get info () {return info;},
       get internals () {return internals;},
     };

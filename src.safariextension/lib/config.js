@@ -35,8 +35,9 @@ config.mwget = {
 config.wget = {
   threads: 5,
   timeout: 30, // seconds,
-  retrie: 100,
-  update: 1 // second
+  retrie: 30,
+  update: 1, // second
+  pause: 100 // milliseconds
 };
 
 config.icon = {
