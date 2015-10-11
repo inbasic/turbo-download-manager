@@ -21,7 +21,8 @@ if (typeof require !== 'undefined') {
     'details': [],
     'percent': [],
     'total-percent': [],
-    'speed': []
+    'speed': [],
+    'logs': []
   };
   function count () {
     let c = instances.filter(i => i.status === 'download').length;
@@ -51,6 +52,22 @@ if (typeof require !== 'undefined') {
     if (utils.validate(obj.url)) {
       let instance = wget.download(obj);
       instance.stats = {};
+      instance.log = (function () {
+        let arr = [];
+        return {
+          push: function (a) {
+            a = {
+              log: a,
+              date: (new Date()).toLocaleTimeString()
+            };
+            arr.push(a);
+            instance.event.emit('log', a);
+          },
+          get: function () {
+            return arr;
+          }
+        };
+      })();
       let index = instances.push(instance) - 1;
       instance.promise.then(function (status) {
         app.timer.setTimeout(count, 500);
@@ -71,13 +88,26 @@ if (typeof require !== 'undefined') {
         instance.stats[tmp.id] = tmp;
         callbacks.progress.forEach(p => p(index, tmp));
       });
+      instance.event.on('log', (c) => callbacks.logs.forEach(d => d(index, c)));
       instance.event.on('name', (c) => callbacks.details.forEach(d => d(index, 'name', c)));
-      instance.event.on('status', (c) => callbacks.details.forEach(d => d(index, 'status', c)));
+      instance.event.on('status', function (c) {
+        instance.log.push('Download status changed to "' + c + '"');
+        callbacks.details.forEach(d => d(index, 'status', c));
+      });
       instance.event.on('count', (c) => callbacks.details.forEach(d => d(index, 'count', c)));
-      instance.event.on('md5', (c) => callbacks.details.forEach(d => d(index, 'md5', c)));
       instance.event.on('retries', (c) => callbacks.details.forEach(d => d(index, 'retries', c)));
-      instance.event.once('info', (c) => callbacks.details.forEach(d => d(index, 'info', c)));
+      instance.event.once('info', function (c) {
+        instance.log.push('File mime is "' + c.mime + '"');
+        instance.log.push('Actual downloadable URL is "' + c.url + '"');
+        instance.log.push('File encoding is "' + c.encoding + '"');
+        instance.log.push('Server multi-threading status is: ' + c['multi-thread']);
+        instance.log.push('File length in bytes is "' + c.length + '"');
+        callbacks.details.forEach(d => d(index, 'info', c));
+      });
+      instance.event.once('size-mismatch', () => instance.log.push('File size has been changed'));
       instance.event.on('speed', (s) => callbacks.speed.forEach(d => d(index, s, instance.remained)));
+      instance.event.on('md5', (md5) => instance.log.push('MD5 checksum is "' + md5 + '"'));
+
       instance.event.on('percent', function (remained, size) {
         instance.remained = remained;
         callbacks.percent.forEach(p => p(index, remained, size));
@@ -96,6 +126,9 @@ if (typeof require !== 'undefined') {
   };
   mwget.get = function (id) {
     return instances[id];
+  };
+  mwget.log = function (id) {
+    return instances[id].log.get();
   };
   mwget.stats = function (index) {
     let wget = instances[index];

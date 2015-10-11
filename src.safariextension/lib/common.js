@@ -66,6 +66,7 @@ mwget.addEventListener('details', function (id, type, value) {
   }
   if (type === 'status') {
     app.manager.send('status', {id, status: value});
+    app.info.send('status', {id, status: value});
   }
   if (type === 'count') {
     app.manager.send('count', {id, count: value});
@@ -89,6 +90,9 @@ mwget.addEventListener('speed', function (id, speed, remained) {
 });
 mwget.addEventListener('progress', function (id, stat) {
   app.manager.send('progress', {id, stat});
+});
+mwget.addEventListener('logs', function (id, log) {
+  app.info.send('log', {id, log: [log]});
 });
 app.manager.receive('init', function () {
   let instances = mwget.list();
@@ -117,6 +121,9 @@ app.manager.receive('cmd', function (obj) {
   }
   if (obj.cmd === 'cancel') {
     mwget.cancel(obj.id);
+  }
+  if (obj.cmd === 'info') {
+    app.manager.send('info', obj.id);
   }
 });
 app.manager.receive('open', function (cmd) {
@@ -155,4 +162,25 @@ app.add.receive('init', function () {
     app.add.send('init', json);
   }
 });
-
+/* info ui */
+app.info.receive('init', function (id) {
+  app.info.send('log', {
+    id,
+    log: mwget.log(id)
+  });
+  app.info.send('status', {
+    id: id,
+    status: mwget.get(id).status
+  });
+});
+app.info.receive('cmd', function (obj) {
+  if (obj.cmd === 'folder') {
+    mwget.get(obj.id)['internals@b'].file.reveal();
+  }
+  if (obj.cmd === 'file') {
+    mwget.get(obj.id)['internals@b'].file.launch();
+  }
+  if (obj.cmd === 'remove') {
+    mwget.get(obj.id)['internals@b'].file.remove(true);
+  }
+});

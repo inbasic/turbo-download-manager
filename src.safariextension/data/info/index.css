@@ -1,0 +1,57 @@
+body {
+  display: flex;
+  flex-direction: column;
+  height: 95%;
+}
+body,
+table,
+input {
+  font-family: arial;
+  font-size: 12px;
+}
+input {
+  height: 28px;
+}
+pre {
+  margin: 0;
+}
+
+.firefox {
+  display: none;
+}
+@-moz-document url-prefix() {
+  .firefox {
+    display: flex;
+  }
+}
+
+#toolbar {
+  justify-content: center;
+  height: 40px;
+}
+
+body:not([data-status=done]):not([data-status=error]) #toolbar input[data-cmd=remove],
+body:not([data-status=done]):not([data-status=error]) #toolbar input[data-cmd=file] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+#log table {
+  font-family: monospace;
+  width: 100%;
+  border-collapse: collapse;
+}
+#log table tr {
+  vertical-align: top;
+}
+#log table tr:hover {
+  background-color: #e8f0fc;
+}
+#log table td:last-child {
+  padding: 0 6px;
+}
+#log table td:first-child {
+  width: 75px;
+  white-space: nowrap;
+  border-right: solid 10px #d5d5d5;
+}

@@ -133,7 +133,7 @@ var get = function (id) {
     }
   };
 };
-// add
+// add && info
 (function (add, loader, iframe) {
   add.addEventListener('click', function () {
     loader.dataset.visible = true;
@@ -147,7 +147,12 @@ var get = function (id) {
   background.receive('hide', function () {
     loader.dataset.visible = false;
   });
+  background.receive('info', function (id) {
+    loader.dataset.visible = true;
+    iframe.src = '../info/index.html?id=' + id;
+  });
 })(document.getElementById('add'), document.getElementById('loader'), document.querySelector('#loader iframe'));
+
 // items
 function add (id) {
   toolbar.search = '';
@@ -242,11 +247,11 @@ document.addEventListener('click', function (e) {
         let cmd = i.dataset.type === 'download' ? 'pause' : 'resume';
         background.send('cmd', {id: i.dataset.id, cmd});
       }
-      if (target.dataset.cmd === 'trash') {
+      else if (target.dataset.cmd === 'trash') {
         background.send('cmd', {id: i.dataset.id, cmd: target.dataset.cmd});
         remove(i.dataset.id);
       }
-      if (target.dataset.cmd === 'cancel') {
+      else {
         background.send('cmd', {id: i.dataset.id, cmd: target.dataset.cmd});
       }
     });

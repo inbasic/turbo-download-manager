@@ -270,14 +270,30 @@ exports.File = function (obj) { // {name, path, mime}
       flushed = true;
       return resolve(file.fileSize);
     },
-    remove: function () {
-      if (flushed) {
+    remove: function (forced) {
+      if (flushed && !forced) {
         return;
       }
       try {
         file.remove(true);
       }
       catch (e) {}
+    },
+    reveal: function () {
+      try {
+        file.reveal();
+      }
+      catch (e) {
+        exports.notification(e.message);
+      }
+    },
+    launch: function () {
+      try {
+        file.launch();
+      }
+      catch (e) {
+        exports.notification(e.message);
+      }
     }
   };
 };
@@ -395,6 +411,42 @@ exports.add = (function () {
   pageMod.PageMod({
     include: data.url('add/index.html'),
     contentScriptFile: [data.url('./add/firefox/firefox.js'), data.url('./add/index.js')],
+    contentScriptWhen: 'ready',
+    attachTo: ['top', 'frame', 'existing'],
+    contentScriptOptions: {
+      base: data.url('.')
+    },
+    onAttach: function(worker) {
+      array.add(workers, worker);
+      worker.on('pageshow', function() { array.add(workers, this); });
+      worker.on('pagehide', function() { array.remove(workers, this); });
+      worker.on('detach', function() { array.remove(workers, this); });
+      content_script_arr.forEach(function (arr) {
+        worker.port.on(arr[0], arr[1]);
+      });
+    }
+  });
+  return {
+    send: function (id, data) {
+      workers.forEach(function (worker) {
+        worker.port.emit(id, data);
+      });
+    },
+    receive: function (id, callback) {
+      content_script_arr.push([id, callback]);
+      workers.forEach(function (worker) {
+        worker.port.on(id, callback);
+      });
+    }
+  };
+})();
+
+// info
+exports.info = (function () {
+  var workers = [], content_script_arr = [];
+  pageMod.PageMod({
+    include: data.url('info/index.html') + '*',
+    contentScriptFile: [data.url('./info/firefox/firefox.js'), data.url('./info/index.js')],
     contentScriptWhen: 'ready',
     attachTo: ['top', 'frame', 'existing'],
     contentScriptOptions: {

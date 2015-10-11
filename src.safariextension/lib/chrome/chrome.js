@@ -262,6 +262,12 @@ app.File = function (obj) { // {name, path, mime}
     },
     remove: function () {
       cache = {};
+    },
+    launch: function () {
+      app.notification('Not available in this browser');
+    },
+    reveal: function () {
+      app.notification('Not available in this browser');
     }
   };
 };
@@ -301,6 +307,28 @@ app.add = (function () {
     },
     receive: function (id, callback) {
       id += '@ad';
+      chrome.runtime.onMessage.addListener(function (message, sender) {
+        if (id === message.method) {
+          callback.call(sender.tab, message.data);
+        }
+      });
+    }
+  };
+})();
+
+// info
+app.info = (function () {
+  return {
+    send: function (id, data) {
+      id += '@if';
+      chrome.tabs.query({}, function (tabs) {
+        tabs.forEach(function (tab) {
+          chrome.tabs.sendMessage(tab.id, {method: id, data: data}, function () {});
+        });
+      });
+    },
+    receive: function (id, callback) {
+      id += '@if';
       chrome.runtime.onMessage.addListener(function (message, sender) {
         if (id === message.method) {
           callback.call(sender.tab, message.data);
