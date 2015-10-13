@@ -7,18 +7,21 @@ if (typeof require !== 'undefined') {
 }
 /**** wrapper (end) ****/
 
-// @param  {[type]} obj.url     [url]
-// @param  {[type]} obj.folder  [folder path to store download link to (Firefox only)]
-// @param  {[type]} obj.name    [overwrite suggested file-name]
-// @param  {[type]} obj.timeout [timeout]
-// @param  {[type]} obj.retries [number of retries; 50]
-// @param  {[type]} obj.headers [headers; {}]
-// @param  {[type]} obj.delay   [delay in xhr starting; 0 mSeconds]
-// @param  {[type]} obj.pause   [delay in between multiple schedule calls; 100 mSecs]
+// @param  {[type]} obj.url         [url]
+// @param  {[type]} obj.folder      [folder path to store download link to (Firefox only)]
+// @param  {[type]} obj.name        [overwrite suggested file-name]
+// @param  {[type]} obj.timeout     [timeout]
+// @param  {[type]} obj.retries     [number of retries; 50]
+// @param  {[type]} obj.headers     [headers; {}]
+// @param  {[type]} obj.delay       [delay in xhr starting; 0 mSeconds]
+// @param  {[type]} obj.minByteSize [minimum thread size; 50 KBytes]
+// @param  {[type]} obj.maxByteSize [maximum thread size; 20 MBytes]
+// @param  {[type]} obj.pause       [delay in between multiple schedule calls; 100 mSecs]
+
 (function () {
   function log () {
     let args = [].slice.call(arguments);
-    if (log.levels.indexOf(args[0]) !== -1) {
+    if (log.levels.indexOf(args[0]) !== -1)  {
       console.error.apply(console, [(new Date()).toLocaleTimeString()].concat(args.slice(0)));
     }
   }
@@ -164,8 +167,7 @@ if (typeof require !== 'undefined') {
         log('[a]', 'current map', internals.ranges.map(r => `${r.start} - ${r.end}`).join(', '));
         log('[a]', 'internals.locks', internals.locks.map(r => `${r.start} - ${r.end}`).join(', '));
         let ranges = internals.ranges
-          .filter(a => internals.locks.indexOf(a) === -1)
-          .sort((a, b) => (b.end - b.start) - (a.end - a.start));
+          .filter(a => internals.locks.indexOf(a) === -1);
         if (ranges.length) {
           add(obj, ranges[0]);
           internals.locks.push(ranges[0]);
@@ -265,13 +267,20 @@ if (typeof require !== 'undefined') {
       if (info.length === 0) {
         return done('error');
       }
-      (function (arr, len) {
+      (function (len) {
+        len = Math.max(len, obj.minByteSize ||  50 * 1024);
+        len = Math.min(len, obj.maxByteSize || 20 * 1024 * 1024);
+        len = Math.min(info.length, len);
+
+        let threads = Math.floor(info.length / len);
+        let arr = Array.from(new Array(threads), (x, i) => i);
+
         internals.ranges = arr.map((a, i, l) => ({
           start: a * len,
           end: l.length === i + 1 ? info.length - 1 : (a + 1) * len - 1
         }));
         internals.locks = [];
-      })(Array.from(new Array(obj.threads), (x, i) => i), Math.floor(info.length / obj.threads));
+      })(Math.floor(info.length / obj.threads));
       status = 'download';
       event.emit('status', status);
       schedule();
