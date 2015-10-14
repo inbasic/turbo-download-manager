@@ -93,6 +93,9 @@ if (typeof require !== 'undefined') {
       instance.event.on('status', function (c) {
         instance.log.push('Download status changed to "' + c + '"');
         callbacks.details.forEach(d => d(index, 'status', c));
+        if (c === 'pause' && !instance.info['multi-thread']) {
+          instance.event.emit('cancel');
+        }
       });
       instance.event.on('count', (c) => callbacks.details.forEach(d => d(index, 'count', c)));
       instance.event.on('retries', (c) => callbacks.details.forEach(d => d(index, 'retries', c)));

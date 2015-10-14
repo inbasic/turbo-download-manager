@@ -73,6 +73,7 @@ mwget.addEventListener('details', function (id, type, value) {
   }
   if (type === 'info') {
     app.manager.send('size', {id, size: value.length});
+    app.manager.send('chunkable', {id, chunkable: value['multi-thread']});
   }
   if (type === 'retries') {
     app.manager.send('retries', {id, retries: value});
@@ -102,6 +103,7 @@ app.manager.receive('init', function () {
       'name': instance['internals@b'].name,
       'size': instance.info ? instance.info.length : 0,
       'percent': instance.info ? (instance.info.length - instance.remained) / instance.info.length * 100 : 0,
+      'chunkable': instance.info ? instance.info['multi-thread'] : false,
       'stats': mwget.stats(id),
       'status': instance.status,
       'speed': instance.speed,

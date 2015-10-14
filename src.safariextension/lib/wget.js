@@ -78,12 +78,14 @@ if (typeof require !== 'undefined') {
       promise: d.promise
     };
   }
-  function chunk (obj, range, event) {
+  function chunk (obj, range, event, report) {
     let length, offset = 0;
     obj = Object.assign({}, obj); // clone
     obj.event = event;
     obj.headers = obj.headers || {};
-    obj.headers.Range = `bytes=${range.start}-${range.end}`;
+    if (report) { // if download does not support multi-threading do not send range info
+      obj.headers.Range = `bytes=${range.start}-${range.end}`;
+    }
     event.on('length', len => length = len);
     event.on('progress@xhr', function (e) {
       if (e.total !== range.end - range.start + 1) {
@@ -220,7 +222,7 @@ if (typeof require !== 'undefined') {
         });
       });
       e.on('size-mismatch', () => log('[a]', 'aborting because of size mismatch'));
-      let c = chunk(obj, range, e);
+      let c = chunk(obj, range, e, info['multi-thread']);
       let tmp = {
         get status () {
           return c.status;
@@ -243,7 +245,7 @@ if (typeof require !== 'undefined') {
           internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
         }
         else {
-          if (retries < obj.retries) {
+          if (retries < obj.retries && info['multi-thread']) {
             retries += 1;
             event.emit('retries', retries);
             // removing locked ranges inside the chunk with error code
@@ -261,10 +263,10 @@ if (typeof require !== 'undefined') {
     //
     event.on('info', function () {
       log('[a]', info);
-      if (!info['multi-thread']) {
-        obj.threads = 1;
-      }
       if (info.length === 0) {
+        return done('error');
+      }
+      if (info.encoding) {
         return done('error');
       }
       (function (len) {
@@ -273,6 +275,9 @@ if (typeof require !== 'undefined') {
         len = Math.min(info.length, len);
 
         let threads = Math.floor(info.length / len);
+        if (!info['multi-thread']) {
+          threads = 1;
+        }
         let arr = Array.from(new Array(threads), (x, i) => i);
 
         internals.ranges = arr.map((a, i, l) => ({

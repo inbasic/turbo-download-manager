@@ -130,6 +130,12 @@ var get = function (id) {
     },
     set status (val) { // jshint ignore: line
       parent.dataset.type = val;
+    },
+    get chunkable () {
+      return parent.dataset.chunkable;
+    },
+    set chunkable (val) {
+      parent.dataset.chunkable = val;
     }
   };
 };
@@ -177,6 +183,7 @@ background.receive('add', function (obj) {
   item.status = obj.status;
   item.speed = obj.speed;
   item.retries = obj.retries;
+  item.chunkable = obj.chunkable;
   for (let id in obj.stats) {
     let stat = obj.stats[id];
     item.partial(id, stat.start * 100, stat.width * 100, id);
@@ -208,6 +215,12 @@ background.receive('size', function (obj) {
   let item = get(obj.id);
   if (item) {
     item.size = obj.size;
+  }
+});
+background.receive('chunkable', function (obj) {
+  let item = get(obj.id);
+  if (item) {
+    item.chunkable = obj.chunkable;
   }
 });
 background.receive('status', function (obj) {
@@ -245,7 +258,15 @@ document.addEventListener('click', function (e) {
     .forEach(function (i) {
       if (target.dataset.cmd === 'pause') {
         let cmd = i.dataset.type === 'download' ? 'pause' : 'resume';
-        background.send('cmd', {id: i.dataset.id, cmd});
+        if (cmd === 'pause' && i.dataset.chunkable === 'false') {
+          let rtn = window.confirm('Download is not resumable. Pausing will result in termination. Proceed?');
+          if (rtn) {
+            background.send('cmd', {id: i.dataset.id, cmd});
+          }
+        }
+        else {
+          background.send('cmd', {id: i.dataset.id, cmd});
+        }
       }
       else if (target.dataset.cmd === 'trash') {
         background.send('cmd', {id: i.dataset.id, cmd: target.dataset.cmd});
