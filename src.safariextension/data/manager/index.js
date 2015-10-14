@@ -102,7 +102,7 @@ var get = function (id) {
       return name.textContent;
     },
     set name (n) {
-      name.textContent = n;
+      name.textContent = n || name.textContent;
     },
     set threads (n) { // jshint ignore: line
       threads.textContent = n;
