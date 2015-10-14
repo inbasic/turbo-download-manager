@@ -94,7 +94,6 @@ var get = function (id) {
     set percent (p) { // jshint ignore: line
       overal.style.width = p + '%';
       percent.textContent = p.toFixed(1) + '%';
-      console.error(p);
     },
     set size (s) { // jshint ignore: line
       size.textContent = bytesToSize(s);

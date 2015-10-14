@@ -132,7 +132,7 @@ body {
 }
 .item div[data-type=overal]>div {
   height: 100%;
-  width: 10%;
+  width: 0%;
   background-color: green;
 }
 .item div[data-type=partial] {
