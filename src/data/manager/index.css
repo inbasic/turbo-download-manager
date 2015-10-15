@@ -4,6 +4,23 @@ body {
   padding: 0;
   margin: 0;
 }
+input {
+  background: #fff;
+  border: solid 1px rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  padding: 0 5px;
+  margin: 1px;
+  height: 28px;
+}
+input[type=button] {
+  cursor: pointer;
+}
+input:focus{
+  border-color: rgba(0, 0, 0, 0.2);
+}
+input:active{
+  border-color: rgba(0, 0, 0, 0.3);
+}
 
 #menu {
   position: absolute;
@@ -92,6 +109,11 @@ body {
   left: 0;
   top: 0;
   z-index: -1;
+}
+@media (max-height: 200px) {
+  #no-active {
+    display: none;
+  }
 }
 .item:not([data-id="-1"]) ~ #no-active {
   display: none;
@@ -268,6 +290,11 @@ body {
 #add:before {
   content: '\e80c';
 }
+@media (max-height: 300px) {
+  #add {
+    display: none;
+  }
+}
 /* loader */
 #loader {
   position: absolute;
@@ -275,7 +302,7 @@ body {
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.6);
   z-index: 4;
   display: flex;
   align-items: center;

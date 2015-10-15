@@ -73,14 +73,23 @@ app.canvas = function () {
   return document.querySelector('canvas');
 };
 
-app.storage = {
-  read: function (id) {
-    return localStorage[id];
-  },
-  write: function (id, data) {
-    localStorage[id] = data;
+app.storage = (function () {
+  let listen = {};
+  return {
+    read: function (id) {
+      return localStorage[id];
+    },
+    write: function (id, data) {
+      localStorage[id] = data;
+      if (listen[id]) {
+        listen[id]();
+      }
+    },
+    on: function(name, callback) {
+      listen[name] = callback;
+    }
   }
-};
+})();
 
 app.version = function () {
   return 0;
@@ -109,7 +118,10 @@ app.tab = {
 app.menu = function () {};
 
 app.notification = function (msg) {
-  new Notification(msg);
+  new Notification('Turbo Download Manager', {
+    body: msg,
+    icon: '../../data/icons/512.png'
+  });
 };
 
 app.getURL = function (path) {
@@ -192,3 +204,9 @@ app.File = function (obj) { // {name, path, mime}
     }
   };
 };
+
+app.disk = {
+  browse: function () {}
+};
+
+app.emit('load');

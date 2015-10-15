@@ -1,11 +1,19 @@
 {
-  "author": "",
-  "name" : "",
-  "version" : "",
-  "dependencies" :
-    { 
-      "cli-color": "0.2",
-      "commander": "1.1",
-      "glob": "4.0.6"
-    }
+    "id": "jid1-T1Q9uS3ABxzjGA",
+    "version": "",
+    "name": "",
+    "dependencies": {
+        "commander": "1.1",
+        "gulp": "0.1",
+        "gulp-change": "0.1",
+        "gulp-babel": "0.1",
+        "gulp-if": "0.1",
+        "gulp-filter": "0.1",
+        "gulp-shell": "0.1",
+        "gulp-wait": "0.1",
+        "gulp-clean": "0.1",
+        "gulp-zip": "0.1",
+        "run-sequence": "0.1"
+    },
+    "author": ""
 }
