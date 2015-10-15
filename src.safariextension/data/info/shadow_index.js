@@ -2,6 +2,7 @@
 
 var isSafari = typeof safari !== 'undefined';
 var isChrome = typeof chrome !== 'undefined';
+var isWebapp = 'mozApps' in navigator && navigator.userAgent.search('Mobile') !== -1;
 
 function add (url, callback) {
   var head = document.querySelector('head');
@@ -19,6 +20,11 @@ if (isChrome) {
 }
 if (isSafari) {
   add('safari/safari.js', function () {
+    add('index.js');
+  });
+}
+if (isWebapp) {
+  add('webapp/webapp.js', function () {
     add('index.js');
   });
 }

@@ -5,13 +5,33 @@
     body {
       margin: 0;
       padding: 0;
+      overflow: hidden;
     }
+    #manager {
+      position: absolute;
+      top: 0;
+      right: 0;
+      border: none;
+    }
+    canvas {
+      display: none;
+    }
+
     </style>
   </head>
   <body>
-    <iframe width="100%" height="100%" src="../../data/manager/index.html" mozbrowser>
-
-    </iframe>
+    <canvas></canvas>
+    <script src="EventEmitter.js"></script>
+    <script src="FileSaver.js"></script>
+    <script src="md5.js"></script>
+    <script src="definitions.js"></script>
+    <script src="../config.js"></script>
     <script src="webapp.js"></script>
+    <script src="../wget.js"></script>
+    <script src="../icon.js"></script>
+    <script src="../utils.js"></script>
+    <script src="../mwget.js"></script>
+    <script src="../common.js"></script>
+    <iframe id="manager" width="100%" height="100%" src="../../data/manager/index.html"></iframe>
   </body>
 </html>
