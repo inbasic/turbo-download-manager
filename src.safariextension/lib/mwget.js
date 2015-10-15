@@ -103,7 +103,7 @@ if (typeof require !== 'undefined') {
         instance.log.push('File mime is "' + c.mime + '"');
         instance.log.push('Actual downloadable URL is "' + c.url + '"');
         instance.log.push('File encoding is "' + c.encoding + '"');
-        instance.log.push('Server multi-threading status is: ' + c['multi-thread']);
+        instance.log.push('Server multi-threading support status is: ' + c['multi-thread']);
         instance.log.push('File length in bytes is "' + c.length + '"');
         callbacks.details.forEach(d => d(index, 'info', c));
       });

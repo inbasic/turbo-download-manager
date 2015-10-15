@@ -169,7 +169,8 @@ if (typeof require !== 'undefined') {
         log('[a]', 'current map', internals.ranges.map(r => `${r.start} - ${r.end}`).join(', '));
         log('[a]', 'internals.locks', internals.locks.map(r => `${r.start} - ${r.end}`).join(', '));
         let ranges = internals.ranges
-          .filter(a => internals.locks.indexOf(a) === -1);
+          .filter(a => internals.locks.indexOf(a) === -1)
+          .sort((a, b) => a.start - b.start);
         if (ranges.length) {
           add(obj, ranges[0]);
           internals.locks.push(ranges[0]);
@@ -246,8 +247,10 @@ if (typeof require !== 'undefined') {
         }
         else {
           if (retries < obj.retries && info['multi-thread']) {
-            retries += 1;
-            event.emit('retries', retries);
+            if (internals.locks.filter(r => r.start === range.start).length) {
+              retries += 1;
+              event.emit('retries', retries);
+            }
             // removing locked ranges inside the chunk with error code
             internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
             log('[a]', `chunk exited with error. Number of retries left: ${obj.retries - retries}. Retrying ...`);
@@ -439,7 +442,7 @@ if (typeof require !== 'undefined') {
     function update () {
       b.event.emit('speed', speed());
       stats.push(0);
-      stats = stats.slice(-10);
+      stats = stats.slice(-5);
     }
     function start () {
       id = app.timer.setInterval(update, obj.update);
