@@ -11,7 +11,8 @@
     "notifications",
     "contextMenus",
     "webRequest",
-    "<all_urls>"
+    "<all_urls>",
+    "clipboardRead"
   ],
   "web_accessible_resources": [],
   "browser_action": {

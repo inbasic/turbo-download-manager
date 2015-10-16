@@ -209,4 +209,19 @@ app.disk = {
   browse: function () {}
 };
 
+app.OS = (function () {
+  let clipboard = document.querySelector('textarea');
+  return {
+    get clipboard () {
+      let result = '';
+      clipboard.value = '';
+      clipboard.select();
+      if (false && document.execCommand('paste')) {
+        result = clipboard.value;
+      }
+      return result;
+    }
+  };
+})();
+
 app.emit('load');

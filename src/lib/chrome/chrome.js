@@ -14,6 +14,7 @@ app.once('load', function () {
 app.Promise = Promise;
 app.XMLHttpRequest = window.XMLHttpRequest;
 app.EventEmitter = EventEmitter;
+app.timer = window;
 
 app.storage = (function () {
   var objs = {};
@@ -78,19 +79,6 @@ app.getURL = function (path) {
   return chrome.extension.getURL('/data/' + path);
 };
 
-app.popup = {
-  send: function (id, data) {
-    chrome.extension.sendRequest({method: id, data: data});
-  },
-  receive: function (id, callback) {
-    chrome.extension.onRequest.addListener(function (request, sender) {
-      if (request.method === id && !sender.tab) {
-        callback(request.data);
-      }
-    });
-  }
-};
-
 app.tab = {
   open: function (url, inBackground, inCurrent) {
     if (inCurrent) {
@@ -147,52 +135,8 @@ app.notification = function (text) {
   }, function () {});
 };
 
-app.play = (function () {
-  var audio = new Audio();
-  var canPlay = audio.canPlayType('audio/mpeg');
-  if (!canPlay) {
-    audio = document.createElement('iframe');
-    document.body.appendChild(audio);
-  }
-  return function (url) {
-    if (canPlay) {
-      audio.setAttribute('src', url);
-      audio.play();
-    }
-    else {
-      audio.removeAttribute('src');
-      audio.setAttribute('src', url);
-    }
-  };
-})();
-
 app.version = function () {
   return chrome[chrome.runtime && chrome.runtime.getManifest ? 'runtime' : 'extension'].getManifest().version;
-};
-
-app.timer = window;
-
-app.options = {
-  send: function (id, data) {
-    chrome.tabs.query({}, function (tabs) {
-      tabs.forEach(function (tab) {
-        if (tab.url.indexOf(chrome.extension.getURL('data/options/index.html') === 0)) {
-          chrome.tabs.sendMessage(tab.id, {method: id, data: data}, function () {});
-        }
-      });
-    });
-  },
-  receive: function (id, callback) {
-    chrome.runtime.onMessage.addListener(function (message, sender) {
-      if (
-        message.method === id &&
-        sender.tab &&
-        sender.tab.url.indexOf(chrome.extension.getURL('data/options/index.html') === 0)
-      ) {
-        callback.call(sender.tab, message.data);
-      }
-    });
-  }
 };
 
 app.File = function (obj) { // {name, path, mime}
@@ -271,6 +215,21 @@ app.File = function (obj) { // {name, path, mime}
     }
   };
 };
+
+app.OS = (function () {
+  let clipboard = document.querySelector('textarea');
+  return {
+    get clipboard () {
+      let result = '';
+      clipboard.value = '';
+      clipboard.select();
+      if (document.execCommand('paste')) {
+        result = clipboard.value;
+      }
+      return result;
+    }
+  };
+})();
 
 // manager
 app.manager = (function () {

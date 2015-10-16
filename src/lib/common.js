@@ -5,6 +5,7 @@ if (typeof require !== 'undefined') {
   var app = require('./firefox/firefox');
   var config = require('./config');
   var mwget = require('./mwget');
+  var utils = require('./utils');
 }
 /**** wrapper (end) ****/
 
@@ -160,9 +161,11 @@ app.add.receive('cmd', function (obj) {
 });
 app.add.receive('init', function () {
   let json = config.persist.add;
-  if (json) {
-    app.add.send('init', json);
-  }
+  let clipboard = app.OS.clipboard;
+  app.add.send('init', {
+    settings: json || {},
+    clipboard: utils.validate(clipboard) ? clipboard : ''
+  });
 });
 /* info ui */
 app.info.receive('init', function (id) {
