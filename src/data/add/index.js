@@ -34,3 +34,5 @@ background.receive('init', function (obj) {
   }
 });
 background.send('init');
+// autofocus is not working on Firefox
+window.setTimeout(() => document.querySelector('[data-id=url]').focus(), 500);

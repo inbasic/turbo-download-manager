@@ -83,17 +83,14 @@ input:active{
   padding: 5px;
 }
 #toolbar input[type=search] {
-  width: 300px;
+  width: 80%;
+  max-width: 300px;
   height: 30px;
   border: solid 1px rgba(0, 0, 0, 0.1);
   outline: 0;
   padding: 5px;
 }
-@media (max-width: 400px) {
-  #toolbar input[type=search] {
-    width: 200px;
-  }
-}
+
 #toolbar input[type=search]:focus {
   border-color: rgba(0, 0, 0, 0.2);
 }
@@ -110,7 +107,7 @@ input:active{
   top: 0;
   z-index: -1;
 }
-@media (max-height: 200px) {
+@media (max-height: 300px) {
   #no-active {
     display: none;
   }
@@ -290,7 +287,7 @@ input:active{
 #add:before {
   content: '\e80c';
 }
-@media (max-height: 300px) {
+@media (max-height: 200px) {
   #add {
     display: none;
   }
@@ -302,7 +299,7 @@ input:active{
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.7);
   z-index: 4;
   display: flex;
   align-items: center;

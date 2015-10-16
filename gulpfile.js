@@ -13,7 +13,11 @@ var runSequence = require('run-sequence');
 
 /* clean */
 gulp.task('clean', function () {
-  return gulp.src('builds/unpacked', {read: false})
+  return gulp.src([
+    'builds/unpacked/chrome/*',
+    'builds/unpacked/firefox/*',
+    'builds/unpacked/webapp/*',
+  ], {read: false})
     .pipe(clean());
 });
 /* webapp build */
@@ -31,6 +35,9 @@ gulp.task('webapp-build', function () {
     if (f.relative.indexOf('chrome') !== -1) {
       return false;
     }
+    if (f.relative.indexOf('shadow_index.js') !== -1) {
+      return false;
+    }
     if (f.relative.indexOf('safari') !== -1) {
       return false;
     }
@@ -43,6 +50,11 @@ gulp.task('webapp-build', function () {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
   }, change(function (content) {
     return content.replace(/\/\*\*[\s\S]*\\*\*\*\//m, '');
+  })))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.html') !== -1;
+  }, change(function (content) {
+    return content.replace(/.*shadow_index\.js.*/, '    <script src="webapp/webapp.js"></script>\n    <script src="index.js"></script>');
   })))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1 && f.relative.indexOf('EventEmitter.js') === -1;
@@ -79,6 +91,11 @@ gulp.task('chrome-build', function () {
   }, change(function (content) {
     return content.replace(/\/\*\*[\s\S]*\\*\*\*\//m, '');
   })))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.html') !== -1;
+  }, change(function (content) {
+    return content.replace(/.*shadow_index\.js.*/, '    <script src="chrome/chrome.js"></script>\n    <script src="index.js"></script>');
+  })))
   .pipe(gulp.dest('builds/unpacked/chrome'))
   .pipe(zip('chrome.zip'))
   .pipe(gulp.dest('builds/packed'));
@@ -92,10 +109,16 @@ gulp.task('firefox-build', function () {
     if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
       return false;
     }
-    if (f.relative.indexOf('chrome') !== -1 && f.relative !== 'chrome.manifest') {
+    if (f.relative.indexOf('chrome') !== -1 &&
+      f.relative !== 'chrome.manifest' &&
+      f.relative.indexOf('firefox/chrome') === -1
+    ) {
       return false;
     }
     if (f.relative.indexOf('webapp') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('shadow_index.js') !== -1) {
       return false;
     }
     if (f.relative.indexOf('safari') !== -1) {
@@ -106,6 +129,11 @@ gulp.task('firefox-build', function () {
     }
     return true;
   }))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.html') !== -1;
+  }, change(function (content) {
+    return content.replace(/\n.*shadow_index\.js.*/, '');
+  })))
   .pipe(gulp.dest('builds/unpacked/firefox'));
 });
 /* firefox pack */

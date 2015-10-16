@@ -11,6 +11,9 @@ function bytesToSize(bytes) {
   return (bytes / Math.pow(k, i)).toFixed(i ? 1 : 0) + ' ' + sizes[i];
 }
 function intervalToTime (sec) {
+  if (isNaN(sec) || !isFinite(sec)) {
+    return '--:--:--:--';
+  }
   let x = sec;
   let seconds = ('00' + parseInt(x % 60)).substr(-2);
   x /= 60;
@@ -117,8 +120,8 @@ var get = function (id) {
       time.textContent = s;
     },
     partial: function (id, offset, percent, color) {
-      var holder = parent.querySelector('[data-type=partial]');
-      var item = holder.querySelector('div[data-id="' + id + '"');
+      let holder = parent.querySelector('[data-type=partial]');
+      let item = holder.querySelector('div[data-id="' + id + '"]');
       if (!item) {
         item = document.createElement('div');
         holder.appendChild(item);

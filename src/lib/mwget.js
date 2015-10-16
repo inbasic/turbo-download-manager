@@ -97,6 +97,7 @@ if (typeof require !== 'undefined') {
           instance.event.emit('cancel');
         }
       });
+      instance.event.on('cancel', () => percent.now('error'));
       instance.event.on('count', (c) => callbacks.details.forEach(d => d(index, 'count', c)));
       instance.event.on('retries', (c) => callbacks.details.forEach(d => d(index, 'retries', c)));
       instance.event.once('info', function (c) {

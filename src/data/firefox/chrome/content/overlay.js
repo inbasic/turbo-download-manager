@@ -9,7 +9,7 @@ var itdmanager = {
   mode: null,
   pointer: null,
   connect: Components.utils.import(
-    'resource://jid0-dsq67mf5kjjhiiju2dfb6kk8dfw-at-jetpack/itdmanager/data/firefox/shared/connect.jsm'
+    'resource://jid0-dsq67mf5kjjhiiju2dfb6kk8dfw-at-jetpack/data/firefox/shared/connect.jsm'
   ),
 
   initialize: function () {

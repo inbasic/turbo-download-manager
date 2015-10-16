@@ -5,7 +5,7 @@ app.globals = {
   browser: 'firefox'
 };
 
-app.XMLHttpRequest = window.XMLHttpRequest;
+app.XMLHttpRequest = window.XMLHttpRequest.bind(window.XMLHttpRequest, {mozSystem: true});
 app.EventEmitter = EventEmitter;
 
 app.Promise = Promise;
