@@ -13,7 +13,6 @@ var self          = require('sdk/self'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
     xhr           = require('sdk/net/xhr'),
-    clipboard     = require('sdk/clipboard'),
     {all, defer, race, resolve}  = require('sdk/core/promise'),
     {on, off, once, emit} = require('sdk/event/core'),
     {Ci, Cc, Cu, components}  = require('chrome');
@@ -321,11 +320,17 @@ exports.disk = (function () {
   };
 })();
 
-exports.OS = {
-  get clipboard () {
-    return clipboard.get();
+exports.OS = (function () {
+  let clipboard;
+  if (desktop) {
+    clipboard = require('sdk/clipboard');
   }
-};
+  return {
+    get clipboard () {
+      return clipboard ? clipboard.get() : '';
+    }
+  };
+})();
 
 // Overlay Manager
 (function () {
