@@ -1,6 +1,6 @@
 {
   "name": "Turbo Download Manager",
-  "package_path" : "https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/webapp.zip?raw=true",
+  "package_path" : "https://cdn.rawgit.com/inbasic/turbo-download-manager/master/builds/packed/webapp.zip",
   "version": "0.1.7",
   "developer": {
     "name": "InBasic",
