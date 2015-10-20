@@ -399,9 +399,10 @@ if (typeof require !== 'undefined') {
         internals.file = new app.File({
           name: internals.name,
           mime: a.info.mime,
-          path: obj.folder
+          path: obj.folder,
+          length: a.info.length
         });
-        internals.file.open();
+        internals.file.open().catch(() => a.event.emit('error'));
       }
       log('[b]', `writing ${e.offset + o.range.start} - ${e.offset + e.buffer.length + o.range.start - 1}`);
       internals.file.write(e.offset + o.range.start, e.buffer);
@@ -411,8 +412,8 @@ if (typeof require !== 'undefined') {
         internals.file.md5().then(function (md5) {
           internals.md5 = md5;
           a.event.emit('md5', md5);
-          internals.file.flush();
-        });
+          internals.file.flush().catch(() => a.event.emit('error'));
+        }, () => a.event.emit('error'));
       }
       if (status === 'error' && internals.file) {
         internals.file.remove();

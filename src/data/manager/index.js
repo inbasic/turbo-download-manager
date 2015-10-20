@@ -251,6 +251,9 @@ background.receive('progress', function (obj) {
     item.partial(stat.id, stat.start * 100, stat.width * 100, stat.id);
   }
 });
+background.receive('browser', function (browser) {
+  document.body.dataset.browser = browser;
+});
 background.send('init');
 
 /* user interaction */

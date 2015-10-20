@@ -20,6 +20,7 @@ input {
   padding: 0 5px;
   margin: 1px;
   height: 28px;
+  min-height: 28px;
   outline: none;
 }
 input[type=button] {

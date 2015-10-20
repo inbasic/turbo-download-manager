@@ -1,8 +1,13 @@
+html, body {
+  overflow-y: visible;
+}
 body {
   font-family: arial;
   font-size: 12px;
   padding: 0;
   margin: 0;
+  min-width: 100px;
+  min-height: 100px;
 }
 input {
   background: #fff;
@@ -76,6 +81,10 @@ input:active{
 #menu li:active {
   background-color: rgba(0, 0, 0, 0.2);
 }
+body:not([data-browser=chrome]) #menu li[data-role=helper] {
+  display: none;
+}
+
 #toolbar {
   display: flex;
   height: 40px;
@@ -294,7 +303,7 @@ input:active{
 }
 /* loader */
 #loader {
-  position: absolute;
+  position: fixed;
   top: 0;
   left: 0;
   width: 100%;

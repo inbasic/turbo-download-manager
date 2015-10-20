@@ -9,6 +9,8 @@ var shell = require('gulp-shell');
 var wait = require('gulp-wait');
 var clean = require('gulp-clean');
 var zip = require('gulp-zip');
+var rename = require('gulp-rename');
+var util = require('gulp-util');
 var runSequence = require('run-sequence');
 
 /* clean */
@@ -17,6 +19,7 @@ gulp.task('clean', function () {
     'builds/unpacked/chrome/*',
     'builds/unpacked/firefox/*',
     'builds/unpacked/webapp/*',
+    'builds/unpacked/android/*'
   ], {read: false})
     .pipe(clean());
 });
@@ -33,6 +36,9 @@ gulp.task('webapp-build', function () {
       return false;
     }
     if (f.relative.indexOf('chrome') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('android') !== -1) {
       return false;
     }
     if (f.relative.indexOf('shadow_index.js') !== -1) {
@@ -78,13 +84,22 @@ gulp.task('chrome-build', function () {
     if (f.relative.indexOf('webapp') !== -1) {
       return false;
     }
+    if (f.relative.indexOf('android') !== -1) {
+      return false;
+    }
     if (f.relative.indexOf('safari') !== -1) {
       return false;
     }
     if (f.relative.split('/').length === 1) {
-      return f.relative === 'manifest.json' ? true : false;
+      return f.relative === (util.env.app ? 'manifest-app.json' : 'manifest-extension.json') ? true : false;
     }
     return true;
+  }))
+  .pipe(rename(function (path) {
+    if (path.basename === 'manifest-app' || path.basename === 'manifest-extension') {
+      path.basename = 'manifest';
+    }
+    return path;
   }))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
@@ -100,6 +115,68 @@ gulp.task('chrome-build', function () {
   .pipe(zip('chrome.zip'))
   .pipe(gulp.dest('builds/packed'));
 });
+gulp.task('chrome-install', function () {
+  gulp.src('')
+  .pipe(wait(1000))
+  .pipe(shell([
+    '"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --load-and-launch-app=`pwd` &'
+  ], {
+    cwd: './builds/unpacked/chrome'
+  }));
+});
+/* android build */
+gulp.task('android-build', function () {
+  gulp.src([
+    'src/**/*'
+  ])
+  .pipe(gulpFilter(function (f) {
+    if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('firefox') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('webapp') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('chrome') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('safari') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('shadow_index.js') !== -1) {
+      return false;
+    }
+    if (f.relative.split('/').length === 1) {
+      return f.relative === 'manifest-android.json' ? true : false;
+    }
+    return true;
+  }))
+  .pipe(rename(function (path) {
+    if (path.basename === 'manifest-android') {
+      path.basename = 'manifest';
+    }
+    return path;
+  }))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
+  }, change(function (content) {
+    return content.replace(/\/\*\*[\s\S]*\\*\*\*\//m, '');
+  })))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.html') !== -1;
+  }, change(function (content) {
+    return content.replace(/.*shadow_index\.js.*/, '    <script src="android/android.js"></script>\n    <script src="index.js"></script>');
+  })))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1 && f.relative.indexOf('EventEmitter.js') === -1;
+  }, babel()))
+  .pipe(gulp.dest('builds/unpacked/android'))
+  .pipe(zip('android.zip'))
+  .pipe(gulp.dest('builds/packed'));
+});
+
 /* firefox build */
 gulp.task('firefox-build', function () {
   gulp.src([
@@ -116,6 +193,9 @@ gulp.task('firefox-build', function () {
       return false;
     }
     if (f.relative.indexOf('webapp') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('android') !== -1) {
       return false;
     }
     if (f.relative.indexOf('shadow_index.js') !== -1) {
@@ -152,8 +232,11 @@ gulp.task('firefox-pack', function () {
 gulp.task('webapp', function (callback) {
   runSequence('clean', 'webapp-build', callback);
 });
+gulp.task('android', function (callback) {
+  runSequence('clean', 'android-build', callback);
+});
 gulp.task('chrome', function (callback) {
-  runSequence('clean', 'chrome-build', callback);
+  runSequence('clean', 'chrome-build', 'chrome-install', callback);
 });
 gulp.task('firefox', function (callback) {
   runSequence('clean', 'firefox-build', 'firefox-pack', callback);

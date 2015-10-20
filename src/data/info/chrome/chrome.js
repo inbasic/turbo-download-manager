@@ -9,12 +9,12 @@ var background = {
   receive: function (id, callback) {
     id += '@if';
     chrome.runtime.onMessage.addListener(function (request, sender) {
-      if (request.method === id && !sender.url) {
+      if (request.method === id && (!sender.url || sender.url.indexOf('background') !== -1)) {
         callback(request.data);
       }
     });
   }
 };
 var manifest = {
-  url: chrome.extension.getURL('./')
+  url: chrome.runtime.getURL('./')
 };

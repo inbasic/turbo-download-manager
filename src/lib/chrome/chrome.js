@@ -1,14 +1,15 @@
-/* globals CryptoJS, app */
+/* globals CryptoJS, app, FileError */
 'use strict';
 
 app.globals = {
-  browser: navigator.userAgent.indexOf('OPR') === -1 ? 'chrome' : 'opera'
+  browser: navigator.userAgent.indexOf('OPR') === -1 ? 'chrome' : 'opera',
+  extension: !!chrome.tabs
 };
 
 app.once('load', function () {
   var script = document.createElement('script');
   document.body.appendChild(script);
-  script.src = '../common.js';
+  script.src = 'lib/common.js';
 });
 
 app.Promise = Promise;
@@ -42,61 +43,87 @@ app.storage = (function () {
   };
 })();
 
-app.canvas = function () {
-  return document.querySelector('canvas');
-};
+app.canvas = (function (canvas) {
+  return function () {
+    return canvas;
+  };
+})(document.createElement('canvas'));
 
 app.button = (function () {
   var onCommand;
-  chrome.browserAction.onClicked.addListener(function () {
-    if (onCommand) {
-      onCommand();
-    }
-  });
+  if (chrome.browserAction) {
+    chrome.browserAction.onClicked.addListener(function () {
+      if (onCommand) {
+        onCommand();
+      }
+    });
+  }
   return {
     onCommand: function (c) {
       onCommand = c;
     },
     set icon (path) { // jshint ignore: line
-      chrome.browserAction.setIcon({
-        path: path
-      });
+      if (chrome.browserAction) {
+        chrome.browserAction.setIcon({path});
+      }
+      else {
+        chrome.runtime.sendMessage(app.runtime.id, {cmd: 'setIcon',path});
+      }
     },
-    set label (label) { // jshint ignore: line
-      chrome.browserAction.setTitle({
-        title: label
-      });
+    set label (title) { // jshint ignore: line
+      if (chrome.browserAction) {
+        chrome.browserAction.setTitle({title});
+      }
+      else {
+        chrome.runtime.sendMessage(app.runtime.id, {cmd: 'setTitle', title});
+      }
     },
     set badge (val) { // jshint ignore: line
-      chrome.browserAction.setBadgeText({
-        text: (val ? val : '') + ''
-      });
+      if (chrome.browserAction) {
+        chrome.browserAction.setBadgeText({
+          text: (val ? val : '') + ''
+        });
+      }
+      else {
+        chrome.runtime.sendMessage(app.runtime.id, {
+          cmd: 'setBadgeText',
+          text: (val ? val : '') + ''
+        });
+      }
     }
   };
 })();
 
 app.getURL = function (path) {
-  return chrome.extension.getURL('/data/' + path);
+  return chrome.runtime.getURL('/data/' + path);
 };
 
 app.tab = {
   open: function (url, inBackground, inCurrent) {
-    if (inCurrent) {
-      chrome.tabs.update(null, {url: url});
+    if (!chrome.tabs) {
+      if (app.runtime.isInstalled) {
+        chrome.runtime.sendMessage(app.runtime.id, {cmd: 'open-link', url, inBackground, inCurrent});
+      }
+      else {
+        window.open(url);
+      }
     }
     else {
-      chrome.tabs.create({
-        url: url,
-        active: typeof inBackground === 'undefined' ? true : !inBackground
-      });
+      if (inCurrent) {
+        chrome.tabs.update(null, {url});
+      }
+      else {
+        chrome.tabs.create({url, active: typeof inBackground === 'undefined' ? true : !inBackground});
+      }
     }
   },
   list: function () {
-    return new Promise(function (resolve) {
-      chrome.tabs.query({}, function (tabs) {
-        resolve(tabs);
-      });
-    });
+    if (chrome.tabs) {
+      return new Promise(resolve => chrome.tabs.query({}, tabs => resolve(tabs)));
+    }
+    else {
+      return Promise.resolve([]);
+    }
   },
   reload: function (tab) {
     return new Promise(function (resolve) {
@@ -114,6 +141,9 @@ app.tab = {
 };
 
 app.menu = function (title, callback) {
+  if (!chrome.contextMenus) {
+    return;
+  }
   chrome.contextMenus.create({
     'title': title,
     'contexts': ['link', 'image', 'video', 'audio'],
@@ -129,7 +159,7 @@ app.menu = function (title, callback) {
 app.notification = function (text) {
   chrome.notifications.create(null, {
     type: 'basic',
-    iconUrl: chrome.extension.getURL('./') + 'data/icons/48.png',
+    iconUrl: chrome.runtime.getURL('./') + 'data/icons/48.png',
     title: 'Turbo Download Manager',
     message: text
   }, function () {});
@@ -139,85 +169,8 @@ app.version = function () {
   return chrome[chrome.runtime && chrome.runtime.getManifest ? 'runtime' : 'extension'].getManifest().version;
 };
 
-app.File = function (obj) { // {name, path, mime}
-  var cache = {};
-  return {
-    open: function () {
-      return 'not implemented';
-    },
-    write: function (offset, content) {
-      var a = content;
-      var view = new Uint8Array(a.length);
-      for (var i = 0; i < a.length; i++) {
-        view[i] = a.charCodeAt(i);
-      }
-      cache[offset] = cache[offset] || [];
-      cache[offset].push(view.buffer);
-      return Promise.resolve(true);
-    },
-    toBlob: (function () {
-      var blob;
-      function b () {
-        var arr = [], tmp = [];
-        for (var i in cache) {
-          tmp.push(i);
-        }
-        tmp.sort(function (a, b) {
-          return a - b;
-        });
-        tmp.forEach(function (i) {
-          arr = arr.concat(cache[i + '']);
-        });
-        var _blob = new Blob(arr, {
-          type: obj.mime
-        });
-        arr = [];
-        cache = {};
-        blob = _blob;
-        return Promise.resolve(_blob);
-      }
-      return function () {
-        if (blob) {
-          return Promise.resolve(blob);
-        }
-        else {
-          return b();
-        }
-      };
-    })(),
-    md5: function () {
-      return this.toBlob()
-      .then(function (blob) {
-        return new Promise(function (resolve) {
-          var tmp = new window.FileReader();
-          tmp.readAsBinaryString(blob);
-          tmp.onloadend = function () {
-            resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(tmp.result)).toString());
-          };
-        });
-      });
-    },
-    flush: function () {
-      return this.toBlob()
-      .then(function (blob) {
-        window.saveAs(blob, obj.name);
-        return blob.size;
-      });
-    },
-    remove: function () {
-      cache = {};
-    },
-    launch: function () {
-      app.notification('Not available in this browser');
-    },
-    reveal: function () {
-      app.notification('Not available in this browser');
-    }
-  };
-};
-
-app.OS = (function () {
-  let clipboard = document.querySelector('textarea');
+app.OS = (function (clipboard) {
+  document.body.appendChild(clipboard);
   return {
     get clipboard () {
       let result = '';
@@ -229,23 +182,19 @@ app.OS = (function () {
       return result;
     }
   };
-})();
+})(document.createElement('textarea'));
 
 // manager
 app.manager = (function () {
   return {
     send: function (id, data) {
       id += '@ui';
-      chrome.tabs.query({}, function (tabs) {
-        tabs.forEach(function (tab) {
-          chrome.tabs.sendMessage(tab.id, {method: id, data: data}, function () {});
-        });
-      });
+      chrome.runtime.sendMessage({method: id, data: data});
     },
     receive: function (id, callback) {
       id += '@ui';
       chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method) {
+        if (id === message.method && sender.url !== document.location.href) {
           callback.call(sender.tab, message.data);
         }
       });
@@ -258,16 +207,12 @@ app.add = (function () {
   return {
     send: function (id, data) {
       id += '@ad';
-      chrome.tabs.query({}, function (tabs) {
-        tabs.forEach(function (tab) {
-          chrome.tabs.sendMessage(tab.id, {method: id, data: data}, function () {});
-        });
-      });
+      chrome.runtime.sendMessage({method: id, data: data});
     },
     receive: function (id, callback) {
       id += '@ad';
       chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method) {
+        if (id === message.method && sender.url !== document.location.href) {
           callback.call(sender.tab, message.data);
         }
       });
@@ -280,19 +225,228 @@ app.info = (function () {
   return {
     send: function (id, data) {
       id += '@if';
-      chrome.tabs.query({}, function (tabs) {
-        tabs.forEach(function (tab) {
-          chrome.tabs.sendMessage(tab.id, {method: id, data: data}, function () {});
-        });
-      });
+      chrome.runtime.sendMessage({method: id, data: data});
     },
     receive: function (id, callback) {
       id += '@if';
       chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method) {
+        if (id === message.method && sender.url !== document.location.href) {
           callback.call(sender.tab, message.data);
         }
       });
     }
   };
 })();
+
+if (app.globals.extension) {
+  app.File = function (obj) { // {name, path, mime, length}
+    var cache = {};
+    return {
+      open: function () {
+        return Promise.resolve();
+      },
+      write: function (offset, content) {
+        let view = new Uint8Array(content.length);
+        for (let i = 0; i < content.length; i++) {
+          view[i] = content.charCodeAt(i);
+        }
+        cache[offset] = cache[offset] || [];
+        cache[offset].push(view.buffer);
+        return Promise.resolve(true);
+      },
+      toBlob: (function () {
+        let blob;
+        function b () {
+          let arr = [], tmp = [];
+          for (let i in cache) {
+            tmp.push(i);
+          }
+          tmp.sort(function (a, b) {
+            return a - b;
+          });
+          tmp.forEach(function (i) {
+            arr = arr.concat(cache[i + '']);
+          });
+          let _blob = new Blob(arr, {
+            type: obj.mime
+          });
+          arr = [];
+          cache = {};
+          blob = _blob;
+          return Promise.resolve(_blob);
+        }
+        return function () {
+          if (blob) {
+            return Promise.resolve(blob);
+          }
+          else {
+            return b();
+          }
+        };
+      })(),
+      md5: function () {
+        return this.toBlob()
+        .then(function (blob) {
+          return new Promise(function (resolve) {
+            var tmp = new window.FileReader();
+            tmp.readAsBinaryString(blob);
+            tmp.onloadend = function () {
+              resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(tmp.result)).toString());
+            };
+          });
+        });
+      },
+      flush: function () {
+        return this.toBlob()
+        .then(function (blob) {
+          window.saveAs(blob, obj.name);
+          return blob.size;
+        });
+      },
+      remove: function () {
+        cache = {};
+      },
+      launch: function () {},
+      reveal: function () {}
+    };
+  };
+}
+else {
+  app.File = function (obj) { // {name, path, mime, length}
+    window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
+    let fileEntry, cache = [], postponed, length = 0;
+
+    let tmp = {
+      open: function () {
+        let d = Promise.defer();
+        window.requestFileSystem(
+          window.PERSISTENT, obj.length, function (fs) {
+            fs.root.getFile(
+              obj.name,
+              {create: true, exclusive: false},
+              function (fe) {
+                fe.createWriter(function (fileWriter) {
+                  fileWriter.onwriteend = function () {
+                    fileEntry = fe;
+                    Promise.all(cache.map(o => tmp.write(o.offset, o.content))).then(function () {
+                      cache = [];
+                    }, (e) => d.reject(e));
+                    d.resolve();
+                  };
+                  fileWriter.onerror = (e) => d.reject(e);
+                  fileWriter.truncate(obj.length);
+                });
+              },
+              (e) => d.reject(e)
+            );
+          },
+          (e) => d.reject(e)
+        );
+        return d.promise;
+      },
+      write: function (offset, content) {
+        let d = Promise.defer();
+        if (!fileEntry) {
+          cache.push({offset, content});
+          d.resolve();
+        }
+        else {
+          fileEntry.createWriter(function (fileWriter) {
+            let view = new Uint8Array(content.length);
+            for (let i = 0; i < content.length; i++) {
+              view[i] = content.charCodeAt(i);
+            }
+            fileWriter.onerror = (e) => d.reject(e);
+            fileWriter.onwriteend = function (e) {
+              length += e.loaded;
+              d.resolve();
+              if (postponed && length === obj.length) {
+                postponed.resolve(tmp.md5());
+              }
+            };
+            fileWriter.seek(offset);
+            let blob = new Blob([view], {type: 'application/octet-stream'});
+            fileWriter.write(blob);
+          }, (e) => d.reject(e));
+        }
+        return d.promise;
+      },
+      md5: function () {
+        let d = Promise.defer();
+        if (fileEntry && length === obj.length) {
+          fileEntry.file(function (file) {
+            let reader = new FileReader();
+            reader.onloadend = function () {
+              d.resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(this.result)).toString());
+            };
+            reader.readAsBinaryString(file);
+          }, (e) => d.reject(e));
+        }
+        else {
+          postponed = d;
+        }
+        return d.promise;
+      },
+      flush: function () {
+        let d = Promise.defer();
+        fileEntry.file(function (file) {
+          (function (fileSaver) {
+            fileSaver.onwriteend = function () {
+              fileEntry.remove(function () {}, function () {});
+              d.resolve();
+            };
+          })(window.saveAs(file, obj.name));
+        }, (e) => d.reject(e));
+        return d.promise;
+      },
+      remove: function () {},
+      launch: function () {},
+      reveal: function () {}
+    };
+    return tmp;
+  };
+}
+// webapp
+app.runtime = (function () {
+  if (chrome.app.runtime) {
+    chrome.app.runtime.onLaunched.addListener(() => app.runtime.launch());
+  }
+  let isInstalled = false;
+  return {
+    id: 'gnaepfhefefonbijmhcmnfjnchlcbnfc',
+    get isInstalled () {
+      return isInstalled;
+    },
+    set isInstalled (val) {
+      isInstalled = val;
+    },
+    launch: function () {
+      chrome.app.window.create('data/manager/index.html', {
+        id: 'tdm-manager',
+        bounds: {
+          width: 800,
+          height: 800
+        }
+      });
+    }
+  };
+})();
+chrome.runtime.sendMessage(app.runtime.id, app.version());
+
+// communication
+chrome.runtime.onMessageExternal.addListener(function (request, sender) {
+  if (sender.id !== app.runtime.id) {
+    return;
+  }
+  app.runtime.isInstalled = true;
+  if (request.cmd === 'version') {
+    chrome.runtime.sendMessage(app.runtime.id, app.version());
+  }
+  if (request.cmd === 'download') {
+    app.emit('download', request);
+  }
+  if (request.cmd === 'open-manager') {
+    app.runtime.launch();
+  }
+});
+chrome.runtime.sendMessage(app.runtime.id, {cmd: 'version'});

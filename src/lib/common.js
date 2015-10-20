@@ -111,6 +111,7 @@ app.manager.receive('init', function () {
       'retries': instance.retries
     });
   });
+  app.manager.send('browser', app.globals.browser);
 });
 app.manager.receive('cmd', function (obj) {
   if (obj.cmd === 'pause') {
@@ -135,6 +136,9 @@ app.manager.receive('open', function (cmd) {
   }
   if (cmd === 'faqs') {
     app.tab.open('http://add0n.com/turbo-download-manager.html');
+  }
+  if (cmd === 'helper') {
+    app.tab.open('https://chrome.google.com/webstore/detail/turbo-download-manager/kemfccojgjoilhfmcblgimbggikekjip');
   }
 });
 /* add ui */

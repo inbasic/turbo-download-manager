@@ -221,7 +221,7 @@ exports.File = function (obj) { // {name, path, mime}
       }
       file.append(obj.name);
       file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
-      return file.path;
+      return Promise.resolve();
     },
     write: function (offset, content) {
       let d = defer();
