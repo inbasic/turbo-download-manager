@@ -1,0 +1,36 @@
+{
+  "name": "Turbo Download Manager",
+  "description": "a download manager with multi-threading support",
+  "author": "Inbasic",
+  "version": "0.1.8",
+  "manifest_version": 2,
+  "permissions": [
+    "storage",
+    "notifications",
+    "<all_urls>",
+    "clipboardRead",
+    "unlimitedStorage",
+    {"fileSystem": ["write", "retainEntries", "directory"]}
+  ],
+  "app": {
+    "background": {
+      "scripts": [
+        "lib/chrome/EventEmitter.js",
+        "lib/chrome/FileSaver.js",
+        "lib/chrome/md5.js",
+        "lib/chrome/definitions.js",
+        "lib/config.js",
+        "lib/chrome/chrome.js",
+         "lib/wget.js",
+         "lib/icon.js",
+         "lib/utils.js",
+         "lib/mwget.js"
+      ]
+    }
+  },
+  "icons": {
+    "16": "data/icons/16.png",
+    "48": "data/icons/48.png",
+    "128": "data/icons/128.png"
+  }
+}

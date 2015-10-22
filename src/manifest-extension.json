@@ -1,0 +1,44 @@
+{
+  "name": "Turbo Download Manager",
+  "short_name": "itdmanager",
+  "description": "a download manager with multi-threading support",
+  "author": "Inbasic",
+  "version": "0.1.8",
+  "manifest_version": 2,
+  "permissions": [
+    "storage",
+    "tabs",
+    "notifications",
+    "contextMenus",
+    "webRequest",
+    "<all_urls>",
+    "clipboardRead"
+  ],
+  "web_accessible_resources": [],
+  "browser_action": {
+    "default_icon": {
+      "19": "data/icons/19.png",
+      "38": "data/icons/38.png"
+    }
+  },
+  "background": {
+    "scripts": [
+      "lib/chrome/EventEmitter.js",
+      "lib/chrome/FileSaver.js",
+      "lib/chrome/md5.js",
+      "lib/chrome/definitions.js",
+      "lib/config.js",
+      "lib/chrome/chrome.js",
+       "lib/wget.js",
+       "lib/icon.js",
+       "lib/utils.js",
+       "lib/mwget.js"
+    ]
+  },
+  "homepage_url": "http://add0n.com/turbo-download-manager.html",
+  "icons": {
+    "16": "data/icons/16.png",
+    "48": "data/icons/48.png",
+    "128": "data/icons/128.png"
+  }
+}

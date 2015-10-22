@@ -179,7 +179,7 @@ app.OS = (function (clipboard) {
       if (document.execCommand('paste')) {
         result = clipboard.value;
       }
-      return result;
+      return Promise.resolve(result);
     }
   };
 })(document.createElement('textarea'));

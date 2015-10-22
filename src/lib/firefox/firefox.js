@@ -327,7 +327,7 @@ exports.OS = (function () {
   }
   return {
     get clipboard () {
-      return clipboard ? clipboard.get() : '';
+      return Promise.resolve(clipboard ? clipboard.get() : '');
     }
   };
 })();

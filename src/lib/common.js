@@ -165,10 +165,11 @@ app.add.receive('cmd', function (obj) {
 });
 app.add.receive('init', function () {
   let json = config.persist.add;
-  let clipboard = app.OS.clipboard;
-  app.add.send('init', {
-    settings: json || {},
-    clipboard: utils.validate(clipboard) ? clipboard : ''
+  app.OS.clipboard.get().then(function (clipboard) {
+    app.add.send('init', {
+      settings: json || {},
+      clipboard: utils.validate(clipboard) ? clipboard : ''
+    });
   });
 });
 /* info ui */
