@@ -135,6 +135,7 @@ app.Promise = Promise;
 app.XMLHttpRequest = window.XMLHttpRequest;
 app.EventEmitter = EventEmitter;
 app.timer = window;
+app.URL = window.URL;
 
 app.storage = (function () {
   var objs = {};

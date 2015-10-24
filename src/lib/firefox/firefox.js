@@ -8,6 +8,7 @@ var self          = require('sdk/self'),
     pageMod       = require('sdk/page-mod'),
     notifications = require('sdk/notifications'),
     tabs          = require('sdk/tabs'),
+    urls          = require('sdk/url'),
     timers        = require('sdk/timers'),
     platform      = require('sdk/system').platform,
     array         = require('sdk/util/array'),
@@ -29,6 +30,7 @@ exports.globals = {
 
 exports.Promise = {defer, all, race, resolve};
 exports.XMLHttpRequest = xhr.XMLHttpRequest;
+exports.URL = urls.URL;
 
 exports.EventEmitter = function () {
   let tmp = {};

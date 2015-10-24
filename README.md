@@ -18,3 +18,4 @@
     1. https://github.com/VersoSolutions/CordovaClipboard
     2. /plugins/android/*
   3. If screen splashes change the background color of `/plugins/cordova-plugin-chrome-apps-bootstrap/www/chromeapp.html` to `#FFF`
+  4. To start a local server to test downloader use: `sudo php -S 127.0.0.1:80 -t .`

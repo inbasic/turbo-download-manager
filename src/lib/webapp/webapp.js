@@ -85,17 +85,18 @@ app.storage = (function () {
         listen[id]();
       }
     },
-    on: function(name, callback) {
+    on: function (name, callback) {
       listen[name] = callback;
     }
-  }
+  };
 })();
 
 app.version = function () {
   return 0;
-}
+};
 
 app.timer = window;
+app.URL = window.URL;
 
 app.button = {
   onCommand: function () {}
