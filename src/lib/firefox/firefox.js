@@ -219,9 +219,11 @@ exports.File = function (obj) { // {name, path, mime}
           file = FileUtils.getFile('DfltDwnld', []);
         }
       }
-      file.append(obj.name);
-      file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
-      return Promise.resolve();
+      return new Promise(function (resolve) {
+        file.append(obj.name);
+        file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
+        resolve();
+      });
     },
     write: function (offset, content) {
       let d = defer();
@@ -326,8 +328,10 @@ exports.OS = (function () {
     clipboard = require('sdk/clipboard');
   }
   return {
-    get clipboard () {
-      return Promise.resolve(clipboard ? clipboard.get() : '');
+    clipboard: {
+      get: function () {
+        return Promise.resolve(clipboard ? clipboard.get() : '');
+      }
     }
   };
 })();
