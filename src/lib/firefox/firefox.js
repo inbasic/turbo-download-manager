@@ -207,21 +207,12 @@ exports.notification = function (text) {
 
 exports.File = function (obj) { // {name, path, mime}
   let file, flushed = false;
+  let dnldMgr = Cc['@mozilla.org/download-manager;1'].getService(Ci.nsIDownloadManager);
 
   return {
     open: function () {
-      if (obj.path) {
-        file = FileUtils.File(obj.path);
-      }
-      else {
-        try {
-          file = Services.prefs.getBranch('browser.download.').getComplexValue('dir', Ci.nsILocalFile);
-        }
-        catch (e) {
-          file = FileUtils.getFile('DfltDwnld', []);
-        }
-      }
       return new Promise(function (resolve) {
+        file = obj.path ? FileUtils.File(obj.path) : dnldMgr.userDownloadsDirectory;
         file.append(obj.name);
         file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
         resolve();
