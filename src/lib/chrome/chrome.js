@@ -332,7 +332,6 @@ else {
                   function (fe) {
                     fe.createWriter(function (fileWriter) {
                       fileWriter.onwrite = function () {
-                        console.error('truncate', this.length);
                         fileEntry = fe;
                         Promise.all(cache.map(o => tmp.write(o.offset, o.content))).then(function () {
                           cache = [];
@@ -362,7 +361,6 @@ else {
           d.resolve();
         }
         else {
-          console.error(offset, content.length);
           fileEntry.createWriter(function (fileWriter) {
             let view = new Uint8Array(content.length);
             for (let i = 0; i < content.length; i++) {
@@ -372,7 +370,6 @@ else {
             fileWriter.onwrite = function (e) {
               length += e.loaded;
               d.resolve();
-              console.error('write ended', this);
               if (postponed && length === obj.length) {
                 postponed.resolve(tmp.md5());
               }
@@ -388,7 +385,6 @@ else {
         let d = Promise.defer();
         if (fileEntry && length === obj.length) {
           fileEntry.file(function (file) {
-            console.error(file.size);
             let reader = new FileReader();
             reader.onloadend = function () {
               d.resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(this.result)).toString());
