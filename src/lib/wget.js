@@ -317,6 +317,14 @@ if (typeof require !== 'undefined') {
       status = 'error';
       event.emit('status', status);
     });
+    // error
+    event.on('error', function () {
+      if (status !== 'error') {
+        segments.forEach(s => s.event.emit('abort'));
+        status = 'error';
+        event.emit('status', status);
+      }
+    });
     // getting header
     app.Promise.race([obj.url, obj.url, obj.url].map(head))
       .then(
@@ -402,10 +410,10 @@ if (typeof require !== 'undefined') {
           path: obj.folder,
           length: a.info.length
         });
-        internals.file.open().catch(() => a.event.emit('error'));
+        internals.file.open().catch((e) => a.event.emit('error', e));
       }
       log('[b]', `writing ${e.offset + o.range.start} - ${e.offset + e.buffer.length + o.range.start - 1}`);
-      internals.file.write(e.offset + o.range.start, e.buffer);
+      internals.file.write(e.offset + o.range.start, e.buffer).catch((e) => a.event.emit('error', e));
     });
     a.event.on('done', function (status) {
       if (status === 'done') {
@@ -413,7 +421,7 @@ if (typeof require !== 'undefined') {
           internals.md5 = md5;
           a.event.emit('md5', md5);
           internals.file.flush().catch(() => a.event.emit('error'));
-        }, () => a.event.emit('error'));
+        }, (e) => a.event.emit('error', e));
       }
       if (status === 'error' && internals.file) {
         internals.file.remove();
@@ -452,7 +460,10 @@ if (typeof require !== 'undefined') {
     b.event.on('progress', function (d, obj) {
       stats[stats.length - 1] += obj.buffer.length;
     });
-    b.event.on('pause', function () {
+    (function (end) {
+      b.event.on('pause', end);
+      b.event.on('error', end);
+    })(function () {
       stats = [0];
       done();
     });

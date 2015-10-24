@@ -1,4 +1,4 @@
-/* globals CryptoJS, app, FileError */
+/* globals CryptoJS, app */
 'use strict';
 
 app.globals = {
@@ -172,14 +172,16 @@ app.version = function () {
 app.OS = (function (clipboard) {
   document.body.appendChild(clipboard);
   return {
-    get clipboard () {
-      let result = '';
-      clipboard.value = '';
-      clipboard.select();
-      if (document.execCommand('paste')) {
-        result = clipboard.value;
+    clipboard: {
+      get: function () {
+        let result = '';
+        clipboard.value = '';
+        clipboard.select();
+        if (document.execCommand('paste')) {
+          result = clipboard.value;
+        }
+        return Promise.resolve(result);
       }
-      return Promise.resolve(result);
     }
   };
 })(document.createElement('textarea'));
@@ -319,29 +321,37 @@ else {
     let tmp = {
       open: function () {
         let d = Promise.defer();
-        window.requestFileSystem(
-          window.PERSISTENT, obj.length, function (fs) {
-            fs.root.getFile(
-              obj.name,
-              {create: true, exclusive: false},
-              function (fe) {
-                fe.createWriter(function (fileWriter) {
-                  fileWriter.onwriteend = function () {
-                    fileEntry = fe;
-                    Promise.all(cache.map(o => tmp.write(o.offset, o.content))).then(function () {
-                      cache = [];
-                    }, (e) => d.reject(e));
-                    d.resolve();
-                  };
-                  fileWriter.onerror = (e) => d.reject(e);
-                  fileWriter.truncate(obj.length);
-                });
+        navigator.webkitTemporaryStorage.requestQuota(obj.length, function (grantedBytes) {
+          if (grantedBytes === obj.length) {
+            window.requestFileSystem(
+              window.TEMPORARY, obj.length, function (fs) {
+                fs.root.getFile(
+                  Math.floor(Math.random() * 16777215).toString(16),  // a unique name
+                  {create: true, exclusive: false},
+                  function (fe) {
+                    fe.createWriter(function (fileWriter) {
+                      fileWriter.onwrite = function () {
+                        console.error('truncate', this.length);
+                        fileEntry = fe;
+                        Promise.all(cache.map(o => tmp.write(o.offset, o.content))).then(function () {
+                          cache = [];
+                        }, (e) => d.reject(e));
+                        d.resolve();
+                      };
+                      fileWriter.onerror = (e) => d.reject(e);
+                      fileWriter.truncate(obj.length);
+                    });
+                  },
+                  (e) => d.reject(e)
+                );
               },
               (e) => d.reject(e)
             );
-          },
-          (e) => d.reject(e)
-        );
+          }
+          else {
+            d.reject(new Error('cannot allocate space'));
+          }
+        });
         return d.promise;
       },
       write: function (offset, content) {
@@ -351,15 +361,17 @@ else {
           d.resolve();
         }
         else {
+          console.error(offset, content.length);
           fileEntry.createWriter(function (fileWriter) {
             let view = new Uint8Array(content.length);
             for (let i = 0; i < content.length; i++) {
               view[i] = content.charCodeAt(i);
             }
             fileWriter.onerror = (e) => d.reject(e);
-            fileWriter.onwriteend = function (e) {
+            fileWriter.onwrite = function (e) {
               length += e.loaded;
               d.resolve();
+              console.error('write ended', this);
               if (postponed && length === obj.length) {
                 postponed.resolve(tmp.md5());
               }
@@ -375,6 +387,7 @@ else {
         let d = Promise.defer();
         if (fileEntry && length === obj.length) {
           fileEntry.file(function (file) {
+            console.error(file.size);
             let reader = new FileReader();
             reader.onloadend = function () {
               d.resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(this.result)).toString());
@@ -390,12 +403,13 @@ else {
       flush: function () {
         let d = Promise.defer();
         fileEntry.file(function (file) {
-          (function (fileSaver) {
-            fileSaver.onwriteend = function () {
-              fileEntry.remove(function () {}, function () {});
-              d.resolve();
-            };
-          })(window.saveAs(file, obj.name));
+          let link = document.createElement('a');
+          link.download = obj.name;
+          link.href = URL.createObjectURL(file);
+          link.dispatchEvent(new MouseEvent('click'));
+          window.setTimeout(function () {
+            d.resolve();
+          }, 5000);
         }, (e) => d.reject(e));
         return d.promise;
       },

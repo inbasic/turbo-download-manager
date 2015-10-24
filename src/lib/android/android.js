@@ -128,8 +128,7 @@ if (!Array.from) {
 }
 
 app.globals = {
-  browser: navigator.userAgent.indexOf('OPR') === -1 ? 'chrome' : 'opera',
-  extension: !!chrome.tabs
+  browser: 'android'
 };
 
 app.Promise = Promise;
@@ -289,7 +288,7 @@ app.File = function (obj) { // {name, path, mime, length}
                 resolve();
               }
               else {
-                reject('cannot truncate the file');
+                reject(new Error('cannot truncate the file'));
               }
             };
             fileWriter.onerror = (e) => reject(e);
@@ -306,7 +305,7 @@ app.File = function (obj) { // {name, path, mime, length}
                 resolve();
               }
               else {
-                reject('cannot fill the file');
+                reject(new Error('cannot fill the file'));
               }
             };
             fileWriter.onerror = (e) => reject(e);
@@ -338,7 +337,7 @@ app.File = function (obj) { // {name, path, mime, length}
           );
         }
         else {
-          d.reject('cannot allocate space');
+          d.reject(new Error('cannot allocate space'));
         }
       }, (e) => d.reject(e));
       return d.promise;
@@ -351,10 +350,6 @@ app.File = function (obj) { // {name, path, mime, length}
       }
       else {
         fileEntry.createWriter(function (fileWriter) {
-          let view = [];
-          for (let i = 0; i < content.length; i++) {
-            view[i] = content.charCodeAt(i);
-          }
           fileWriter.onerror = (e) => d.reject(e);
           fileWriter.onwrite = function () {
             length += this.loaded;
@@ -364,7 +359,7 @@ app.File = function (obj) { // {name, path, mime, length}
             }
           };
           fileWriter.seek(offset);
-          fileWriter.writeBinaryArray(view);
+          fileWriter.writeBinaryArray(content);
         }, (e) => d.reject(e));
       }
       return d.promise;
@@ -411,12 +406,8 @@ app.File = function (obj) { // {name, path, mime, length}
 };
 
 // webapp
-chrome.app.runtime.onLaunched.addListener(function () {
+chrome.app.runtime.onLaunched.addListener(function() {
   chrome.app.window.create('data/manager/index.html', {
     id: 'tdm-manager',
-    bounds: {
-      width: 800,
-      height: 800
-    }
   });
 });

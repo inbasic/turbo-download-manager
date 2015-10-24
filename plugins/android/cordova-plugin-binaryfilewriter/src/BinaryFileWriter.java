@@ -18,7 +18,7 @@ public class BinaryFileWriter extends CordovaPlugin {
   public boolean execute(String action, JSONArray args, CallbackContext callbackContext) {
     try {
       if (action.equals("writeBinaryArray")) {
-        long offset = this.writeBinaryArray(args.getString(0), args.getJSONArray(1), args.getInt(2));
+        long offset = this.writeBinaryArray(args.getString(0), args.getString(1), args.getInt(2));
         callbackContext.sendPluginResult(new PluginResult(PluginResult.Status.OK, offset));
         return true;
       }
@@ -37,12 +37,12 @@ public class BinaryFileWriter extends CordovaPlugin {
       return true;
     }
   }
-  public long writeBinaryArray(String filename, JSONArray data, int offset) throws FileNotFoundException, IOException, JSONException {
+  public long writeBinaryArray(String filename, String data, int offset) throws FileNotFoundException, IOException, JSONException {
     filename = stripFileProtocol(filename);
 
     byte[] rawData = new byte[data.length()];
-    for (int i = 0; i < data.length(); i++) {
-        rawData[i] = (byte)data.getInt(i);
+    for(int i = 0; i < data.length(); i++) {
+        rawData[i] = (byte)(data.charAt(i) & 0xff);
     }
 
     RandomAccessFile raf = new RandomAccessFile(filename, "rws");

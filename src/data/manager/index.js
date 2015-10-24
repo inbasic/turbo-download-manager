@@ -151,6 +151,7 @@ var get = function (id) {
   loader.addEventListener('click', function (e) {
     if (!iframe.contains(e.target)) {
       loader.dataset.visible = false;
+      iframe.src = 'about:blank';
     }
   });
   background.receive('hide', function () {

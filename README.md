@@ -14,3 +14,7 @@
 ## notes
 
   1. To inspect the webkit related projects use [chrome://inspect/#devices](chrome://inspect/#devices)
+  2. These plugins are added manually:
+    1. https://github.com/VersoSolutions/CordovaClipboard
+    2. /plugins/android/*
+  3. If screen splashes change the background color of `/plugins/cordova-plugin-chrome-apps-bootstrap/www/chromeapp.html` to `#FFF`
