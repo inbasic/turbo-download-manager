@@ -289,6 +289,10 @@ if (typeof require !== 'undefined') {
         }));
         internals.locks = [];
       })(Math.floor(info.length / obj.threads));
+      // do not download large files if multi-thread is not supported
+      if (!info['multi-thread'] && info.length > 200 * 1024 * 1024) {
+        return done('error');
+      }
       status = 'download';
       event.emit('status', status);
       schedule();
