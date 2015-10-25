@@ -176,6 +176,9 @@ app.File = function (obj) { // {name, path, mime}
       };
     })(),
     md5: function () {
+      if (obj.length > 50 * 1024 * 1024) {
+        return new Promise.resolve('MD5 calculation is skipped');
+      }
       return this.toBlob()
       .then(function (blob) {
         return new Promise(function (resolve) {

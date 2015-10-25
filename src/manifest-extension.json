@@ -23,7 +23,6 @@
   },
   "background": {
     "scripts": [
-      "lib/chrome/EventEmitter.js",
       "lib/chrome/FileSaver.js",
       "lib/chrome/md5.js",
       "lib/chrome/definitions.js",

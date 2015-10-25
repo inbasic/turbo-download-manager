@@ -368,13 +368,18 @@ app.File = function (obj) { // {name, path, mime, length}
     md5: function () {
       let d = Promise.defer();
       if (fileEntry && length === obj.length) {
-        fileEntry.file(function (file) {
-          let reader = new FileReader();
-          reader.onloadend = function () {
-            d.resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(this.result)).toString());
-          };
-          reader.readAsBinaryString(file);
-        }, (e) => d.reject(e));
+        if (obj.length > 50 * 1024 * 1024) {
+          d.resolve('MD5 calculation is skipped');
+        }
+        else {
+          fileEntry.file(function (file) {
+            let reader = new FileReader();
+            reader.onloadend = function () {
+              d.resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(this.result)).toString());
+            };
+            reader.readAsBinaryString(file);
+          }, (e) => d.reject(e));
+        }
       }
       else {
         postponed = d;

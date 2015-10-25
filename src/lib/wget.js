@@ -27,9 +27,27 @@ if (typeof require !== 'undefined') {
   }
   log.levels = [/*'[a]', '[b]'*/];
 
+  let pool = (function () {
+    var cache = [];
+    return {
+      get: function () {
+        if (!cache.length) {
+          cache.push(new app.XMLHttpRequest());
+        }
+        return cache.shift();
+      },
+      release: function (xhr) {
+        cache.push(xhr);
+      },
+      destory: function () {
+
+      }
+    };
+  })();
+
   function xhr (obj) {
     let id, status = 'ready';
-    let req = new app.XMLHttpRequest();
+    let req = pool.get();
     let d = app.Promise.defer();
 
     req.onprogress = (e) => obj.event.emit('progress@xhr', e);
@@ -71,6 +89,7 @@ if (typeof require !== 'undefined') {
       obj.event.removeListener('size-mismatch', mismatch);
       obj.event.emit = function () {};
       app.timer.clearTimeout(id);
+      pool.release(req);
     }
     return {
       get status () {return status;}, // 'ready', 'downloading', 'done', 'error', 'timeout'
@@ -237,6 +256,9 @@ if (typeof require !== 'undefined') {
       segments.push(tmp);
       e.on('progress', (e) => event.emit('progress', tmp, e));
       c.promise.then(function (status) {
+        // clean up
+        e.removeAllListeners();
+        //
         log('[a]', `a segment is finished with status: ${status}`);
         if (status === 'done') {
           app.timer.setTimeout(schedule, obj.pause || 100);
@@ -485,7 +507,17 @@ if (typeof require !== 'undefined') {
 
     return b;
   }
-  wget.download = cget;
+  //clean up
+  function vget (obj) {
+    let c = cget(obj);
+    function done (a) {
+      app.timer.setTimeout(() => c.event.removeAllListeners(), 5000);
+      return a;
+    }
+    c.promise.then(done, done);
+    return c;
+  }
+  wget.download = vget;
 })();
 /*
 (function (c) {

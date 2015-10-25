@@ -1,4 +1,4 @@
-/* globals CryptoJS, app */
+/* globals CryptoJS, app, utils */
 'use strict';
 
 app.globals = {
@@ -288,6 +288,9 @@ if (app.globals.extension) {
         };
       })(),
       md5: function () {
+        if (obj.length > 50 * 1024 * 1024) {
+          return new Promise.resolve('MD5 calculation is skipped');
+        }
         return this.toBlob()
         .then(function (blob) {
           return new Promise(function (resolve) {
@@ -384,13 +387,18 @@ else {
       md5: function () {
         let d = Promise.defer();
         if (fileEntry && length === obj.length) {
-          fileEntry.file(function (file) {
-            let reader = new FileReader();
-            reader.onloadend = function () {
-              d.resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(this.result)).toString());
-            };
-            reader.readAsBinaryString(file);
-          }, (e) => d.reject(e));
+          if (obj.length > 50 * 1024 * 1024) {
+            d.resolve('MD5 calculation is skipped');
+          }
+          else {
+            fileEntry.file(function (file) {
+              let reader = new FileReader();
+              reader.onloadend = function () {
+                d.resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(this.result)).toString());
+              };
+              reader.readAsBinaryString(file);
+            }, (e) => d.reject(e));
+          }
         }
         else {
           postponed = d;
@@ -406,6 +414,7 @@ else {
           link.dispatchEvent(new MouseEvent('click'));
           window.setTimeout(function () {
             d.resolve();
+            link = null;
           }, 5000);
         }, (e) => d.reject(e));
         return d.promise;

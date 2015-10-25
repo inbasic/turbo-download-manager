@@ -32,16 +32,44 @@ exports.Promise = {defer, all, race, resolve};
 exports.XMLHttpRequest = xhr.XMLHttpRequest;
 exports.URL = urls.URL;
 
-exports.EventEmitter = function () {
-  let tmp = {};
-  tmp.on = on.bind(null, tmp);
-  tmp.once = once.bind(null, tmp);
-  tmp.emit = emit.bind(null, tmp);
-  tmp.removeListener = function removeListener (type, listener) {
-    off(tmp, type, listener);
+exports.EventEmitter = (function () {
+  let EventEmitter = function () {
+    this.listeners = {};
+    this.onces = {};
   };
-  return tmp;
-};
+  EventEmitter.prototype.on = function (name, callback) {
+    this.listeners[name] = this.listeners[name] || [];
+    this.listeners[name].push(callback);
+  };
+  EventEmitter.prototype.once = function (name, callback) {
+    this.onces[name] = this.onces[name] || [];
+    this.onces[name].push(callback);
+  };
+  EventEmitter.prototype.emit = function (name) {
+    var args = Array.prototype.slice.call(arguments);
+    var tobeSent = args.splice(1);
+    if (this.listeners[name]) {
+      this.listeners[name].forEach(f => f.apply(this, tobeSent));
+    }
+    if (this.onces[name]) {
+      this.onces[name].forEach(f => f.apply(this, tobeSent));
+      this.onces[name] = [];
+    }
+  };
+  EventEmitter.prototype.removeListener = function (name, callback) {
+    if (this.listeners[name]) {
+      var index = this.listeners[name].indexOf(callback);
+      if (index !== -1) {
+        this.listeners[name].splice(index, 1);
+      }
+    }
+  };
+  EventEmitter.prototype.removeAllListeners = function () {
+    this.listeners = {};
+    this.onces = {};
+  };
+  return EventEmitter;
+})();
 // this needs to be fired after firefox.js is loaded on all modules
 timers.setTimeout(() => exports.emit('load'), 3000);
 
