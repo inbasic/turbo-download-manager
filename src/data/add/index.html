@@ -23,24 +23,26 @@
           </tr>
           <tr>
             <td>Number of threads<sup>*</sup>:</td>
-            <td><input data-id="threads" type="number" min=1 max=10 placeholder="5"></td>
+            <td><input data-id="threads" type="number" min=1 max=10 placeholder="3"></td>
           </tr>
           <tr>
             <td>Thread timeout (in seconds)<sup>*</sup>:</td>
             <td><input data-id="timeout" type="number" min=5 max=120 placeholder="30"></td>
           </tr>
-          <tr class="firefox">
+          <tr>
             <td>Save in<sup>*</sup>:</td>
             <td>
-              <input data-id="folder" type="text" disabled="true" placeholder="Default downlaod directory">
-              <input type="button" value="Browse" data-cmd="browse">
-              <input type="button" value="Reset" data-cmd="empty">
+              <div>
+                <input data-id="folder" type="text" disabled="true" placeholder="Default downlaod directory">
+                <input type="button" value="Browse" data-cmd="browse">
+                <input type="button" value="Reset" data-cmd="empty">
+              </div>
             </td>
           </tr>
         </tbody>
       </table>
       <div id="add">
-        <input type="button" value="Add as a new Job">
+        <input type="submit" value="Add as a new Job">
       </div>
       <div>
         *: This value is stored when a new job is added

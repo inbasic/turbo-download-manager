@@ -2,7 +2,7 @@
   "name": "Turbo Download Manager",
   "description": "a download manager with multi-threading support",
   "author": "Inbasic",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "manifest_version": 2,
   "permissions": [
     "storage",

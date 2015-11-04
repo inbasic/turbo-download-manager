@@ -2,6 +2,7 @@
 
 /**** wrapper (start) ****/
 if (typeof require !== 'undefined') {
+  var utils = require('./utils');
   var app = require('./firefox/firefox');
   var wget = exports;
 }
@@ -13,118 +14,64 @@ if (typeof require !== 'undefined') {
 // @param  {[type]} obj.timeout     [timeout]
 // @param  {[type]} obj.retries     [number of retries; 50]
 // @param  {[type]} obj.headers     [headers; {}]
-// @param  {[type]} obj.delay       [delay in xhr starting; 0 mSeconds]
 // @param  {[type]} obj.minByteSize [minimum thread size; 50 KBytes]
-// @param  {[type]} obj.maxByteSize [maximum thread size; 20 MBytes]
+// @param  {[type]} obj.maxByteSize [maximum thread size; 50 MBytes]
 // @param  {[type]} obj.pause       [delay in between multiple schedule calls; 100 mSecs]
 
 (function () {
-  function log () {
-    let args = [].slice.call(arguments);
-    if (log.levels.indexOf(args[0]) !== -1)  {
-      console.error.apply(console, [(new Date()).toLocaleTimeString()].concat(args.slice(0)));
-    }
-  }
-  log.levels = [/*'[a]', '[b]'*/];
-
-  let pool = (function () {
-    var cache = [];
-    return {
-      get: function () {
-        if (!cache.length) {
-          cache.push(new app.XMLHttpRequest());
-        }
-        return cache.shift();
-      },
-      release: function (xhr) {
-        cache.push(xhr);
-      },
-      destory: function () {
-
-      }
-    };
-  })();
-
   function xhr (obj) {
-    let id, status = 'ready';
-    let req = pool.get();
-    let d = app.Promise.defer();
+    let d = app.Promise.defer(), loaded = 0, active = true;
+    let id = app.timer.setTimeout(() => d.resolve(new Error('timeout')), obj.timeout);
 
-    req.onprogress = (e) => obj.event.emit('progress@xhr', e);
-    req.onerror = () => done('error');
-    req.ontimeout = () => done('timeout');
-    req.onload = () => done('done');
+    obj.event.on('abort', () => d.resolve(new Error('abort')));
 
-    req.open('GET', obj.url, true);
-    req.timeout = obj.timeout;
-    req.overrideMimeType('text/plain; charset=x-user-defined');
-    if (app.globals.browser === 'firefox') {
-      req.responseType = 'moz-chunked-text';
+    function process (reader) {
+      return reader.read().then(function (result) {
+        if (!active) {
+          return reader.cancel();
+        }
+        app.timer.clearTimeout(id);
+        id = app.timer.setTimeout(() => d.resolve(new Error('timeout')), obj.timeout);
+
+        let chunk = result.value;
+        if (chunk) {
+          loaded += chunk.byteLength;
+          obj.event.emit('progress@xhr', {loaded, chunk, length: chunk.byteLength});
+        }
+        return result.done ? d.resolve('done') : process(reader);
+      });
     }
-    for (let i in obj.headers) {
-      req.setRequestHeader(i, obj.headers[i]);
-    }
-    id = app.timer.setTimeout(function () {
-      req.send();
-      status = 'downloading';
-    }, obj.delay || 0);
-    function abort () {
-      if (status === 'downloading') {
-        req.abort();
-        return done('abort');
+    app.fetch(obj.url, {headers: obj.headers}).then(function (res) {
+      if (!res.ok) {
+        throw Error('fetch error');
       }
-      return done('abort');
-    }
-    obj.event.on('abort', abort);
-    function mismatch () {
-      req.abort();
-      done('error');
-    }
-    obj.event.on('size-mismatch', mismatch);
+      return process(res.body.getReader());
+    }).catch(function (e) {
+      return d.resolve(e);
+    });
 
-    function done (s) {
-      status = s || status;
-      d.resolve(status);
-      obj.event.removeListener('abort', abort);
-      obj.event.removeListener('size-mismatch', mismatch);
-      obj.event.emit = function () {};
-      app.timer.clearTimeout(id);
-      pool.release(req);
-    }
-    return {
-      get status () {return status;}, // 'ready', 'downloading', 'done', 'error', 'timeout'
-      req: req,
-      promise: d.promise
-    };
+    return d.promise
+      .then((s) => {active = false; return s;}, (e) => {active = false; throw e;});
   }
   function chunk (obj, range, event, report) {
-    let length, offset = 0;
-    obj = Object.assign({}, obj); // clone
-    obj.event = event;
-    obj.headers = obj.headers || {};
+    obj = Object.assign({ // clone
+      headers: {},
+      event: event
+    }, obj);
     if (report) { // if download does not support multi-threading do not send range info
       obj.headers.Range = `bytes=${range.start}-${range.end}`;
     }
-    event.on('length', len => length = len);
     event.on('progress@xhr', function (e) {
-      if (e.total !== range.end - range.start + 1) {
-        event.emit('size-mismatch');
-      }
-      else {
-        let tmp = {offset: offset};
-        let buffer = app.globals.browser === 'firefox' ? e.target.response : e.target.response.substr(offset);
-        tmp.buffer = length && e.loaded > length ? buffer.substr(0, length - offset) : buffer;
-        if (tmp.buffer.length) {
-          event.emit('progress', tmp);
-        }
-        offset += tmp.buffer.length;
-        if (length && e.loaded > length) {
-          event.emit('abort');
-        }
+      if (e.chunk.byteLength) {
+        let tmp = {
+          offset: e.loaded - e.length,
+          length: e.chunk.byteLength
+        };
+        event.emit('progress-with-buffer', Object.assign({buffer: e.chunk}, tmp));
+        event.emit('progress', tmp);
       }
     });
-    let segment = xhr(obj);
-    return segment;
+    return xhr(obj);
   }
   var head = function (url) {
     let req = new app.XMLHttpRequest();
@@ -133,19 +80,17 @@ if (typeof require !== 'undefined') {
     req.open('HEAD', url, true);
     req.onload = function () {
       let length = +req.getResponseHeader('Content-Length');
-      let encoding = req.getResponseHeader('Content-Encoding');
       d.resolve({
         'length': length,
         'url': req.responseURL,
-        'encoding': req.getResponseHeader('Content-Encoding'),
         'mime': req.getResponseHeader('Content-Type'),
-        'multi-thread': !!length && encoding === null &&
+        'multi-thread': !!length &&
+          req.getResponseHeader('Content-Encoding') === null &&
           req.getResponseHeader('Accept-Ranges') === 'bytes' &&
           req.getResponseHeader('Length-Computable') !== 'false'
       });
     };
-    req.onerror = (e) => d.reject(e);
-    req.ontimeout = (e) => d.reject(e);
+    req.onerror = req.ontimeout = (e) => d.reject(e);
     req.timeout = 120000;
     req.send();
     return d.promise;
@@ -155,53 +100,41 @@ if (typeof require !== 'undefined') {
     obj.threads = obj.threads || 1;
     obj.retries = obj.retries || 50;
 
-    let status = 'head';  // 'head', 'download', 'error', 'done', 'pause'
-    let event = new app.EventEmitter();
-    event.emit('status', status);
-    let d = app.Promise.defer();
-    let info;
-    let segments = [];
-    let retries = 0;
+    let event = new app.EventEmitter(), d = app.Promise.defer(), info, segments = [], message;
     let internals = {};
+    utils.assign(internals, 'status', event).assign(internals, 'retries', event, 0);
+    internals.status = 'head';  // 'head', 'download', 'error', 'done', 'pause'
 
     function count () {
-      let c = segments.filter(s => ['done', 'error', 'timeout', 'abort'].indexOf(s.status) === -1).length;
+      let c = segments.filter(s => s.status === 'downloading').length;
       event.emit('count', c);
       return c;
     }
     function done (s) {
-      status = s || status;
-      event.emit('status', status);
+      internals.status = s || internals.status;
       event.emit('count', 0);
-      event.emit('done', status);
       d.resolve(s);
+      segments = [];
     }
     function schedule () {
-      if (status === 'error' || status === 'pause' || status === 'done') {
-        log('[a]', `schedule is called but status is ${status}`);
+      if (['error', 'pause', 'done'].indexOf(internals.status) !== -1) {
         return;
       }
       if (internals.ranges.length === 0) {
         return done('done');
       }
+      let ranges = internals.ranges
+        .filter(a => internals.locks.indexOf(a) === -1)
+        .sort((a, b) => a.start - b.start);
+      if (ranges.length) {
+        add(obj, ranges[0]);
+        internals.locks.push(ranges[0]);
+      }
       else {
-        log('[a]', 'current map', internals.ranges.map(r => `${r.start} - ${r.end}`).join(', '));
-        log('[a]', 'internals.locks', internals.locks.map(r => `${r.start} - ${r.end}`).join(', '));
-        let ranges = internals.ranges
-          .filter(a => internals.locks.indexOf(a) === -1)
-          .sort((a, b) => a.start - b.start);
-        if (ranges.length) {
-          add(obj, ranges[0]);
-          internals.locks.push(ranges[0]);
-        }
-        else {
-          log('[a]', 'all ranges are in the lock list');
-          return;
-        }
+        return;
       }
       //
       let c = count();
-      log('[a]', `number of active chunks = ${c}`);
       if (c < obj.threads) {
         app.timer.setTimeout(schedule, obj.pause || 100);
       }
@@ -209,12 +142,10 @@ if (typeof require !== 'undefined') {
     function fix (range) {
       let rngs = internals.ranges.filter(r => r.start <= range.start && r.end >= range.end);
       if (rngs.length !== 1) {
-        log('[a]', 'something went wrong', range);
-        return done('error');
+        return done('error', 'internals.ranges.length is not equal to one');
       }
       if (rngs[0].start < range.start) {
-        log('[a]', `something went wrong, ${rngs[0].start} is smaller than ${range.start}.`);
-        return done('error');
+        return done('error', 'rngs[0].start is not euqal to range.start');
       }
       if (rngs[0].end > range.end) {
         (function (tmp) {
@@ -233,53 +164,44 @@ if (typeof require !== 'undefined') {
     }
 
     function add (obj, range) {
-      log('[a]', `adding a new range: ${range.start} - ${range.end}`);
       let e = new app.EventEmitter();
-      e.on('progress', function (obj) {
-        fix({
+      e.on('progress', (obj) => fix({
           start: obj.offset + range.start,
-          end: obj.offset + obj.buffer.length + range.start - 1
-        });
-      });
-      e.on('size-mismatch', () => log('[a]', 'aborting because of size mismatch'));
-      let c = chunk(obj, range, e, info['multi-thread']);
+          end: obj.offset + obj.length + range.start - 1
+        }));
       let tmp = {
-        get status () {
-          return c.status;
-        },
+        status: 'downloading',
         range: range,
-        chunk: c,
         event: e,
         // we will use id as progress color as well
         id: '#' + Math.floor(Math.random() * 16777215).toString(16)
       };
       segments.push(tmp);
       e.on('progress', (e) => event.emit('progress', tmp, e));
-      c.promise.then(function (status) {
+      e.on('progress-with-buffer', (e) => event.emit('progress-with-buffer', tmp, e));
+      chunk(obj, range, e, info['multi-thread']).then(function (status) {
+        tmp.status = status;
         // clean up
         e.removeAllListeners();
         //
-        log('[a]', `a segment is finished with status: ${status}`);
         if (status === 'done') {
           app.timer.setTimeout(schedule, obj.pause || 100);
         }
-        else if (status === 'abort') {
+        else if (status.message === 'abort') {
           // removing locked ranges inside the chunk with abort code
           internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
         }
         else {
-          if (retries < obj.retries && info['multi-thread']) {
+          if (internals.retries < obj.retries && info['multi-thread']) {
             if (internals.locks.filter(r => r.start === range.start).length) {
-              retries += 1;
-              event.emit('retries', retries);
+              internals.retries += 1;
             }
             // removing locked ranges inside the chunk with error code
             internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
-            log('[a]', `chunk exited with error. Number of retries left: ${obj.retries - retries}. Retrying ...`);
             app.timer.setTimeout(schedule, obj.pause || 100);
           }
           else {
-            log('[a]', 'max number of retries reached');
+            message = status.message;
             return event.emit('pause');
           }
         }
@@ -287,16 +209,15 @@ if (typeof require !== 'undefined') {
     }
     //
     event.on('info', function () {
-      log('[a]', info);
       if (info.length === 0) {
-        return done('error');
+        return done('error', 'info.length is equal to zero');
       }
       if (info.encoding) {
-        return done('error');
+        return done('error', 'info.encoding is not null');
       }
       (function (len) {
         len = Math.max(len, obj.minByteSize ||  50 * 1024);
-        len = Math.min(len, obj.maxByteSize || 20 * 1024 * 1024);
+        len = Math.min(len, obj.maxByteSize || 50 * 1024 * 1024);
         len = Math.min(info.length, len);
 
         let threads = Math.floor(info.length / len);
@@ -315,59 +236,52 @@ if (typeof require !== 'undefined') {
       if (!info['multi-thread'] && info.length > 200 * 1024 * 1024) {
         return done('error');
       }
-      status = 'download';
-      event.emit('status', status);
+      internals.status = 'download';
       schedule();
     });
     // pause
     event.on('pause', function () {
-      status = 'pause';
-      event.emit('status', status);
+      internals.status = 'pause';
       segments.forEach(s => s.event.emit('abort'));
     });
     event.on('resume', function () {
-      if (status === 'pause') {
-        retries = 0;
-        event.emit('retries', retries);
+      if (internals.status === 'pause') {
+        internals.retries = 0;
         if (internals.locks.length) {
-          log('[a]', 'internals.locks is not empty');
           internals.locks = [];
         }
-        status = 'download';
-        event.emit('status', status);
+        internals.status = 'download';
         schedule();
       }
     });
     // cancel
-    event.on('cancel', function () {
-      status = 'error';
-      event.emit('status', status);
-    });
+    event.on('cancel', () => internals.status = 'error');
     // error
     event.on('error', function () {
-      if (status !== 'error') {
+      if (internals.status !== 'error') {
         segments.forEach(s => s.event.emit('abort'));
-        status = 'error';
-        event.emit('status', status);
+        internals.status = 'error';
       }
     });
     // getting header
-    app.Promise.race([obj.url, obj.url, obj.url].map(head))
-      .then(
-        function (i) {
-          info = i;
-          if (info.url) { // bypass redirects
-            obj.url = info.url;
-          }
-          event.emit('info', info);
-        },
-        () => done('error')
-      );
+    app.Promise.race([obj.url, obj.url, obj.url].map(head)).then(
+      function (i) {
+        info = i;
+        if (info.url) { // bypass redirects
+          obj.url = info.url;
+        }
+        event.emit('info', info);
+      },
+      (e) => done('error', 'cannot get file information form server;' + e.message)
+    );
     return {
       event: event,
       promise: d.promise,
-      get status () {return status;},
-      get retries () {return retries;},
+      resolve: d.resolve,
+      reject: d.reject,
+      get message () {return message;},
+      get status () {return internals.status;},
+      get retries () {return internals.retries;},
       get info () {return info;},
       get internals () {return internals;},
     };
@@ -428,7 +342,7 @@ if (typeof require !== 'undefined') {
       internals.name = guess(Object.assign({mime: info.mime}, obj));
       a.event.emit('name', internals.name);
     });
-    a.event.on('progress', function (o, e) {
+    a.event.on('progress-with-buffer', function (o, e) {
       if (!internals.file) {
         internals.file = new app.File({
           name: internals.name,
@@ -436,40 +350,34 @@ if (typeof require !== 'undefined') {
           path: obj.folder,
           length: a.info.length
         });
-        internals.file.open().catch((e) => a.event.emit('error', e));
+        internals.file.open().catch((e) => a.reject(e));
       }
-      log('[b]', `writing ${e.offset + o.range.start} - ${e.offset + e.buffer.length + o.range.start - 1}`);
       internals.file.write(e.offset + o.range.start, e.buffer).catch((e) => a.event.emit('error', e));
     });
-    a.event.on('done', function (status) {
+    Object.defineProperty(a, 'internals@b', {get: function () {return internals;}});
+    a.promise.then(function (status) {
       if (status === 'done') {
         internals.file.md5().then(function (md5) {
           internals.md5 = md5;
           a.event.emit('md5', md5);
-          internals.file.flush().catch(() => a.event.emit('error'));
-        }, (e) => a.event.emit('error', e));
+          internals.file.flush().catch((e) => a.reject(e));
+        }, (e) => a.reject(e));
       }
       if (status === 'error' && internals.file) {
         internals.file.remove();
       }
-    });
-    Object.defineProperty(a, 'internals@b', {
-      get: function () {
-        return internals;
-      }
+      return status;
     });
     return a;
   }
   /* handling speed measurement */
   function cget (obj) {
-    let b = bget(obj);
-    let id, stats = [0];
+    let b = bget(obj), id, stats = [0];
     obj.update = obj.update || 1000;
 
-    function done (a) {
+    function done () {
       app.timer.clearInterval(id);
       update();
-      return a;
     }
     function speed () {
       return stats.reduce((p, c) => p + c, 0) / stats.length / obj.update * 1000;
@@ -480,65 +388,37 @@ if (typeof require !== 'undefined') {
       stats = stats.slice(-5);
     }
     function start () {
+      app.timer.clearInterval(id);
       id = app.timer.setInterval(update, obj.update);
     }
-
     b.event.on('progress', function (d, obj) {
-      stats[stats.length - 1] += obj.buffer.length;
+      stats[stats.length - 1] += obj.length;
     });
-    (function (end) {
-      b.event.on('pause', end);
-      b.event.on('error', end);
-    })(function () {
+    b.event.on('pause', function () {
       stats = [0];
       done();
     });
     b.event.on('resume', start);
-
     start();
-
-    b.promise.then(done, done);
-
+    b.promise.then(
+      (a) => {done(); return a;},
+      (e) => {done(); throw e;}
+    );
     Object.defineProperty(b, 'speed', {
       get: function () {
         return speed();
       }
     });
-
     return b;
   }
-  //clean up
+  //listeners clean up
   function vget (obj) {
     let c = cget(obj);
-    function done (a) {
-      app.timer.setTimeout(() => c.event.removeAllListeners(), 5000);
-      return a;
-    }
-    c.promise.then(done, done);
+    c.promise.then(
+      (a) => {app.timer.setTimeout(() => c.event.removeAllListeners(), 5000); return a;},
+      (e) => {app.timer.setTimeout(() => c.event.removeAllListeners(), 5000); throw e;}
+    );
     return c;
   }
   wget.download = vget;
 })();
-/*
-(function (c) {
-  c.event.on('error', function (e) {
-    console.error(e);
-  });
-  c.promise.then(function (status) {
-    console.error(`download is done with "${status}" code.`);
-    console.error(`file name is ${c['internals@b'].name}`);
-  });
-  app.timer.setTimeout(function () {
-    console.error('pausing ...');
-    c.event.emit('pause');
-  }, 1000);
-  app.timer.setTimeout(function () {
-    console.error('resuming ...');
-    c.event.emit('resume');
-  }, 4000);
-})(wget.download({
-  url: 'http://pad1.whstatic.com/images/thumb/4/4e/Download-a-New-Web-Browser-Step-1.jpg/670px-Download-a-New-Web-Browser-Step-1.jpg',
-  threads: 3,
-  timeout: 10000,
-  folder: '/Users/amin/Desktop/'
-}));*/

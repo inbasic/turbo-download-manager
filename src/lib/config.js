@@ -33,7 +33,7 @@ config.mwget = {
 };
 
 config.wget = {
-  threads: 5,
+  threads: 3,
   timeout: 30, // seconds,
   retrie: 30,
   update: 1, // second

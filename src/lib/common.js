@@ -172,6 +172,9 @@ app.add.receive('init', function () {
     });
   });
 });
+app.add.receive('no-folder', function () {
+  app.notification('Please select the destination folder using the "browse" button');
+});
 /* info ui */
 app.info.receive('init', function (id) {
   app.info.send('log', {

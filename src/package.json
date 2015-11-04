@@ -4,7 +4,7 @@
   "description": "a download manager with multi-threading support",
   "id": "jid0-dsq67mf5kjjhiiju2dfb6kk8dfw@jetpack",
   "license": "Mozilla Public License, version 2.0",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "author": "InBasic",
   "lib": "lib",
   "main": "./lib/common.js",

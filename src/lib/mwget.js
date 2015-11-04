@@ -78,7 +78,7 @@ if (typeof require !== 'undefined') {
       instance.event.once('progress', count);
       instance.event.on('progress', function (a, e) {
         let start = a.range.start;
-        let length = e.offset + e.buffer.length;
+        let length = e.offset + e.length;
         let size = instance.info.length;
         let tmp = {
           id: a.id,
@@ -91,7 +91,7 @@ if (typeof require !== 'undefined') {
       instance.event.on('log', (c) => callbacks.logs.forEach(d => d(index, c)));
       instance.event.on('name', (c) => callbacks.details.forEach(d => d(index, 'name', c)));
       instance.event.on('status', function (c) {
-        instance.log.push('Download status changed to "' + c + '"');
+        instance.log.push('Download status changed to "' + c + '"; ' + (instance.message || 'no-msg'));
         callbacks.details.forEach(d => d(index, 'status', c));
         if (c === 'pause' && !instance.info['multi-thread']) {
           instance.event.emit('cancel');

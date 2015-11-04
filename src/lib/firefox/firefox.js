@@ -13,7 +13,6 @@ var self          = require('sdk/self'),
     platform      = require('sdk/system').platform,
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
-    xhr           = require('sdk/net/xhr'),
     {all, defer, race, resolve}  = require('sdk/core/promise'),
     {on, off, once, emit} = require('sdk/event/core'),
     {Ci, Cc, Cu, components}  = require('chrome');
@@ -23,6 +22,11 @@ var {NetUtil} = Cu.import('resource://gre/modules/NetUtil.jsm');
 var {FileUtils} = Cu.import('resource://gre/modules/FileUtils.jsm');
 
 var desktop = ['winnt', 'linux', 'darwin'].indexOf(platform) !== -1;
+var xhr = {
+  XMLHttpRequest: function () {
+    return Cc['@mozilla.org/xmlextras/xmlhttprequest;1'].createInstance(Ci.nsIXMLHttpRequest);
+  }
+};
 
 exports.globals = {
   browser: 'firefox'
@@ -31,6 +35,62 @@ exports.globals = {
 exports.Promise = {defer, all, race, resolve};
 exports.XMLHttpRequest = xhr.XMLHttpRequest;
 exports.URL = urls.URL;
+
+exports.fetch = function (url, props) {
+  let d = defer(), req = new xhr.XMLHttpRequest(), buffers = [], done = false;
+  let ppp, sent = false;
+
+  function result() {
+    return {
+      value: buffers.shift(),
+      get done() { return done; }
+    };
+  }
+  req.mozBackgroundRequest = true;  //No authentication
+  req.open('GET', url);
+  req.responseType = 'moz-chunked-arraybuffer';
+  req.overrideMimeType('text/plain; charset=x-user-defined');
+  req.channel
+    .QueryInterface(Ci.nsIHttpChannelInternal)
+    .forceAllowThirdPartyCookie = true;
+  if (props.headers) {
+    Object.keys(props.headers).forEach((k) => req.setRequestHeader(k, props.headers[k]));
+  }
+
+  req.onprogress = function() {
+    buffers.push(req.response);
+    if (!sent) {
+      sent = true;
+      d.resolve({
+        ok: req.status >= 200 && req.status < 300,
+        body: {
+          getReader: function() {
+            return {
+              read: function() {
+                let d = defer();
+                if (buffers.length) {
+                  ppp = null;
+                  d.resolve(result());
+                } else {
+                  ppp = d.resolve;
+                }
+                return d.promise;
+              },
+              cancel: () => req.abort()
+            };
+          }
+        }
+      });
+    }
+    if (ppp) {
+      ppp(result());
+    }
+  };
+  req.ontimeout = req.onerror = (e) => d.reject(e);
+  req.onload = () => done = true;
+  req.send();
+  return d.promise;
+};
 
 exports.EventEmitter = (function () {
   let EventEmitter = function () {
@@ -255,9 +315,9 @@ exports.File = function (obj) { // {name, path, mime}
       let seekstream = ostream.QueryInterface(Ci.nsISeekableStream);
       seekstream.seek(0x00, offset); // 0x00: Offset is relative to the start of the stream.
 
-      let istream = Cc['@mozilla.org/io/string-input-stream;1']
-          .createInstance(Ci.nsIStringInputStream);
-      istream.data = content;
+      let istream = Cc['@mozilla.org/io/arraybuffer-input-stream;1']
+        .createInstance(Ci.nsIArrayBufferInputStream);
+      istream.setData(content, 0, content.byteLength);
 
       let bstream = Cc['@mozilla.org/binaryinputstream;1']
         .createInstance(Ci.nsIBinaryInputStream);

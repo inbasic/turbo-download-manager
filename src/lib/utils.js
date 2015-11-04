@@ -38,3 +38,19 @@ if (typeof require !== 'undefined') {
     }
   };
 })();
+
+utils.assign = function (obj, name, event, value) {
+  let tmp = value;
+  Object.defineProperty(obj, name, {
+    get: function () {
+      return tmp;
+    },
+    set: function (val) {
+      if (val !== tmp) {
+        tmp = val;
+        event.emit(name, tmp);
+      }
+    }
+  });
+  return utils;
+};

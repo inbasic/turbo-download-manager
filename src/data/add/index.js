@@ -1,6 +1,11 @@
-/* globals background */
+/* globals background, manifest */
 'use strict';
-document.querySelector('#add input[type=button]').addEventListener('click', function () {
+
+document.querySelector('form').addEventListener('submit', function () {
+  let folder = document.querySelector('[data-id=folder]').value;
+  if (!folder && manifest.support) {
+    return background.send('no-folder');
+  }
   background.send('download', {
     url: document.querySelector('[data-id=url]').value,
     description: document.querySelector('[data-id=description]').value,
@@ -37,9 +42,3 @@ background.receive('init', function (obj) {
 background.send('init');
 // autofocus is not working on Firefox
 window.setTimeout(() => document.querySelector('[data-id=url]').focus(), 500);
-// Enter submission
-document.addEventListener('keypress', function (e) {
-  if (e.keyCode === 13 && !document.querySelector('form:invalid')) {
-    document.querySelector('#add input[type=button]').click();
-  }
-});

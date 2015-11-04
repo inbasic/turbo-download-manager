@@ -1,8 +1,18 @@
+'use strict';
+
 var http = require('http');
+var path = require('path');
 var send = require('send');
 var url = require('url');
 
-var app = http.createServer(function(req, res){
+function getUserHome() {
+  return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
+}
+
+var root = path.join(getUserHome(), 'Desktop');
+console.error('Mirroring %s to http://127.0.0.1:3000', root);
+
+http.createServer(function (req, res) {
   // your custom error-handling logic:
   function error(err) {
     res.statusCode = err.status || 500;
@@ -10,7 +20,7 @@ var app = http.createServer(function(req, res){
   }
 
   // your custom headers
-  function headers(res, path, stat) {
+  function headers(res) {
     // serve all files for download
     res.setHeader('Content-Disposition', 'attachment');
   }
@@ -24,7 +34,7 @@ var app = http.createServer(function(req, res){
 
   // transfer arbitrary files from within
   // /www/example.com/public/*
-  send(req, url.parse(req.url).pathname, {root: '/Users/amin/Desktop'})
+  send(req, url.parse(req.url).pathname, {root: root})
   .on('error', error)
   .on('directory', redirect)
   .on('headers', headers)

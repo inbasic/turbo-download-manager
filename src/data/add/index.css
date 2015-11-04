@@ -81,7 +81,7 @@ table td:first-child {
     width: 70px;
   }
 }
-table td:last-child {
+table td:last-child>div {
   display: flex;
   flex-wrap: wrap;
 }

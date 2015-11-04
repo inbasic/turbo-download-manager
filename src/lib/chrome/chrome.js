@@ -14,6 +14,9 @@ app.once('load', function () {
 
 app.Promise = Promise;
 app.XMLHttpRequest = window.XMLHttpRequest;
+app.fetch = function (url, props) {
+  return fetch(url, props);
+};
 app.EventEmitter = EventEmitter;
 app.timer = window;
 app.URL = window.URL;
@@ -321,6 +324,7 @@ else {
   app.File = function (obj) { // {name, path, mime, length}
     window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
     let fileEntry, cache = [], postponed, length = 0;
+    let fileWriters = [];
 
     let tmp = {
       open: function () {
@@ -359,28 +363,33 @@ else {
       },
       write: function (offset, content) {
         let d = Promise.defer();
+        function next (fileWriter) {
+          fileWriter.onerror = (e) => d.reject(e);
+          fileWriter.onwrite = function (e) {
+            length += e.loaded;
+            d.resolve();
+            if (postponed && length === obj.length) {
+              postponed.resolve(tmp.md5());
+            }
+            fileWriters.push(fileWriter);
+          };
+          fileWriter.seek(offset);
+          let blob = new Blob([content], {type: 'application/octet-stream'});
+          fileWriter.write(blob);
+        }
         if (!fileEntry) {
           cache.push({offset, content});
           d.resolve();
         }
         else {
-          fileEntry.createWriter(function (fileWriter) {
-            let view = new Uint8Array(content.length);
-            for (let i = 0; i < content.length; i++) {
-              view[i] = content.charCodeAt(i);
-            }
-            fileWriter.onerror = (e) => d.reject(e);
-            fileWriter.onwrite = function (e) {
-              length += e.loaded;
-              d.resolve();
-              if (postponed && length === obj.length) {
-                postponed.resolve(tmp.md5());
-              }
-            };
-            fileWriter.seek(offset);
-            let blob = new Blob([view], {type: 'application/octet-stream'});
-            fileWriter.write(blob);
-          }, (e) => d.reject(e));
+          if (fileWriters.length) {
+            next(fileWriters.shift());
+          }
+          else {
+            fileEntry.createWriter(function (fileWriter) {
+              next(fileWriter);
+            }, (e) => d.reject(e));
+          }
         }
         return d.promise;
       },
@@ -407,16 +416,44 @@ else {
       },
       flush: function () {
         let d = Promise.defer();
-        fileEntry.file(function (file) {
-          let link = document.createElement('a');
-          link.download = obj.name;
-          link.href = URL.createObjectURL(file);
-          link.dispatchEvent(new MouseEvent('click'));
-          window.setTimeout(function () {
-            d.resolve();
-            link = null;
-          }, 5000);
-        }, (e) => d.reject(e));
+        fileWriters = [];
+
+        function copy (folder, index) {
+          let name = obj.name;
+          if (index) {
+            name = name.replace(/((\.[^\.]{1,3}){0,1}\.[^\.]+)$/, '-' + index + '$1');
+          }
+          folder.getFile(name, {create: true, exclusive: true}, function () {
+            fileEntry.moveTo(folder, name, () => d.resolve, (e) => d.reject(e));
+          }, function () {
+            copy(folder, (index || 0) + 1);
+          });
+        }
+
+        chrome.storage.local.get('folder', function (storage) {
+          if (storage.folder) {
+            try {
+              chrome.fileSystem.restoreEntry(storage.folder, function (folder) {
+                copy(folder);
+              });
+            }
+            catch (e) {
+              d.reject(e);
+            }
+          }
+          else {
+            fileEntry.file(function (file) {
+              let link = document.createElement('a');
+              link.download = obj.name;
+              link.href = URL.createObjectURL(file);
+              link.dispatchEvent(new MouseEvent('click'));
+              window.setTimeout(function () {
+                d.resolve();
+                link = null;
+              }, 5000);
+            }, (e) => d.reject(e));
+          }
+        });
         return d.promise;
       },
       remove: function () {},
@@ -426,6 +463,26 @@ else {
     return tmp;
   };
 }
+
+app.disk = {
+  browse: function () {
+    let d = Promise.defer();
+    let wins = chrome.app.window.getAll();
+    if (wins && wins.length) {
+      let win = wins[0].contentWindow;
+      win.chrome.fileSystem.chooseEntry({type: 'openDirectory'}, function (folder) {
+        chrome.storage.local.set({
+          folder: chrome.fileSystem.retainEntry(folder)
+        });
+        d.resolve(folder.name);
+      });
+    }
+    else {
+      d.reject();
+    }
+    return d.promise;
+  }
+};
 // webapp
 app.runtime = (function () {
   if (chrome.app.runtime) {

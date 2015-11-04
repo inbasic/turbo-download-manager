@@ -16,5 +16,5 @@ var background = {
   }
 };
 var manifest = {
-  url: chrome.runtime.getURL('./')
+  support: true
 };
