@@ -159,16 +159,21 @@ if (typeof require !== 'undefined') {
       // removing the old range and free up its index
       internals.ranges.splice(internals.ranges.indexOf(rngs[0]), 1);
       internals.locks.splice(internals.locks.indexOf(rngs[0]), 1);
-      //
-      event.emit('percent', internals.ranges.reduce((p, c) => p += c.end - c.start, 0), info.length);
+      //percent
+      let remained = internals.ranges.reduce((p, c) => p += c.end - c.start, 0);
+      let percent = parseInt((info.length - remained) / info.length * 100);
+      if (isNaN(fix.percent) || fix.percent < percent) {
+        event.emit('percent', internals.ranges.reduce((p, c) => p += c.end - c.start, 0), info.length);
+      }
+      fix.percent = percent;
     }
 
     function add (obj, range) {
       let e = new app.EventEmitter();
       e.on('progress', (obj) => fix({
-          start: obj.offset + range.start,
-          end: obj.offset + obj.length + range.start - 1
-        }));
+        start: obj.offset + range.start,
+        end: obj.offset + obj.length + range.start - 1
+      }));
       let tmp = {
         status: 'downloading',
         range: range,
@@ -177,8 +182,20 @@ if (typeof require !== 'undefined') {
         id: '#' + Math.floor(Math.random() * 16777215).toString(16)
       };
       segments.push(tmp);
-      e.on('progress', (e) => event.emit('progress', tmp, e));
+
+      e.on('progress', (function () {
+        let _percent;
+        return function (obj) {
+          let percent = parseInt((obj.offset + obj.length) / (range.end - range.start) * 100);
+          if (isNaN(_percent) || percent > _percent + 3 || percent === 100) {
+            event.emit('progress', tmp, obj);
+            _percent = percent;
+          }
+        };
+      })());
+
       e.on('progress-with-buffer', (e) => event.emit('progress-with-buffer', tmp, e));
+      e.on('progress', (e) => event.emit('progress-for-speed', tmp, e));
       chunk(obj, range, e, info['multi-thread']).then(function (status) {
         tmp.status = status;
         // clean up
@@ -391,7 +408,7 @@ if (typeof require !== 'undefined') {
       app.timer.clearInterval(id);
       id = app.timer.setInterval(update, obj.update);
     }
-    b.event.on('progress', function (d, obj) {
+    b.event.on('progress-for-speed', function (d, obj) {
       stats[stats.length - 1] += obj.length;
     });
     b.event.on('pause', function () {

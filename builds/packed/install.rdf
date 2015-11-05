@@ -5,11 +5,10 @@
       <em:type>2</em:type>
       <em:bootstrap>true</em:bootstrap>
       <em:unpack>false</em:unpack>
-      <em:version>0.1.7.1</em:version>
+      <em:version>0.1.10</em:version>
       <em:name>Turbo Download Manager</em:name>
       <em:description>a download manager with multi-threading support</em:description>
       <em:creator>InBasic</em:creator>
-      <em:iconURL>data/icons/32.png</em:iconURL>
 
       <em:targetApplication>
         <Description>

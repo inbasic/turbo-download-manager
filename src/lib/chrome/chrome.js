@@ -105,12 +105,7 @@ app.getURL = function (path) {
 app.tab = {
   open: function (url, inBackground, inCurrent) {
     if (!chrome.tabs) {
-      if (app.runtime.isInstalled) {
-        chrome.runtime.sendMessage(app.runtime.id, {cmd: 'open-link', url, inBackground, inCurrent});
-      }
-      else {
-        window.open(url);
-      }
+      chrome.browser.openTab({url});
     }
     else {
       if (inCurrent) {
