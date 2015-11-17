@@ -74,7 +74,7 @@ if (typeof require !== 'undefined') {
         let md5 = status === 'done' ? instance['internals@b'].md5 : '';
         callbacks.done.forEach(d => d(index, status, md5));
         percent.now(status);
-      });
+      }).catch((e) => instance.log.push('internal error; ' + e.message || e));
       instance.event.once('progress', count);
       instance.event.on('progress', function (a, e) {
         let start = a.range.start;
@@ -91,7 +91,7 @@ if (typeof require !== 'undefined') {
       instance.event.on('log', (c) => callbacks.logs.forEach(d => d(index, c)));
       instance.event.on('name', (c) => callbacks.details.forEach(d => d(index, 'name', c)));
       instance.event.on('status', function (c) {
-        instance.log.push('Download status changed to "' + c + '"; ' + (instance.message || 'no-msg'));
+        instance.log.push('Download status changed to "' + c + '"; ' + (instance.message || ''));
         callbacks.details.forEach(d => d(index, 'status', c));
         if (c === 'pause' && !instance.info['multi-thread']) {
           instance.event.emit('cancel');

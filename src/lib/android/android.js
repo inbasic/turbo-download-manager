@@ -136,6 +136,9 @@ app.XMLHttpRequest = window.XMLHttpRequest;
 app.EventEmitter = EventEmitter;
 app.timer = window;
 app.URL = window.URL;
+app.fetch = function (url, props) {
+  return fetch(url, props);
+};
 
 app.storage = (function () {
   var objs = {};
@@ -325,7 +328,7 @@ app.File = function (obj) { // {name, path, mime, length}
                 function (fe) {
                   truncate(fe).catch(() => fill(fe)).then(function () {
                     fileEntry = fe;
-                    Promise.all(cache.map(o => tmp.write(o.offset, o.content))).then(function () {
+                    Promise.all(cache.map(o => tmp.write(o.offset, o.arr))).then(function () {
                       cache = [];
                     }, (e) => d.reject(e));
                     d.resolve();
@@ -343,24 +346,27 @@ app.File = function (obj) { // {name, path, mime, length}
       }, (e) => d.reject(e));
       return d.promise;
     },
-    write: function (offset, content) {
+    write: function (offset, arr) {
       let d = Promise.defer();
       if (!fileEntry) {
-        cache.push({offset, content});
+        cache.push({offset, arr});
         d.resolve();
       }
       else {
         fileEntry.createWriter(function (fileWriter) {
+          let blob = new Blob(arr, {type: 'application/octet-stream'});
+          arr = [];
           fileWriter.onerror = (e) => d.reject(e);
-          fileWriter.onwrite = function () {
-            length += this.loaded;
+          fileWriter.onwrite = function (e) {
+            length += blob.size; // length += e.loaded
             d.resolve();
             if (postponed && length === obj.length) {
               postponed.resolve(tmp.md5());
             }
+            blob = '';
           };
           fileWriter.seek(offset);
-          fileWriter.writeBinaryArray(content);
+          fileWriter.write(blob);
         }, (e) => d.reject(e));
       }
       return d.promise;

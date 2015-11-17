@@ -1,7 +1,7 @@
 /* globals background, manifest */
 'use strict';
 
-document.querySelector('form').addEventListener('submit', function () {
+document.querySelector('form').addEventListener('submit', function (e) {
   let folder = document.querySelector('[data-id=folder]').value;
   if (!folder && manifest.support) {
     return background.send('no-folder');
@@ -13,6 +13,9 @@ document.querySelector('form').addEventListener('submit', function () {
     threads: +document.querySelector('[data-id=threads]').value,
     folder: document.querySelector('[data-id=folder]').value
   });
+  e.preventDefault();
+  e.stopPropagation();
+  return true;
 });
 
 background.receive('folder', function (folder) {

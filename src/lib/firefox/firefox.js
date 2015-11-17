@@ -306,7 +306,7 @@ exports.File = function (obj) { // {name, path, mime}
         resolve();
       });
     },
-    write: function (offset, content) {
+    write: function (offset, arr) {
       let d = defer();
       let ostream = Cc['@mozilla.org/network/file-output-stream;1']
         .createInstance(Ci.nsIFileOutputStream);
@@ -317,7 +317,16 @@ exports.File = function (obj) { // {name, path, mime}
 
       let istream = Cc['@mozilla.org/io/arraybuffer-input-stream;1']
         .createInstance(Ci.nsIArrayBufferInputStream);
-      istream.setData(content, 0, content.byteLength);
+
+      let content = new Uint8Array(arr.reduce((p, c) => p + c.byteLength, 0));
+      (function (offset) {
+        arr.forEach(function (buffer) {
+          content.set(new Uint8Array(buffer), offset);
+          offset += buffer.byteLength;
+        });
+      })(0);
+
+      istream.setData(content.buffer, 0, content.buffer.byteLength);
 
       let bstream = Cc['@mozilla.org/binaryinputstream;1']
         .createInstance(Ci.nsIBinaryInputStream);

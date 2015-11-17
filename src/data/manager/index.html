@@ -19,35 +19,35 @@
       </ul>
     </div>
     <div id="toolbar">
-      <input type="search" placeholder="Filter results; Type and press Enter">
+      <input type="search" placeholder="Type here to filter results">
     </div>
 
     <div class="item" data-type="new" data-id="-1" data-chunkable="false">
       <span class="icon-"></span>
       <div style="overflow: hidden;">
-        <div data-type="name">Fetching file info ...</div>
-        <div>
+        <div data-type="top">
+          <span data-type="name">Fetching file info ...</span>
+          <i class="icon-" data-cmd="info" title="Get infomation"></i>
+          <i class="icon-" data-cmd="pause" title="Pause or resume download"></i>
+          <i class="icon-" data-cmd="cancel" title="Cancel download"></i>
+          <i class="icon-" data-cmd="trash" title="Remove download"></i>
+        </div>
+        <div data-type="middle">
           <div data-type="overal">
             <div></div>
           </div>
           <div data-type="partial">
           </div>
         </div>
-        <div style="white-space: nowrap;">
-          Percent: <span data-type="percent">0.0%</span>,
-          Size: <span data-type="size">0 Byte</span>,
-          Threads: <span data-type="threads">0</span>,
-          Retries: <span data-type="retries">0</span>,
-          Speed: <span data-type="speed">0 Bytes/s</span>,
-          Time left: <span data-type="time">-</span>
+        <div data-type="bottom">
+          Percent:&nbsp;<span data-type="percent">0.0%</span>,
+          Size:&nbsp;<span data-type="size">0 Byte</span>,
+          Speed:&nbsp;<span data-type="speed">0 Bytes/s</span>,
+          Time left:&nbsp;<span data-type="time">-</span>,
+          Threads:&nbsp;<span data-type="threads">0</span>,
+          Retries:&nbsp;<span data-type="retries">0</span>
         </div>
       </div>
-      <table>
-        <tr><td><i class="icon-" data-cmd="info" title="Get infomation"></i></td></tr>
-        <tr><td><i class="icon-" data-cmd="pause" title="Pause or resume download"></i></td></tr>
-        <tr><td><i class="icon-" data-cmd="cancel" title="Cancel download"></i></td></tr>
-        <tr><td><i class="icon-" data-cmd="trash" title="Remove download"></i></td></tr>
-      </table>
     </div>
     <div id="no-active">
       No active download!

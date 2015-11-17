@@ -42,6 +42,7 @@ function download (obj) {
   obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
   obj.update = obj.update * 1000 || config.wget.update * 1000;
   obj.pause = obj.pause || config.wget.pause;
+  obj['write-size'] = obj['write-size'] || config.wget['write-size'];
   obj.retries = obj.retries || config.wget.retrie;
   obj.folder = obj.folder || config.persist.add.folder;
   if (!obj.folder && !app.storage.read('notice-download') && app.globals.browser === 'firefox') {
@@ -108,6 +109,7 @@ app.manager.receive('init', function () {
       'stats': mwget.stats(id),
       'status': instance.status,
       'speed': instance.speed,
+      'threads': instance.threads,
       'retries': instance.retries
     });
   });

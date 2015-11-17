@@ -65,7 +65,8 @@ body:not([data-status=done]):not([data-status=error]) #toolbar input[data-cmd=fi
   padding: 0 6px;
 }
 #log table td:first-child {
-  width: 75px;
+  width: 5px;
   white-space: nowrap;
+  padding-right: 6px;
   border-right: solid 10px #d5d5d5;
 }

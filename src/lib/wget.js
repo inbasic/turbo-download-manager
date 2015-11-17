@@ -21,9 +21,9 @@ if (typeof require !== 'undefined') {
 (function () {
   function xhr (obj) {
     let d = app.Promise.defer(), loaded = 0, active = true;
-    let id = app.timer.setTimeout(() => d.resolve(new Error('timeout')), obj.timeout);
+    let id = app.timer.setTimeout(() => d.reject(new Error('timeout')), obj.timeout);
 
-    obj.event.on('abort', () => d.resolve(new Error('abort')));
+    obj.event.on('abort', () => d.reject(new Error('abort')));
 
     function process (reader) {
       return reader.read().then(function (result) {
@@ -31,7 +31,7 @@ if (typeof require !== 'undefined') {
           return reader.cancel();
         }
         app.timer.clearTimeout(id);
-        id = app.timer.setTimeout(() => d.resolve(new Error('timeout')), obj.timeout);
+        id = app.timer.setTimeout(() => d.reject(new Error('timeout')), obj.timeout);
 
         let chunk = result.value;
         if (chunk) {
@@ -46,9 +46,7 @@ if (typeof require !== 'undefined') {
         throw Error('fetch error');
       }
       return process(res.body.getReader());
-    }).catch(function (e) {
-      return d.resolve(e);
-    });
+    }).catch((e) => d.reject(e));
 
     return d.promise
       .then((s) => {active = false; return s;}, (e) => {active = false; throw e;});
@@ -100,13 +98,14 @@ if (typeof require !== 'undefined') {
     obj.threads = obj.threads || 1;
     obj.retries = obj.retries || 50;
 
-    let event = new app.EventEmitter(), d = app.Promise.defer(), info, segments = [], message;
+    let event = new app.EventEmitter(), d = app.Promise.defer(), info, segments = [], message, lastCount = 0;
     let internals = {};
     utils.assign(internals, 'status', event).assign(internals, 'retries', event, 0);
     internals.status = 'head';  // 'head', 'download', 'error', 'done', 'pause'
 
     function count () {
       let c = segments.filter(s => s.status === 'downloading').length;
+      lastCount = c;
       event.emit('count', c);
       return c;
     }
@@ -169,7 +168,7 @@ if (typeof require !== 'undefined') {
     }
 
     function add (obj, range) {
-      let e = new app.EventEmitter();
+      let e = new app.EventEmitter(), progress;
       e.on('progress', (obj) => fix({
         start: obj.offset + range.start,
         end: obj.offset + obj.length + range.start - 1
@@ -183,46 +182,57 @@ if (typeof require !== 'undefined') {
       };
       segments.push(tmp);
 
-      e.on('progress', (function () {
-        let _percent;
+      e.on('progress', (function (oldPercent) {
         return function (obj) {
           let percent = parseInt((obj.offset + obj.length) / (range.end - range.start) * 100);
-          if (isNaN(_percent) || percent > _percent + 3 || percent === 100) {
+          if (isNaN(oldPercent) || percent > oldPercent + 10 || percent === 100) {
             event.emit('progress', tmp, obj);
-            _percent = percent;
+            oldPercent = percent;
           }
+          event.emit('progress-for-speed', tmp, obj);
+          progress = obj;
         };
       })());
-
       e.on('progress-with-buffer', (e) => event.emit('progress-with-buffer', tmp, e));
-      e.on('progress', (e) => event.emit('progress-for-speed', tmp, e));
-      chunk(obj, range, e, info['multi-thread']).then(function (status) {
-        tmp.status = status;
+
+      function after () {
         // clean up
         e.removeAllListeners();
-        //
-        if (status === 'done') {
+        // report
+        if (progress) {
+          event.emit('progress', tmp, progress);
+        }
+      }
+
+      chunk(obj, range, e, info['multi-thread']).then(
+        function (status) {
+          tmp.status = status;
+          after();
           app.timer.setTimeout(schedule, obj.pause || 100);
-        }
-        else if (status.message === 'abort') {
-          // removing locked ranges inside the chunk with abort code
-          internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
-        }
-        else {
-          if (internals.retries < obj.retries && info['multi-thread']) {
-            if (internals.locks.filter(r => r.start === range.start).length) {
-              internals.retries += 1;
-            }
-            // removing locked ranges inside the chunk with error code
+        },
+        function (e) {
+          tmp.status = e.message;
+          after();
+          if (e.message === 'abort') {
+            // removing locked ranges inside the chunk with abort code
             internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
-            app.timer.setTimeout(schedule, obj.pause || 100);
           }
           else {
-            message = status.message;
-            return event.emit('pause');
+            if (internals.retries < obj.retries && info['multi-thread']) {
+              if (internals.locks.filter(r => r.start === range.start).length) {
+                internals.retries += 1;
+              }
+              // removing locked ranges inside the chunk with error code
+              internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
+              app.timer.setTimeout(schedule, obj.pause || 100);
+            }
+            else {
+              message = e.message;
+              return event.emit('pause');
+            }
           }
         }
-      });
+      );
     }
     //
     event.on('info', function () {
@@ -234,7 +244,7 @@ if (typeof require !== 'undefined') {
       }
       (function (len) {
         len = Math.max(len, obj.minByteSize ||  50 * 1024);
-        len = Math.min(len, obj.maxByteSize || 50 * 1024 * 1024);
+        len = Math.min(len, obj.maxByteSize || 20 * 1024 * 1024);
         len = Math.min(info.length, len);
 
         let threads = Math.floor(info.length / len);
@@ -296,6 +306,7 @@ if (typeof require !== 'undefined') {
       promise: d.promise,
       resolve: d.resolve,
       reject: d.reject,
+      get threads () {return lastCount;},
       get message () {return message;},
       get status () {return internals.status;},
       get retries () {return internals.retries;},
@@ -305,7 +316,7 @@ if (typeof require !== 'undefined') {
   }
   /* handling IO */
   function bget (obj) {
-    let internals = {};
+    let internals = {}, buffers = [];
     let mimeToExtension  = (function () {
       let types = {}, xhr = new app.XMLHttpRequest();
       xhr.onload = function () {
@@ -369,19 +380,42 @@ if (typeof require !== 'undefined') {
         });
         internals.file.open().catch((e) => a.reject(e));
       }
-      internals.file.write(e.offset + o.range.start, e.buffer).catch((e) => a.event.emit('error', e));
+
+      let start = e.offset + o.range.start;
+      let end = start + e.buffer.byteLength;
+
+      let match = buffers.filter(o => o.end === start);
+      if (match.length) {
+        let index = buffers.indexOf(match[0]);
+        buffers[index].end = end;
+        buffers[index].segments.push(e.buffer);
+        if (end - buffers[index].start > obj['write-size'] || 200 * 1024) {
+          internals.file.write(buffers[index].start, buffers[index].segments).catch((e) => a.reject(e));
+          buffers.splice(index, 1);
+        }
+      }
+      else {
+        buffers.push({
+          start: start,
+          end: end,
+          segments: [e.buffer]
+        });
+      }
     });
     Object.defineProperty(a, 'internals@b', {get: function () {return internals;}});
-    a.promise.then(function (status) {
+    a.promise = a.promise.then(function (status) {
       if (status === 'done') {
-        internals.file.md5().then(function (md5) {
-          internals.md5 = md5;
-          a.event.emit('md5', md5);
-          internals.file.flush().catch((e) => a.reject(e));
-        }, (e) => a.reject(e));
+        return app.Promise.all(buffers.map(b => internals.file.write(b.start, b.segments)))
+          .then(() => buffers = [])
+          .then(internals.file.md5)
+          .then(function (md5) {
+            internals.md5 = md5;
+            a.event.emit('md5', md5);
+            return internals.file.flush().then(() => status);
+          });
       }
       if (status === 'error' && internals.file) {
-        internals.file.remove();
+        return internals.file.remove();
       }
       return status;
     });
@@ -417,7 +451,7 @@ if (typeof require !== 'undefined') {
     });
     b.event.on('resume', start);
     start();
-    b.promise.then(
+    b.promise = b.promise.then(
       (a) => {done(); return a;},
       (e) => {done(); throw e;}
     );
@@ -431,7 +465,7 @@ if (typeof require !== 'undefined') {
   //listeners clean up
   function vget (obj) {
     let c = cget(obj);
-    c.promise.then(
+    c.promise = c.promise.then(
       (a) => {app.timer.setTimeout(() => c.event.removeAllListeners(), 5000); return a;},
       (e) => {app.timer.setTimeout(() => c.event.removeAllListeners(), 5000); throw e;}
     );

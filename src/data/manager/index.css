@@ -34,8 +34,8 @@ input:active{
   z-index: 3;
 }
 #menu div[data-role=button] {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   position: relative;
   cursor: pointer;
 }
@@ -51,13 +51,12 @@ input:active{
   font-size: 180%;
   line-height: 30px;
   transform: rotate(90deg);
-}
-@-moz-document url-prefix() {
-  .firefox {
-    #menu div[data-role=button]:before {
-      margin-right: 0.1em;
-    }
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  width: 100%;
+  height: 100%;
 }
 #menu ul {
   width: 150px;
@@ -148,10 +147,11 @@ body:not([data-browser=chrome]) #menu li[data-role=helper] {
 }
 .item>div {
   width: 100%;
+  height: 100%;
   display: inline-flex;
   flex-direction: column;
   flex: 1;
-  margin: 5px;
+  margin: 0 5px;
 }
 .item div[data-type=overal] {
   height: 12px;
@@ -206,48 +206,61 @@ body:not([data-browser=chrome]) #menu li[data-role=helper] {
 .item[data-type=error] div[data-type=partial]>div {
   display: none;
 }
-.item:not([data-type=pause])>table i[data-cmd=cancel],
-.item[data-type=new]>table i[data-cmd=pause],
-.item[data-type=new]>table i[data-cmd=cancel],
-.item[data-type=new]>table i[data-cmd=info] {
+
+.item:not([data-type=pause]) i[data-cmd=cancel],
+.item[data-type=new] i[data-cmd=pause],
+.item[data-type=new] i[data-cmd=cancel],
+.item[data-type=new] i[data-cmd=info] {
   opacity: 0.3;
   cursor: not-allowed;
   pointer-events: none;
 }
-.item[data-type=error]>table i[data-cmd=cancel],
-.item[data-type=done]>table i[data-cmd=cancel],
-.item[data-type=error]>table i[data-cmd=pause],
-.item[data-type=done]>table i[data-cmd=pause] {
+.item[data-type=error] i[data-cmd=cancel],
+.item[data-type=done] i[data-cmd=cancel],
+.item[data-type=error] i[data-cmd=pause],
+.item[data-type=done] i[data-cmd=pause] {
   display: none;
 }
-.item i[data-cmd=trash] {
+.item  i[data-cmd=trash] {
   display: none;
 }
-.item[data-type=error]>table i[data-cmd=trash],
-.item[data-type=done]>table i[data-cmd=trash] {
+.item[data-type=error] i[data-cmd=trash],
+.item[data-type=done] i[data-cmd=trash] {
   display: block;
 }
 /* name */
-.item div[data-type=name] {
+.item [data-type=top] {
+  display: flex;
+  flex: 1;
+}
+.item [data-type=bottom] {
+  white-space: nowrap;
+  height: 16px;
+  display: flex;
+  align-items: center;
+}
+
+.item [data-type=name] {
+  display: flex;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  flex: 1;
+  align-items: center;
 }
 /* buttons */
-.item>table {
-  border-collapse: collapse;
-  margin-right: 5px;
-}
-.item>table i {
+.item i {
   display: block;
-  width: 16px;
+  width: 40px;
   height: 16px;
   background-color: rgba(0, 0, 0, 0.1);
   text-align: center;
-  font-size: 60%;
+  font-size: 80%;
   cursor: pointer;
+  margin-left: 4px;
+
 }
-.item>table i:active {
+.item i:active {
   background-color: rgba(0, 0, 0, 0.2);
 }
 .item i:before {

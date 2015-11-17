@@ -183,6 +183,7 @@ background.receive('add', function (obj) {
   let item = add(obj.id);
   item.percent = obj.percent || 0;
   item.size = obj.size;
+  item.threads = obj.threads;
   item.name = obj.name;
   item.status = obj.status;
   item.speed = obj.speed;

@@ -33,11 +33,12 @@ config.mwget = {
 };
 
 config.wget = {
-  threads: 3,
-  timeout: 30, // seconds,
-  retrie: 30,
-  update: 1, // second
-  pause: 100 // milliseconds
+  'threads': 3,
+  'timeout': 30, // seconds,
+  'retrie': 30,
+  'update': 1, // second
+  'pause': 100, // milliseconds
+  'write-size': 200 * 1024 // bytes
 };
 
 config.icon = {

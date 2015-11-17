@@ -7,5 +7,6 @@ var background = {
 };
 
 var manifest = {
-  url: self.options.base
+  url: self.options.base,
+  support: false
 };

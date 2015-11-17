@@ -319,7 +319,6 @@ else {
   app.File = function (obj) { // {name, path, mime, length}
     window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
     let fileEntry, cache = [], postponed, length = 0;
-    let fileWriters = [];
 
     let tmp = {
       open: function () {
@@ -335,7 +334,7 @@ else {
                     fe.createWriter(function (fileWriter) {
                       fileWriter.onwrite = function () {
                         fileEntry = fe;
-                        Promise.all(cache.map(o => tmp.write(o.offset, o.content))).then(function () {
+                        Promise.all(cache.map(o => tmp.write(o.offset, o.arr))).then(function () {
                           cache = [];
                         }, (e) => d.reject(e));
                         d.resolve();
@@ -356,35 +355,28 @@ else {
         });
         return d.promise;
       },
-      write: function (offset, content) {
+      write: function (offset, arr) {
         let d = Promise.defer();
-        function next (fileWriter) {
-          fileWriter.onerror = (e) => d.reject(e);
-          fileWriter.onwrite = function (e) {
-            length += e.loaded;
-            d.resolve();
-            if (postponed && length === obj.length) {
-              postponed.resolve(tmp.md5());
-            }
-            fileWriters.push(fileWriter);
-          };
-          fileWriter.seek(offset);
-          let blob = new Blob([content], {type: 'application/octet-stream'});
-          fileWriter.write(blob);
-        }
         if (!fileEntry) {
-          cache.push({offset, content});
+          cache.push({offset, arr});
           d.resolve();
         }
         else {
-          if (fileWriters.length) {
-            next(fileWriters.shift());
-          }
-          else {
-            fileEntry.createWriter(function (fileWriter) {
-              next(fileWriter);
-            }, (e) => d.reject(e));
-          }
+          fileEntry.createWriter(function (fileWriter) {
+            let blob = new Blob(arr, {type: 'application/octet-stream'});
+            arr = [];
+            fileWriter.onerror = (e) => d.reject(e);
+            fileWriter.onwrite = function (e) {
+              length += e.loaded;
+              d.resolve();
+              if (postponed && length === obj.length) {
+                postponed.resolve(tmp.md5());
+              }
+              blob = '';
+            };
+            fileWriter.seek(offset);
+            fileWriter.write(blob);
+          }, (e) => d.reject(e));
         }
         return d.promise;
       },
@@ -411,7 +403,6 @@ else {
       },
       flush: function () {
         let d = Promise.defer();
-        fileWriters = [];
 
         function copy (folder, index) {
           let name = obj.name;
@@ -420,6 +411,7 @@ else {
           }
           folder.getFile(name, {create: true, exclusive: true}, function () {
             fileEntry.moveTo(folder, name, () => d.resolve, (e) => d.reject(e));
+            d.resolve();
           }, function () {
             copy(folder, (index || 0) + 1);
           });
@@ -429,7 +421,12 @@ else {
           if (storage.folder) {
             try {
               chrome.fileSystem.restoreEntry(storage.folder, function (folder) {
-                copy(folder);
+                if (folder) {
+                  copy(folder);
+                }
+                else {
+                  d.reject(Error('Cannot locate the destination folder'));
+                }
               });
             }
             catch (e) {

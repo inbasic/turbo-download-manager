@@ -31,3 +31,7 @@ var background = {
     });
   }
 };
+
+var manifest = {
+  support: false
+};

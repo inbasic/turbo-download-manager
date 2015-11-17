@@ -226,6 +226,11 @@ gulp.task('firefox-pack', function () {
     'jpm post --post-url http://localhost:8888/'
   ], {
     cwd: './builds/unpacked/firefox'
+  }))
+  .pipe(shell([
+    'zip firefox.xpi install.rdf icon.png icon64.png',
+  ], {
+    cwd: './builds/packed'
   }));
 });
 /* */

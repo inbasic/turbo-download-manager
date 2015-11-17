@@ -9,7 +9,6 @@
     "storage",
     "notifications",
     "<all_urls>",
-    "clipboardRead",
     "unlimitedStorage",
     {"fileSystem": ["write", "retainEntries", "directory"]}
   ],
