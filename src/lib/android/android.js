@@ -366,7 +366,11 @@ app.File = function (obj) { // {name, path, mime, length}
             blob = '';
           };
           fileWriter.seek(offset);
-          fileWriter.write(blob);
+          let reader = new FileReader();
+          reader.onloadend = function () {
+            fileWriter.writeBinaryArray(reader.result);
+          };
+          reader.readAsBinaryString(blob);
         }, (e) => d.reject(e));
       }
       return d.promise;
@@ -394,20 +398,30 @@ app.File = function (obj) { // {name, path, mime, length}
     },
     flush: function () {
       let d = Promise.defer();
-      fileEntry.file(function (file) {
-        let fileTransfer = new FileTransfer();
-        fileTransfer.download(
-            file.localURL,
-            '/storage/emulated/0/Download/' + obj.name,
-            function () {
-              fileEntry.remove(function () {}, function () {});
-              d.resolve();
-            },
-            (e) => d.reject(e),
-            false,
-            {}
+      function copy (file, index) {
+        let name = obj.name;
+        if (index) {
+          name = name.replace(/((\.[^\.]{1,3}){0,1}\.[^\.]+)$/, '-' + index + '$1');
+        }
+        window.resolveLocalFileSystemURL('file:///storage/emulated/0/Download/' + name,
+          () => copy(file, (index || 0) + 1),
+          function () {
+            let fileTransfer = new FileTransfer();
+            fileTransfer.download(
+                file.localURL,
+                '/storage/emulated/0/Download/' + name,
+                function () {
+                  fileEntry.remove(function () {}, function () {});
+                  d.resolve();
+                },
+                (e) => d.reject(e),
+                false,
+                {}
+            );
+          }
         );
-      }, (e) => d.reject(e));
+      }
+      fileEntry.file(file => copy(file), (e) => d.reject(e));
       return d.promise;
     },
     remove: function () {},
