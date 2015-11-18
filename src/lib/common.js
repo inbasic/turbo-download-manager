@@ -12,7 +12,7 @@ if (typeof require !== 'undefined') {
 /* welcome page */
 (function () {
   var version = config.welcome.version;
-  if (app.version() !== version) {
+  if (app.version() !== version && ['firefox', 'chrome', 'safari'].indexOf(app.globals.browser) !== -1) {
     app.timer.setTimeout(function () {
       app.tab.open(
         'http://add0n.com/turbo-download-manager.html?v=' + app.version() +

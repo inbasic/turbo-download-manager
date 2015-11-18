@@ -367,7 +367,7 @@ else {
             arr = [];
             fileWriter.onerror = (e) => d.reject(e);
             fileWriter.onwrite = function (e) {
-              length += e.loaded;
+              length += blob.size; //length += e.loaded; bug #17
               d.resolve();
               if (postponed && length === obj.length) {
                 postponed.resolve(tmp.md5());

@@ -432,7 +432,8 @@ app.File = function (obj) { // {name, path, mime, length}
 };
 
 // webapp
-chrome.app.runtime.onLaunched.addListener(function() {
+chrome.app.runtime.onLaunched.addListener(function () {
+  console.error('0');
   chrome.app.window.create('data/manager/index.html', {
     id: 'tdm-manager',
   });
