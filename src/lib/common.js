@@ -140,7 +140,7 @@ app.manager.receive('open', function (cmd) {
     app.tab.open('http://add0n.com/turbo-download-manager.html');
   }
   if (cmd === 'helper') {
-    app.tab.open('https://chrome.google.com/webstore/detail/turbo-download-manager/kemfccojgjoilhfmcblgimbggikekjip');
+    app.tab.open('https://chrome.google.com/webstore/detail/turbo-download-manager-he/gnaepfhefefonbijmhcmnfjnchlcbnfc');
   }
 });
 /* add ui */

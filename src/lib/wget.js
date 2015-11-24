@@ -78,14 +78,17 @@ if (typeof require !== 'undefined') {
     req.open('HEAD', url, true);
     req.onload = function () {
       let length = +req.getResponseHeader('Content-Length');
+      let contentEncoding = req.getResponseHeader('Content-Encoding');
+      let lengthComputable = req.getResponseHeader('Length-Computable');
       d.resolve({
         'length': length,
         'url': req.responseURL,
         'mime': req.getResponseHeader('Content-Type'),
+        'can-download': contentEncoding === null && lengthComputable !== 'false',
         'multi-thread': !!length &&
-          req.getResponseHeader('Content-Encoding') === null &&
+          contentEncoding === null &&
           req.getResponseHeader('Accept-Ranges') === 'bytes' &&
-          req.getResponseHeader('Length-Computable') !== 'false'
+          lengthComputable !== 'false'
       });
     };
     req.onerror = req.ontimeout = (e) => d.reject(e);
@@ -109,7 +112,8 @@ if (typeof require !== 'undefined') {
       event.emit('count', c);
       return c;
     }
-    function done (s) {
+    function done (s, msg) {
+      message = message || msg;
       internals.status = s || internals.status;
       event.emit('count', 0);
       d.resolve(s);
@@ -125,6 +129,7 @@ if (typeof require !== 'undefined') {
       let ranges = internals.ranges
         .filter(a => internals.locks.indexOf(a) === -1)
         .sort((a, b) => a.start - b.start);
+
       if (ranges.length) {
         add(obj, ranges[0]);
         internals.locks.push(ranges[0]);
@@ -261,7 +266,10 @@ if (typeof require !== 'undefined') {
       })(Math.floor(info.length / obj.threads));
       // do not download large files if multi-thread is not supported
       if (!info['multi-thread'] && info.length > 200 * 1024 * 1024) {
-        return done('error');
+        return done('error', 'Server does not support multi-threading.');
+      }
+      if (!info['can-download']) {
+        return done('error', 'Server does not support multi-threading.');
       }
       internals.status = 'download';
       schedule();

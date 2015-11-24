@@ -55,9 +55,10 @@ if (typeof require !== 'undefined') {
       instance.log = (function () {
         let arr = [];
         return {
-          push: function (a) {
+          push: function (a, link) {
             a = {
               log: a,
+              link: link,
               date: (new Date()).toLocaleTimeString()
             };
             arr.push(a);
@@ -75,6 +76,7 @@ if (typeof require !== 'undefined') {
         callbacks.done.forEach(d => d(index, status, md5));
         percent.now(status);
       }).catch((e) => instance.log.push('internal error; ' + e.message || e));
+      instance.log.push('Downloading "' + obj.url + '"', obj.url);
       instance.event.once('progress', count);
       instance.event.on('progress', function (a, e) {
         let start = a.range.start;
@@ -106,7 +108,7 @@ if (typeof require !== 'undefined') {
       instance.event.on('retries', (c) => callbacks.details.forEach(d => d(index, 'retries', c)));
       instance.event.once('info', function (c) {
         instance.log.push('File mime is "' + c.mime + '"');
-        instance.log.push('Actual downloadable URL is "' + c.url + '"');
+        instance.log.push('Actual downloadable URL is "' + c.url + '"', c.url);
         instance.log.push('File encoding is "' + c.encoding + '"');
         instance.log.push('Server multi-threading support status is: ' + c['multi-thread']);
         instance.log.push('File length in bytes is "' + c.length + '"');

@@ -15,7 +15,20 @@ background.receive('log', function (obj) {
       tr.appendChild(date);
       let msgParent = document.createElement('td');
       let msg = document.createElement('pre');
-      msg.textContent = obj.log;
+
+      if (obj.link) {
+        let tmp = obj.log.split(obj.link);
+        msg.appendChild(document.createTextNode(tmp[0]));
+        let a = document.createElement('a');
+        a.textContent = a.href = obj.link;
+        a.target = '_blank';
+        msg.appendChild(a);
+        msg.appendChild(document.createTextNode(tmp[1]));
+      }
+      else {
+        msg.textContent = obj.log;
+      }
+
       msgParent.appendChild(msg);
       tr.appendChild(msgParent);
       parent.appendChild(tr);
