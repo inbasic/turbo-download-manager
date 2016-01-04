@@ -424,7 +424,16 @@ app.File = function (obj) { // {name, path, mime, length}
       fileEntry.file(file => copy(file), (e) => d.reject(e));
       return d.promise;
     },
-    remove: function () {},
+    remove: function () {
+      let d = Promise.defer();
+      if (fileEntry) {
+        fileEntry.remove(() => d.resolve(), (e) => d.reject(e));
+      }
+      else {
+        d.resolve();
+      }
+      return d.promise;
+    },
     launch: function () {},
     reveal: function () {}
   };
