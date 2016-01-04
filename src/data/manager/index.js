@@ -167,7 +167,7 @@ var get = function (id) {
 function add (id) {
   toolbar.search = '';
   let parent = document.querySelector('.item[data-id="-1"]').cloneNode(true);
-  let refrence = document.getElementById('no-active');
+  let refrence = document.querySelector('.item');
   parent.dataset.id = id;
   document.body.insertBefore(parent, refrence);
   return get(id);

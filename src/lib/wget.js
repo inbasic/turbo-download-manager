@@ -116,7 +116,12 @@ if (typeof require !== 'undefined') {
       message = message || msg;
       internals.status = s || internals.status;
       event.emit('count', 0);
-      d.resolve(s);
+      if (s === 'error') {
+        d.reject(msg);
+      }
+      else {
+        d.resolve(s);
+      }
       segments = [];
     }
     function schedule () {
@@ -189,8 +194,8 @@ if (typeof require !== 'undefined') {
 
       e.on('progress', (function (oldPercent) {
         return function (obj) {
-          let percent = parseInt((obj.offset + obj.length) / (range.end - range.start) * 100);
-          if (isNaN(oldPercent) || percent > oldPercent + 10 || percent === 100) {
+          let percent = parseInt((obj.offset + obj.length) / info.length * 100);
+          if (isNaN(oldPercent) || percent > oldPercent || percent === 100) {
             event.emit('progress', tmp, obj);
             oldPercent = percent;
           }

@@ -55,7 +55,7 @@ gulp.task('webapp-build', function () {
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
   }, change(function (content) {
-    return content.replace(/\/\*\*[\s\S]*\\*\*\*\//m, '');
+    return content.replace(/\/\*\*\*[\s\S]*\\*\*\*\*\//m, '');
   })))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.html') !== -1;
@@ -104,7 +104,12 @@ gulp.task('chrome-build', function () {
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
   }, change(function (content) {
-    return content.replace(/\/\*\*[\s\S]*\\*\*\*\//m, '');
+    return content.replace(/\/\*\*\*[\s\S]*\\*\*\*\*\//m, function (a) {
+      if (util.env.app) {
+        return '';
+      }
+      return a.indexOf('only-extension') === -1 ? 'ddd' : a;
+    });
   })))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.html') !== -1;

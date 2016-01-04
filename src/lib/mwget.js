@@ -70,6 +70,7 @@ if (typeof require !== 'undefined') {
         };
       })();
       let index = instances.push(instance) - 1;
+      instance.obj = obj;
       instance.promise.then(function (status) {
         app.timer.setTimeout(count, 500);
         let md5 = status === 'done' ? instance['internals@b'].md5 : '';

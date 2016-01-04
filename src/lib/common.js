@@ -131,6 +131,14 @@ app.manager.receive('cmd', function (obj) {
   if (obj.cmd === 'info') {
     app.manager.send('info', obj.id);
   }
+  if (obj.cmd === 'native') {
+    let instance = mwget.get(obj.id);
+    app.download({
+      url: instance.info.url,
+      name: instance['internals@b'].name,
+      path: instance.obj.folder
+    });
+  }
 });
 app.manager.receive('open', function (cmd) {
   if (cmd === 'bug') {

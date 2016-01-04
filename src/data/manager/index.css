@@ -221,9 +221,11 @@ body:not([data-browser=chrome]) #menu li[data-role=helper] {
 .item[data-type=done] i[data-cmd=pause] {
   display: none;
 }
-.item  i[data-cmd=trash] {
+.item i[data-cmd=native],
+.item i[data-cmd=trash] {
   display: none;
 }
+.item[data-type=error] i[data-cmd=native],
 .item[data-type=error] i[data-cmd=trash],
 .item[data-type=done] i[data-cmd=trash] {
   display: block;
@@ -280,6 +282,9 @@ body:not([data-browser=chrome]) #menu li[data-role=helper] {
 }
 .item i[data-cmd=trash]:before {
   content: '\e802';
+}
+.item i[data-cmd=native]:before {
+  content: '\e805';
 }
 
 /* add */

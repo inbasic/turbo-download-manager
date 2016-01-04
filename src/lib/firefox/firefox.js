@@ -20,6 +20,7 @@ var self          = require('sdk/self'),
 var {Services} = Cu.import('resource://gre/modules/Services.jsm');
 var {NetUtil} = Cu.import('resource://gre/modules/NetUtil.jsm');
 var {FileUtils} = Cu.import('resource://gre/modules/FileUtils.jsm');
+var {Downloads} = Cu.import('resource://gre/modules/Downloads.jsm');
 
 var desktop = ['winnt', 'linux', 'darwin'].indexOf(platform) !== -1;
 var xhr = {
@@ -306,6 +307,9 @@ exports.File = function (obj) { // {name, path, mime}
         resolve();
       });
     },
+    get native () {
+      return file;
+    },
     write: function (offset, arr) {
       let d = defer();
       let ostream = Cc['@mozilla.org/network/file-output-stream;1']
@@ -582,3 +586,19 @@ exports.info = (function () {
     }
   };
 })();
+
+// native downloader
+exports.download = function (obj) {
+  let file = new exports.File(obj);
+  return file.open().then(function () {
+    return Downloads.getList(Downloads.ALL).then(function (list) {
+      return Downloads.createDownload({
+        source: obj.url,
+        target: file.native,
+      }).then(function (download) {
+        list.add(download);
+        download.start();
+      });
+    });
+  });
+};
