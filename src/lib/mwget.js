@@ -174,9 +174,7 @@ if (typeof require !== 'undefined') {
       if (wget.status === 'download') {
         throw Error('Cannot remove an instance while it is active. Try to pause the download first');
       }
-      console.error(wget.status);
-      if (wget.status === 'pause') {
-        console.error('hereerere');
+      if (wget.status === 'pause' || wget.status === 'error') {
         wget['internals@b'].file.remove();
       }
       delete instances[index];
