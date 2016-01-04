@@ -247,12 +247,8 @@ if (app.globals.extension) {
         return Promise.resolve();
       },
       write: function (offset, content) {
-        let view = new Uint8Array(content.length);
-        for (let i = 0; i < content.length; i++) {
-          view[i] = content.charCodeAt(i);
-        }
         cache[offset] = cache[offset] || [];
-        cache[offset].push(view.buffer);
+        content.forEach(view => cache[offset].push(view.buffer));
         return Promise.resolve(true);
       },
       toBlob: (function () {
@@ -528,3 +524,21 @@ chrome.runtime.onMessageExternal.addListener(function (request, sender) {
   }
 });
 chrome.runtime.sendMessage(app.runtime.id, {cmd: 'version'});
+
+// native downloader
+app.download = function (obj) {
+  if (chrome.downloads) {
+    chrome.downloads.download({
+      url: obj.url,
+      filename: obj.name
+    });
+  }
+  else {
+    var a = document.createElement('a');
+    a.href = obj.url;
+    a.download = obj.name;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+  }
+};

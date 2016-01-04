@@ -1,4 +1,4 @@
-/* globals CryptoJS, app, FileTransfer, cordova */
+/* globals CryptoJS, app, FileTransfer, BackgroundTransfer, cordova */
 'use strict';
 
 var listeners = {
@@ -442,8 +442,15 @@ app.File = function (obj) { // {name, path, mime, length}
 
 // webapp
 chrome.app.runtime.onLaunched.addListener(function () {
-  console.error('0');
   chrome.app.window.create('data/manager/index.html', {
     id: 'tdm-manager',
   });
 });
+
+// native downloader
+app.download = function (obj) {
+  let d = Promise.defer();
+  cordova.InAppBrowser.open(obj.url, '_blank', 'location=yes');
+  d.resolve();
+  return d.promise;
+};

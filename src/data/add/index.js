@@ -8,6 +8,7 @@ document.querySelector('form').addEventListener('submit', function (e) {
   }
   background.send('download', {
     url: document.querySelector('[data-id=url]').value,
+    name: document.querySelector('[data-id=name]').value,
     description: document.querySelector('[data-id=description]').value,
     timeout: +document.querySelector('[data-id=timeout]').value,
     threads: +document.querySelector('[data-id=threads]').value,

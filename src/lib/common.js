@@ -134,7 +134,7 @@ app.manager.receive('cmd', function (obj) {
   if (obj.cmd === 'native') {
     let instance = mwget.get(obj.id);
     app.download({
-      url: instance.info.url,
+      url: instance.info ? instance.info.url : instance.obj.url,
       name: instance['internals@b'].name,
       path: instance.obj.folder
     });

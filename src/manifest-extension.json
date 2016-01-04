@@ -12,7 +12,8 @@
     "contextMenus",
     "webRequest",
     "<all_urls>",
-    "clipboardRead"
+    "clipboardRead",
+    "downloads"
   ],
   "web_accessible_resources": [],
   "browser_action": {

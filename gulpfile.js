@@ -108,7 +108,7 @@ gulp.task('chrome-build', function () {
       if (util.env.app) {
         return '';
       }
-      return a.indexOf('only-extension') === -1 ? 'ddd' : a;
+      return a.indexOf('only-extension') === -1 ? '' : a;
     });
   })))
   .pipe(gulpif(function (f) {
