@@ -5,7 +5,7 @@
       <em:type>2</em:type>
       <em:bootstrap>true</em:bootstrap>
       <em:unpack>false</em:unpack>
-      <em:version>0.1.11.1</em:version>
+      <em:version>0.2.0</em:version>
       <em:name>Turbo Download Manager</em:name>
       <em:description>a download manager with multi-threading support</em:description>
       <em:creator>InBasic</em:creator>

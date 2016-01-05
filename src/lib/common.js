@@ -10,9 +10,10 @@ if (typeof require !== 'undefined') {
 /**** wrapper (end) ****/
 
 /* welcome page */
-(function () {
+app.startup(function () {
+  console.error('here')
   var version = config.welcome.version;
-  if (app.version() !== version && ['firefox', 'chrome', 'safari'].indexOf(app.globals.browser) !== -1) {
+  if (app.version() !== version) {
     app.timer.setTimeout(function () {
       app.tab.open(
         'http://add0n.com/turbo-download-manager.html?v=' + app.version() +
@@ -21,7 +22,7 @@ if (typeof require !== 'undefined') {
       config.welcome.version = app.version();
     }, config.welcome.timeout);
   }
-})();
+});
 
 /* manager */
 app.button.onCommand(function () {

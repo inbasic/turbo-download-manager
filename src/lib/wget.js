@@ -24,7 +24,6 @@ if (typeof require !== 'undefined') {
     let id = app.timer.setTimeout(() => d.reject(new Error('timeout')), obj.timeout);
 
     obj.event.on('abort', () => d.reject(new Error('abort')));
-
     function process (reader) {
       return reader.read().then(function (result) {
         if (!active) {
@@ -214,7 +213,7 @@ if (typeof require !== 'undefined') {
         }
       }
 
-      chunk(obj, range, e, info['multi-thread']).then(
+      chunk(obj, range, e, range.start !== 0 || range.end !== info.length - 1).then(
         function (status) {
           tmp.status = status;
           after();
@@ -262,7 +261,6 @@ if (typeof require !== 'undefined') {
           threads = 1;
         }
         let arr = Array.from(new Array(threads), (x, i) => i);
-
         internals.ranges = arr.map((a, i, l) => ({
           start: a * len,
           end: l.length === i + 1 ? info.length - 1 : (a + 1) * len - 1

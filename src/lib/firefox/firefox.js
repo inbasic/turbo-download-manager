@@ -22,7 +22,7 @@ var {NetUtil} = Cu.import('resource://gre/modules/NetUtil.jsm');
 var {FileUtils} = Cu.import('resource://gre/modules/FileUtils.jsm');
 var {Downloads} = Cu.import('resource://gre/modules/Downloads.jsm');
 
-var desktop = ['winnt', 'linux', 'darwin'].indexOf(platform) !== -1;
+var desktop = ['winnt', 'linux', 'darwin', 'openbsd'].indexOf(platform) !== -1;
 var xhr = {
   XMLHttpRequest: function () {
     return Cc['@mozilla.org/xmlextras/xmlhttprequest;1'].createInstance(Ci.nsIXMLHttpRequest);
@@ -140,6 +140,12 @@ exports.once = once.bind(null, exports);
 exports.emit = emit.bind(null, exports);
 exports.removeListener = function removeListener (type, listener) {
   off(exports, type, listener);
+};
+//startup
+exports.startup = function (callback) {
+  if (self.loadReason === 'install' || self.loadReason === 'startup') {
+    callback();
+  }
 };
 
 // canvas
@@ -417,14 +423,25 @@ exports.disk = (function () {
 })();
 
 exports.OS = (function () {
-  let clipboard;
-  if (desktop) {
-    clipboard = require('sdk/clipboard');
-  }
   return {
     clipboard: {
       get: function () {
-        return Promise.resolve(clipboard ? clipboard.get() : '');
+        if (desktop) {
+          let clipboard = require('sdk/clipboard');
+          return Promise.resolve(clipboard.get());
+        }
+        else {
+          let clipBoard  = Cc['@mozilla.org/widget/clipboard;1'].getService(Ci.nsIClipboard);
+          let transferable = Cc['@mozilla.org/widget/transferable;1'].createInstance(Ci.nsITransferable);
+          transferable.addDataFlavor('text/unicode');
+          clipBoard.getData(transferable, clipBoard.kGlobalClipboard);
+          let flavour = {};
+          let data = {};
+          let length = {};
+          transferable.getAnyTransferData(flavour, data, length);
+
+          return Promise.resolve(data.value.QueryInterface(Ci.nsISupportsString).data);
+        }
       }
     }
   };
