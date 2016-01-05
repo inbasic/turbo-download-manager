@@ -11,7 +11,6 @@ if (typeof require !== 'undefined') {
 
 /* welcome page */
 app.startup(function () {
-  console.error('here')
   var version = config.welcome.version;
   if (app.version() !== version) {
     app.timer.setTimeout(function () {

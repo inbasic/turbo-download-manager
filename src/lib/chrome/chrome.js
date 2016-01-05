@@ -542,3 +542,27 @@ app.download = function (obj) {
     a.click();
   }
 };
+
+app.startup = (function () {
+  let loadReason, callback;
+  function check () {
+    if (loadReason === 'startup' || loadReason === 'install') {
+      if (callback) {
+        callback();
+      }
+    }
+  }
+  chrome.runtime.onInstalled.addListener(function (details) {
+    loadReason = details.reason;
+    check();
+  });
+  chrome.runtime.onStartup.addListener(function () {
+    loadReason = 'startup';
+    check();
+  });
+  return function (c) {
+    callback = c;
+    check();
+  };
+})();
+
