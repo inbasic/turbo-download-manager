@@ -124,7 +124,7 @@ gulp.task('chrome-install', function () {
   gulp.src('')
   .pipe(wait(1000))
   .pipe(shell([
-    '"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --load-and-launch-app=`pwd` &'
+    '"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --console --load-and-launch-app=`pwd` &'
   ], {
     cwd: './builds/unpacked/chrome'
   }));
@@ -176,7 +176,9 @@ gulp.task('android-build', function () {
   })))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1 && f.relative.indexOf('EventEmitter.js') === -1;
-  }, babel()))
+  }, babel({
+    presets: ['es2015']
+  })))
   .pipe(gulp.dest('builds/unpacked/android'))
   .pipe(zip('android.zip'))
   .pipe(gulp.dest('builds/packed'));

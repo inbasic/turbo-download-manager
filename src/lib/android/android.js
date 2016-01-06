@@ -1,4 +1,4 @@
-/* globals CryptoJS, app, FileTransfer, BackgroundTransfer, cordova */
+/* globals CryptoJS, app, FileTransfer, BackgroundTransfer, AdMob, cordova */
 'use strict';
 
 var listeners = {
@@ -185,7 +185,7 @@ app.getURL = function (path) {
 
 app.tab = {
   open: function (url) {
-    window.open(url);
+    window.open(url, '_system');
   },
   list: function () {
     return Promise.resolve([]);
@@ -449,8 +449,27 @@ chrome.app.runtime.onLaunched.addListener(function () {
 
 // native downloader
 app.download = function (obj) {
-  let d = Promise.defer();
-  cordova.InAppBrowser.open(obj.url, '_blank', 'location=yes');
-  d.resolve();
-  return d.promise;
+  window.open(obj.url, '_system');
+  return Promise.resolve();
 };
+
+(function () {
+  var admobid = {};
+  if (/(android)/i.test(navigator.userAgent)) {
+    admobid = {
+      banner: 'ca-app-pub-8474379789882900/2597644121'
+    };
+  }
+  if (AdMob) {
+    AdMob.createBanner({
+      adId: admobid.banner,
+      position: AdMob.AD_POSITION.BOTTOM_CENTER,
+      autoShow: true,
+      success: function () {},
+      error: function () {
+        console.error('failed to create banner');
+      }
+    });
+  }
+})();
+app.startup = function () {};

@@ -11,7 +11,7 @@ if (typeof require !== 'undefined') {
 
 /* welcome page */
 app.startup(function () {
-  var version = config.welcome.version;
+  let version = config.welcome.version;
   if (app.version() !== version) {
     app.timer.setTimeout(function () {
       app.tab.open(
