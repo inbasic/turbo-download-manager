@@ -83,6 +83,7 @@ if (typeof require !== 'undefined') {
         'length': length,
         'url': req.responseURL,
         'mime': req.getResponseHeader('Content-Type'),
+        'disposition': req.getResponseHeader('Content-Disposition'),
         'can-download': contentEncoding === null && lengthComputable !== 'false',
         'multi-thread': !!length &&
           contentEncoding === null &&
@@ -342,7 +343,13 @@ if (typeof require !== 'undefined') {
       };
     })();
     function guess (obj) {
-      let url = obj.url, name = obj.name, mime = obj.mime;
+      let url = obj.url, name = obj.name, mime = obj.mime, disposition = obj.disposition;
+      if (!name && disposition) {
+        let tmp = /filename\=([^\;]*)/.exec(disposition);
+        if (tmp && tmp.length) {
+          name = tmp[1];
+        }
+      }
       if (!name) {
         url = decodeURIComponent(url);
         url = url.replace(/\/$/, '');
@@ -378,7 +385,7 @@ if (typeof require !== 'undefined') {
     }
     let a = aget(obj);
     a.event.once('info', function (info) {
-      internals.name = guess(Object.assign({mime: info.mime}, obj));
+      internals.name = guess(Object.assign({mime: info.mime, disposition: info.disposition}, obj));
       a.event.emit('name', internals.name);
     });
     a.event.on('progress-with-buffer', function (o, e) {
