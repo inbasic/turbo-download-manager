@@ -365,7 +365,7 @@ exports.File = function (obj) { // {name, path, mime}
       const PR_UINT32_MAX = 0xffffffff;
       ch.updateFromStream(istream, PR_UINT32_MAX);
       let hash = ch.finish(false);
-      let s = [toHexString(hash.charCodeAt(i)) for (i in hash)].join('');
+      let s = Array.from(hash, (c, i) => toHexString(hash.charCodeAt(i))).join('');
       return resolve(s);
     },
     flush: function () {
