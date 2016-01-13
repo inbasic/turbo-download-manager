@@ -6,6 +6,7 @@ var itdmanager = {
   referrer: null,
   name: null,
   radio: null,
+  number: null,
   mode: null,
   pointer: null,
   connect: Components.utils.import(
@@ -24,17 +25,24 @@ var itdmanager = {
     this.pointer = dialog.onOK;
     dialog.onOK = this.accept.bind(itdmanager);
 
-    var observer = new MutationObserver(function(mutations) {
+    var observer = new MutationObserver(function () {
       itdmanager.attach();
       observer.disconnect();
     });
-    observer.observe(this.mode, { childList: true });
+    observer.observe(this.mode, {
+      childList: true
+    });
+    //
   },
   attach: function () {
     this.radio = document.getElementById('itdmanager-radio');
+    this.number = document.getElementById('itdmanager-number');
     if (true || this.url.indexOf('http') === 0) {
       this.radio.removeAttribute('disabled');
     }
+    this.number.addEventListener('change', () => {
+      document.querySelector('radiogroup').selectedItem = this.radio;
+    }, true);
     window.sizeToContent();
   },
   message: function (e) {
@@ -46,6 +54,12 @@ var itdmanager = {
     if (this.mode.selectedItem.id !== 'itdmanager-radio') {
       return this.pointer.apply(dialog, arguments);
     }
+    this.threads = (function (val) {
+      console.error(val);
+      val = val < 1 ? 1 : val;
+      val = val > 10 ? 10 : val;
+      return val;
+    })(this.number.value);
     this.connect.remote.download(this);
 
     window.close();

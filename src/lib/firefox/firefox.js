@@ -65,9 +65,9 @@ exports.fetch = function (url, props) {
       d.resolve({
         ok: req.status >= 200 && req.status < 300,
         body: {
-          getReader: function() {
+          getReader: function () {
             return {
-              read: function() {
+              read: function () {
                 let d = defer();
                 if (buffers.length) {
                   ppp = null;
@@ -172,7 +172,7 @@ exports.button = (function () {
         '18': './icons/18.png',
         '36': './icons/36.png'
       },
-      onClick: function() {
+      onClick: function () {
         if (callback) {
           callback();
         }
@@ -343,7 +343,7 @@ exports.File = function (obj) { // {name, path, mime}
       bstream.setInputStream(istream);
 
       NetUtil.asyncCopy(bstream, ostream,
-        function(status) {
+        function (status) {
           if (!components.isSuccessCode(status)) {
             d.reject(Error('Segment write error.'));
           }
@@ -408,7 +408,7 @@ exports.disk = (function () {
       let d = defer();
       let window = Services.wm.getMostRecentWindow('navigator:browser');
       filePicker.init(window, 'Save in', Ci.nsIFilePicker.modeGetFolder);
-      filePicker.appendFilters(Ci.nsIFilePicker.filterAll );
+      filePicker.appendFilters(Ci.nsIFilePicker.filterAll);
       let pickerStatus = filePicker.show();
       if (pickerStatus === Ci.nsIFilePicker.returnOK || pickerStatus === Ci.nsIFilePicker.returnReplace) {
         var path = filePicker.file.path;

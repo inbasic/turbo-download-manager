@@ -369,6 +369,8 @@ if (typeof require !== 'undefined') {
       }
       // removing exceptions
       name = name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-');
+      // removing trimming white spaces
+      name = name.trim();
       if (se && se.length) {
         return name + se[0];
       }

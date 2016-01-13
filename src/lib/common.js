@@ -38,6 +38,7 @@ app.button.onCommand(function () {
 
 /* main.js */
 function download (obj) {
+  console.error(obj);
   obj.threads = obj.threads || config.wget.threads;
   obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
   obj.update = obj.update * 1000 || config.wget.update * 1000;

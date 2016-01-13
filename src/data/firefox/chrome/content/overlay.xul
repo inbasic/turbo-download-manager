@@ -3,8 +3,9 @@
 
 <overlay id="itdmanager-saveas" xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
   <radiogroup id="mode">
-    <hbox flex="1">
+    <hbox flex="1" align="center">
       <radio id="itdmanager-radio" label="Download with Turbo Download Manager" disabled="true"/>
+      <textbox id="itdmanager-number" type="number" min="1" max="10" style="width: 80px" value="3" tooltiptext="Number of threads"/>
     </hbox>
   </radiogroup>
   <script type="application/x-javascript" src="chrome://itdmanager/content/overlay.js"/>
