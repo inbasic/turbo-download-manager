@@ -115,6 +115,7 @@ if (typeof require !== 'undefined') {
         instance.log.push('File length in bytes is "' + c.length + '"');
         callbacks.details.forEach(d => d(index, 'info', c));
       });
+      instance.event.on('add-log', msg => instance.log.push(msg));
       instance.event.once('size-mismatch', () => instance.log.push('File size has been changed'));
       instance.event.on('speed', (s) => callbacks.speed.forEach(d => d(index, s, instance.remained)));
       instance.event.on('md5', (md5) => instance.log.push('MD5 checksum is "' + md5 + '"'));

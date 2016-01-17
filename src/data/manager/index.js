@@ -161,6 +161,10 @@ var get = function (id) {
     loader.dataset.visible = true;
     iframe.src = '../info/index.html?id=' + id;
   });
+  background.receive('modify', function (id) {
+    loader.dataset.visible = true;
+    iframe.src = '../modify/index.html?id=' + id;
+  });
 })(document.getElementById('add'), document.getElementById('loader'), document.querySelector('#loader iframe'));
 
 // items

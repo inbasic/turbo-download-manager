@@ -277,6 +277,24 @@ app.info = (function () {
   };
 })();
 
+// modify
+app.modify = (function () {
+  return {
+    send: function (id, data) {
+      id += '@md';
+      chrome.runtime.sendMessage({method: id, data: data});
+    },
+    receive: function (id, callback) {
+      id += '@md';
+      chrome.runtime.onMessage.addListener(function (message, sender) {
+        if (id === message.method && sender.url !== document.location.href) {
+          callback.call(sender.tab, message.data);
+        }
+      });
+    }
+  };
+})();
+
 app.File = function (obj) { // {name, path, mime, length}
   window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
   let fileEntry, cache = [], postponed, length = 0;
@@ -435,7 +453,16 @@ app.File = function (obj) { // {name, path, mime, length}
       return d.promise;
     },
     launch: function () {},
-    reveal: function () {}
+    reveal: function () {},
+    rename: function (name) {
+      if (name) {
+        obj.name = name || obj.name;
+        return Promise.resolve();
+      }
+      else {
+        return Promise.reject();
+      }
+    }
   };
   return tmp;
 };

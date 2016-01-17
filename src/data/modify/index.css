@@ -1,0 +1,102 @@
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  margin: 0;
+  padding: 5px;
+  box-sizing: border-box;
+}
+body,
+table,
+input {
+  font-family: arial;
+  font-size: 12px;
+}
+input {
+  background: #fff;
+  border: solid 1px rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  padding: 0 5px;
+  margin: 1px;
+  height: 28px;
+  min-height: 28px;
+  outline: none;
+}
+input[type=button] {
+  cursor: pointer;
+}
+input:focus{
+  border-color: rgba(0, 0, 0, 0.2);
+}
+input:active{
+  border-color: rgba(0, 0, 0, 0.3);
+}
+input:invalid {
+  border-color: red;
+}
+
+input[type=text] {
+  flex: 1;
+  width: 100%;
+}
+input[type=number] {
+  width: 50px;
+}
+
+.firefox {
+  display: none;
+}
+@-moz-document url-prefix() {
+  .firefox {
+    display: table-row;
+  }
+}
+
+.icon-trash-empty,
+.icon-folder-browse {
+  width: 16px;
+  height: 16px;
+}
+
+body>form {
+  display: flex;
+  flex-direction: column;
+  width: 70%;
+  height: 70%;
+}
+@media (max-width: 600px) {
+  body>form {
+    width: 90%;
+  }
+}
+table {
+  width: 100%;
+}
+table td:first-child {
+  width: 120px;
+}
+@media (max-width: 600px) {
+  table td:first-child {
+    width: 70px;
+  }
+}
+table td:last-child>div {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+#add {
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  display: flex;
+  flex: 1;
+  width: 100%;
+  padding: 15px 0;
+}
+
+form:invalid>#add input {
+  opacity: 0.3;
+  pointer-events: none;
+}

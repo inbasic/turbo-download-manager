@@ -302,6 +302,9 @@ if (typeof require !== 'undefined') {
         internals.status = 'error';
       }
     });
+    event.on('name', function (name) {  // used after successful rename of the file
+      obj.name = name || obj.name;
+    });
     // getting header
     app.Promise.race([obj.url, obj.url, obj.url].map(head)).then(
       function (i) {
@@ -324,6 +327,25 @@ if (typeof require !== 'undefined') {
       get retries () {return internals.retries;},
       get info () {return info;},
       get internals () {return internals;},
+      modify: function (uo) {
+        obj.threads = uo.threads || obj.threads;
+        obj.timeout = uo.timeout || obj.timeout;
+        event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-')); // removing exceptions
+        if (uo.url && uo.url !== info.url) {
+          app.Promise.race([uo.url, uo.url, uo.url].map(head)).then(
+            function (i) {
+              if (info.length === i.length) {
+                obj.url = i.url || obj.url;
+                event.emit('add-log', `Download URL is changed to ${obj.url}.`);
+              }
+              else {
+                event.emit('add-log', `Applying the new URL failed. ${uo.url} returned ${i.length}, however the actual file-size is ${info.length}.`);
+              }
+            },
+            (e) => event.emit('add-log', `Cannot change URL; Cannot access server; ${e.message}.`)
+          );
+        }
+      }
     };
   }
   /* handling IO */
@@ -420,6 +442,19 @@ if (typeof require !== 'undefined') {
           end: end,
           segments: [e.buffer]
         });
+      }
+    });
+    a.event.on('rename', function (name) {
+      function okay () {
+        internals.name = name || internals.name;
+        a.event.emit('name', internals.name);
+        a.event.emit('log', `File-name is changed to ${internals.name}`);
+      }
+      if (internals.file) {
+        internals.file.rename(name).then(okay, (e) => a.event.emit('add-log', `Unsuccesful renaming; ${e.message}`));
+      }
+      else {
+        okay();
       }
     });
     Object.defineProperty(a, 'internals@b', {get: function () {return internals;}});

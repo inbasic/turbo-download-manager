@@ -239,6 +239,24 @@ app.info = (function () {
   };
 })();
 
+// modify
+app.modify = (function () {
+  return {
+    send: function (id, data) {
+      id += '@md';
+      chrome.runtime.sendMessage({method: id, data: data});
+    },
+    receive: function (id, callback) {
+      id += '@md';
+      chrome.runtime.onMessage.addListener(function (message, sender) {
+        if (id === message.method && sender.url !== document.location.href) {
+          callback.call(sender.tab, message.data);
+        }
+      });
+    }
+  };
+})();
+
 if (app.globals.extension) {
   app.File = function (obj) { // {name, path, mime, length}
     var cache = {};
@@ -307,7 +325,16 @@ if (app.globals.extension) {
         cache = {};
       },
       launch: function () {},
-      reveal: function () {}
+      reveal: function () {},
+      rename: function (name) {
+        if (name) {
+          obj.name = name || obj.name;
+          return Promise.resolve();
+        }
+        else {
+          return Promise.reject();
+        }
+      }
     };
   };
 }
@@ -455,7 +482,16 @@ else {
         return d.promise;
       },
       launch: function () {},
-      reveal: function () {}
+      reveal: function () {},
+      rename: function (name) {
+        if (name) {
+          obj.name = name || obj.name;
+          return Promise.resolve();
+        }
+        else {
+          return Promise.reject();
+        }
+      }
     };
     return tmp;
   };

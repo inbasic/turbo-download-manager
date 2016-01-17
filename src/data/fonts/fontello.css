@@ -1,6 +1,6 @@
 @font-face {
   font-family: 'fontello';
-  src: url('fontello.woff') format('woff');
+  src: url('./fontello.woff') format('woff');
   font-weight: normal;
   font-style: normal;
 }
@@ -49,6 +49,7 @@
 .icon-info:before { content: '\e806'; } /* '' */
 .icon-trash:before { content: '\e807'; } /* '' */
 .icon-ok:before { content: '\e808'; } /* '' */
+.icon-cog:before { content: '\e809'; } /* '' */
 .icon-search:before { content: '\e80a'; } /* '' */
 .icon-speed:before { content: '\e80b'; } /* '' */
 .icon-plus:before { content: '\e80c'; } /* '' */

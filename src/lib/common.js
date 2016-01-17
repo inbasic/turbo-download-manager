@@ -132,6 +132,9 @@ app.manager.receive('cmd', function (obj) {
   if (obj.cmd === 'info') {
     app.manager.send('info', obj.id);
   }
+  if (obj.cmd === 'modify') {
+    app.manager.send('modify', obj.id);
+  }
   if (obj.cmd === 'native') {
     let instance = mwget.get(obj.id);
     app.download({
@@ -206,5 +209,24 @@ app.info.receive('cmd', function (obj) {
   }
   if (obj.cmd === 'remove') {
     mwget.get(obj.id)['internals@b'].file.remove(true);
+  }
+});
+/* modify ui */
+app.modify.receive('init', function (id) {
+  let instance = mwget.get(id);
+  if (instance) {
+    app.modify.send('init', {
+      url: instance.info ? instance.info.url : instance.obj.url,
+      name: instance['internals@b'].name,
+      threads: instance.threads,
+      timeout: instance.timeout / 1000
+    });
+  }
+});
+app.modify.receive('modified', function (obj) {
+  app.manager.send('hide');
+  let instance = mwget.get(obj.id);
+  if (instance) {
+    instance.modify(obj);
   }
 });

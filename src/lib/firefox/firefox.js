@@ -396,6 +396,35 @@ exports.File = function (obj) { // {name, path, mime}
       catch (e) {
         exports.notification(e.message);
       }
+    },
+    rename: function (name) {
+      let d = defer();
+      if (!name) {
+        d.reject(Error('File name cannot be empty'));
+      }
+      else if (file) {
+        let tmp = file.parent;
+        try {
+          tmp.append(name);
+          if (tmp.exists()) {
+            d.reject(Error('I am not overwriting an existing file.'));
+          }
+          else {
+            file.renameTo(null, name);
+            file = tmp;
+            obj.name = name || obj.name;
+            d.resolve();
+          }
+        }
+        catch (e) {
+          d.reject(e);
+        }
+      }
+      else {
+        obj.name = name || obj.name;
+        d.resolve();
+      }
+      return d.promise;
     }
   };
 };
@@ -496,23 +525,45 @@ exports.OS = (function () {
   Object.freeze(connect);
 })();
 
-// manager
-exports.manager = (function () {
-  var workers = [], content_script_arr = [];
+(function (attach) {
+  exports.manager = attach(
+    data.url('manager/index.html'),
+    [data.url('./manager/firefox/firefox.js'), data.url('./manager/index.js')]
+  );
+  exports.add = attach(
+    data.url('add/index.html'),
+    [data.url('./add/firefox/firefox.js'), data.url('./add/index.js')]
+  );
+  exports.info = attach(
+    data.url('info/index.html') + '*',
+    [data.url('./info/firefox/firefox.js'), data.url('./info/index.js')]
+  );
+  exports.modify = attach(
+    data.url('modify/index.html') + '*',
+    [data.url('./modify/firefox/firefox.js'), data.url('./modify/index.js')]
+  );
+})(function (include, contentScriptFile) {
+  let workers = [], contentScripts = [];
   pageMod.PageMod({
-    include: data.url('manager/index.html'),
-    contentScriptFile: [data.url('./manager/firefox/firefox.js'), data.url('./manager/index.js')],
+    include: include,
+    contentScriptFile: contentScriptFile,
     contentScriptWhen: 'ready',
-    attachTo: ['top', 'existing'],
+    attachTo: ['top', 'existing', 'frame'],
     contentScriptOptions: {
       base: data.url('.')
     },
-    onAttach: function(worker) {
+    onAttach: function (worker) {
       array.add(workers, worker);
-      worker.on('pageshow', function() { array.add(workers, this); });
-      worker.on('pagehide', function() { array.remove(workers, this); });
-      worker.on('detach', function() { array.remove(workers, this); });
-      content_script_arr.forEach(function (arr) {
+      worker.on('pageshow', function () {
+        array.add(workers, this);
+      });
+      worker.on('pagehide', function () {
+        array.remove(workers, this);
+      });
+      worker.on('detach', function () {
+        array.remove(workers, this);
+      });
+      contentScripts.forEach(function (arr) {
         worker.port.on(arr[0], arr[1]);
       });
     }
@@ -524,85 +575,13 @@ exports.manager = (function () {
       });
     },
     receive: function (id, callback) {
-      content_script_arr.push([id, callback]);
+      contentScripts.push([id, callback]);
       workers.forEach(function (worker) {
         worker.port.on(id, callback);
       });
     }
   };
-})();
-
-// manager
-exports.add = (function () {
-  var workers = [], content_script_arr = [];
-  pageMod.PageMod({
-    include: data.url('add/index.html'),
-    contentScriptFile: [data.url('./add/firefox/firefox.js'), data.url('./add/index.js')],
-    contentScriptWhen: 'ready',
-    attachTo: ['top', 'frame', 'existing'],
-    contentScriptOptions: {
-      base: data.url('.')
-    },
-    onAttach: function(worker) {
-      array.add(workers, worker);
-      worker.on('pageshow', function() { array.add(workers, this); });
-      worker.on('pagehide', function() { array.remove(workers, this); });
-      worker.on('detach', function() { array.remove(workers, this); });
-      content_script_arr.forEach(function (arr) {
-        worker.port.on(arr[0], arr[1]);
-      });
-    }
-  });
-  return {
-    send: function (id, data) {
-      workers.forEach(function (worker) {
-        worker.port.emit(id, data);
-      });
-    },
-    receive: function (id, callback) {
-      content_script_arr.push([id, callback]);
-      workers.forEach(function (worker) {
-        worker.port.on(id, callback);
-      });
-    }
-  };
-})();
-
-// info
-exports.info = (function () {
-  var workers = [], content_script_arr = [];
-  pageMod.PageMod({
-    include: data.url('info/index.html') + '*',
-    contentScriptFile: [data.url('./info/firefox/firefox.js'), data.url('./info/index.js')],
-    contentScriptWhen: 'ready',
-    attachTo: ['top', 'frame', 'existing'],
-    contentScriptOptions: {
-      base: data.url('.')
-    },
-    onAttach: function(worker) {
-      array.add(workers, worker);
-      worker.on('pageshow', function() { array.add(workers, this); });
-      worker.on('pagehide', function() { array.remove(workers, this); });
-      worker.on('detach', function() { array.remove(workers, this); });
-      content_script_arr.forEach(function (arr) {
-        worker.port.on(arr[0], arr[1]);
-      });
-    }
-  });
-  return {
-    send: function (id, data) {
-      workers.forEach(function (worker) {
-        worker.port.emit(id, data);
-      });
-    },
-    receive: function (id, callback) {
-      content_script_arr.push([id, callback]);
-      workers.forEach(function (worker) {
-        worker.port.on(id, callback);
-      });
-    }
-  };
-})();
+});
 
 // native downloader
 exports.download = function (obj) {

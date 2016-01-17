@@ -1,0 +1,36 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Modify settings - Turbo Download Manager</title>
+    <link rel="stylesheet" href="index.css">
+    <meta name=viewport content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <form>
+      <table>
+        <tbody>
+          <tr>
+            <td>Download:</td>
+            <td><input data-id="url" type="text" placeholder="http(s)://a-downloadable-link" autofocus></td>
+          </tr>
+          <tr>
+            <td>File Name:</td>
+            <td><input data-id="name" type="text" placeholder="Suggested file name (optional)"></td>
+          </tr>
+          <tr>
+            <td>Number of threads:</td>
+            <td><input data-id="threads" type="number" min=1 max=10 placeholder="3"></td>
+          </tr>
+          <tr>
+            <td>Thread timeout (in seconds)<sup>*</sup>:</td>
+            <td><input data-id="timeout" type="number" min=5 max=120 placeholder="30"></td>
+          </tr>
+        </tbody>
+      </table>
+      <div id="add">
+        <input type="submit" value="Apply">
+      </div>
+    </form>
+    <script src="shadow_index.js"></script>
+  </body>
+</html>

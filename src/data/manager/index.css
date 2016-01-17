@@ -96,9 +96,10 @@ body:not([data-browser=chrome]) #menu li[data-role=helper] {
   height: 30px;
   border: solid 1px rgba(0, 0, 0, 0.1);
   outline: 0;
-  padding: 5px;
+  padding: 0 30px 0 5px;
+  background: url('search.png') center right no-repeat;
+  background-size: contain;
 }
-
 #toolbar input[type=search]:focus {
   border-color: rgba(0, 0, 0, 0.2);
 }
@@ -207,6 +208,7 @@ body:not([data-browser=chrome]) #menu li[data-role=helper] {
   display: none;
 }
 
+.item:not([data-type=pause]) i[data-cmd=modify],
 .item:not([data-type=pause]) i[data-cmd=cancel],
 .item[data-type=new] i[data-cmd=pause],
 .item[data-type=new] i[data-cmd=cancel],
@@ -286,7 +288,9 @@ body:not([data-browser=chrome]) #menu li[data-role=helper] {
 .item i[data-cmd=native]:before {
   content: '\e805';
 }
-
+.item i[data-cmd=modify]:before {
+  content: '\e809';
+}
 /* add */
 #add {
   position: fixed;
