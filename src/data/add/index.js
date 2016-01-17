@@ -12,7 +12,8 @@ document.querySelector('form').addEventListener('submit', function (e) {
     description: document.querySelector('[data-id=description]').value,
     timeout: +document.querySelector('[data-id=timeout]').value,
     threads: +document.querySelector('[data-id=threads]').value,
-    folder: document.querySelector('[data-id=folder]').value
+    folder: document.querySelector('[data-id=folder]').value,
+    'auto-pause': document.querySelector('[data-id="auto-pause"]').checked
   });
   e.preventDefault();
   e.stopPropagation();

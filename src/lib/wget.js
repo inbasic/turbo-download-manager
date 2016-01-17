@@ -276,7 +276,12 @@ if (typeof require !== 'undefined') {
         return done('error', 'Server does not support multi-threading.');
       }
       internals.status = 'download';
-      schedule();
+      if (obj['auto-pause']) {
+        event.emit('pause');
+      }
+      else {
+        schedule();
+      }
     });
     // pause
     event.on('pause', function () {
