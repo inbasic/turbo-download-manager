@@ -139,20 +139,15 @@ app.tab = {
   }
 };
 
-app.menu = function (title, ...arr) {
+app.menu = function (title, ...items) {
   if (!chrome.contextMenus) {
     return;
   }
-  chrome.contextMenus.create({
-    'title': title,
-    'contexts': ['link', 'image', 'video', 'audio'],
-    'id': 'parent'
-  });
-  arr.forEach(function ([title, callback]) {
+  items.forEach(function (arr) {
     chrome.contextMenus.create({
-      'title': title,
+      'title': arr[0],
       'contexts': ['link', 'image', 'video', 'audio'],
-      'onclick': (obj) => callback({
+      'onclick': (obj) => arr[1]({
         url: obj.srcUrl || obj.linkUrl,
         referrer: obj.pageUrl
       })

@@ -55,7 +55,6 @@ var itdmanager = {
       return this.pointer.apply(dialog, arguments);
     }
     this.threads = (function (val) {
-      console.error(val);
       val = val < 1 ? 1 : val;
       val = val > 10 ? 10 : val;
       return val;

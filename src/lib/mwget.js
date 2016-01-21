@@ -94,10 +94,12 @@ if (typeof require !== 'undefined') {
       instance.event.on('log', (c) => callbacks.logs.forEach(d => d(index, c)));
       instance.event.on('name', (c) => callbacks.details.forEach(d => d(index, 'name', c)));
       instance.event.on('status', function (c) {
-        instance.log.push('Download status changed to "' + c + '"; ' + (instance.message || ''));
+        instance.log.push(`Download status changed to "${c}"; ${instance.message || ''}`);
         callbacks.details.forEach(d => d(index, 'status', c));
-        if (c === 'pause' && !instance.info['multi-thread']) {
+        //instance.threads === 0; download has not been initialized yet
+        if (c === 'pause' && !instance.info['multi-thread'] && instance.threads !== 0) {
           instance.event.emit('cancel');
+          instance.log.push('Download status changed to paused while this download is not supporting multi-threading.');
         }
       });
       instance.event.on('error', function (e) {

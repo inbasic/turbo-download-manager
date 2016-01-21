@@ -55,7 +55,7 @@ function download (obj) {
 app.on('download', download);
 /* context menu */
 app.menu(
-  'Download with Turbo Download Manager',
+  'Turbo Download Manager',
   ['Download Now', download],
   ['Download Later', (obj) => download(Object.assign(obj, {'auto-pause': true}))]
 );

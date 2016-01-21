@@ -271,17 +271,18 @@ unload.when(function () {
   });
 });
 
-exports.menu = function (title, callback) {
+exports.menu = function (label, ...items) {
   if (desktop) {
     let contextMenu = require('sdk/context-menu');
-    contextMenu.Item({
-      label: title,
+    contextMenu.Menu({
+      label,
       image: data.url('./icons/32.png'),
       context: contextMenu.SelectorContext('a[href], video, audio, img'),
-      contentScriptFile: data.url('./firefox/menu.js'),
-      onMessage: function (node) {
-        callback(node);
-      }
+      items: items.map(arr => contextMenu.Item({
+        label: arr[0],
+        contentScriptFile: data.url('./firefox/menu.js'),
+        onMessage: node => arr[1](node)
+      }))
     });
   }
 };

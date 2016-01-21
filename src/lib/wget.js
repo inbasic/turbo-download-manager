@@ -41,6 +41,7 @@ if (typeof require !== 'undefined') {
         return result.done ? d.resolve('done') : process(reader);
       });
     }
+
     app.fetch(obj.url, {headers: obj.headers}).then(function (res) {
       if (!res.ok) {
         throw Error('fetch error');
@@ -80,6 +81,7 @@ if (typeof require !== 'undefined') {
       let length = +req.getResponseHeader('Content-Length');
       let contentEncoding = req.getResponseHeader('Content-Encoding');
       let lengthComputable = req.getResponseHeader('Length-Computable');
+      //console.error(req.getAllResponseHeaders())
       d.resolve({
         'length': length,
         'url': req.responseURL,
@@ -118,6 +120,7 @@ if (typeof require !== 'undefined') {
       internals.status = s || internals.status;
       event.emit('count', 0);
       if (s === 'error') {
+        segments.forEach(s => s.event.emit('abort'));
         d.reject(msg);
       }
       else {
@@ -304,7 +307,6 @@ if (typeof require !== 'undefined') {
     // error
     event.on('error', function () {
       if (internals.status !== 'error') {
-        segments.forEach(s => s.event.emit('abort'));
         internals.status = 'error';
       }
     });
@@ -375,7 +377,7 @@ if (typeof require !== 'undefined') {
       if (!name && disposition) {
         let tmp = /filename\=([^\;]*)/.exec(disposition);
         if (tmp && tmp.length) {
-          name = tmp[1];
+          name = tmp[1].replace(/[\"\']$/, '').replace(/^[\"\']/, '');
         }
       }
       if (!name) {
