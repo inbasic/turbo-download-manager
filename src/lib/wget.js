@@ -8,15 +8,16 @@ if (typeof require !== 'undefined') {
 }
 /**** wrapper (end) ****/
 
-// @param  {[type]} obj.url         [url]
-// @param  {[type]} obj.folder      [folder path to store download link to (Firefox only)]
-// @param  {[type]} obj.name        [overwrite suggested file-name]
-// @param  {[type]} obj.timeout     [timeout]
-// @param  {[type]} obj.retries     [number of retries; 50]
-// @param  {[type]} obj.headers     [headers; {}]
-// @param  {[type]} obj.minByteSize [minimum thread size; 50 KBytes]
-// @param  {[type]} obj.maxByteSize [maximum thread size; 50 MBytes]
-// @param  {[type]} obj.pause       [delay in between multiple schedule calls; 100 mSecs]
+// @param  {[type]} obj.url           [url]
+// @param  {[type]} obj.folder        [folder path to store download link to (Firefox only)]
+// @param  {[type]} obj.name          [overwrite suggested file-name]
+// @param  {[type]} obj.timeout       [timeout]
+// @param  {[type]} obj['auto-pause'] [auto-pause after retrieving file info]
+// @param  {[type]} obj.retries       [number of retries; 50]
+// @param  {[type]} obj.headers       [headers; {}]
+// @param  {[type]} obj.minByteSize   [minimum thread size; 50 KBytes]
+// @param  {[type]} obj.maxByteSize   [maximum thread size; 50 MBytes]
+// @param  {[type]} obj.pause         [delay in between multiple schedule calls; 100 mSecs]
 
 (function () {
   function xhr (obj) {

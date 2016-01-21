@@ -139,19 +139,24 @@ app.tab = {
   }
 };
 
-app.menu = function (title, callback) {
+app.menu = function (title, ...arr) {
   if (!chrome.contextMenus) {
     return;
   }
   chrome.contextMenus.create({
     'title': title,
     'contexts': ['link', 'image', 'video', 'audio'],
-    'onclick': function (obj) {
-      callback({
+    'id': 'parent'
+  });
+  arr.forEach(function ([title, callback]) {
+    chrome.contextMenus.create({
+      'title': title,
+      'contexts': ['link', 'image', 'video', 'audio'],
+      'onclick': (obj) => callback({
         url: obj.srcUrl || obj.linkUrl,
         referrer: obj.pageUrl
-      });
-    }
+      })
+    });
   });
 };
 

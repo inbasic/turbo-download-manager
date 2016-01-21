@@ -54,7 +54,12 @@ function download (obj) {
 /* connect */
 app.on('download', download);
 /* context menu */
-app.menu('Download with Turbo Download Manager', download);
+app.menu(
+  'Download with Turbo Download Manager',
+  ['Download Now', download],
+  ['Download Later', (obj) => download(Object.assign(obj, {'auto-pause': true}))]
+);
+
 /* manager */
 mwget.addEventListener('done', function (id, status) {
   app.manager.send('status', {id, status});
