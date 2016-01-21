@@ -148,7 +148,7 @@ app.menu = function (title, callback) {
     'contexts': ['link', 'image', 'video', 'audio'],
     'onclick': function (obj) {
       callback({
-        url: obj.linkUrl || obj.srcUrl,
+        url: obj.srcUrl || obj.linkUrl,
         referrer: obj.pageUrl
       });
     }
@@ -260,6 +260,37 @@ app.modify = (function () {
 if (app.globals.extension) {
   app.File = function (obj) { // {name, path, mime, length}
     var cache = {};
+    var toBlob = (function () {
+      let blob;
+      function b () {
+        let arr = [], tmp = [];
+        for (let i in cache) {
+          tmp.push(i);
+        }
+        tmp.sort(function (a, b) {
+          return a - b;
+        });
+        tmp.forEach(function (i) {
+          arr = arr.concat(cache[i + '']);
+        });
+        let _blob = new Blob(arr, {
+          type: obj.mime
+        });
+        arr = [];
+        cache = {};
+        blob = _blob;
+        return Promise.resolve(_blob);
+      }
+      return function () {
+        if (blob) {
+          return Promise.resolve(blob);
+        }
+        else {
+          return b();
+        }
+      };
+    })();
+
     return {
       open: function () {
         return Promise.resolve();
@@ -269,41 +300,11 @@ if (app.globals.extension) {
         content.forEach(view => cache[offset].push(view.buffer));
         return Promise.resolve(true);
       },
-      toBlob: (function () {
-        let blob;
-        function b () {
-          let arr = [], tmp = [];
-          for (let i in cache) {
-            tmp.push(i);
-          }
-          tmp.sort(function (a, b) {
-            return a - b;
-          });
-          tmp.forEach(function (i) {
-            arr = arr.concat(cache[i + '']);
-          });
-          let _blob = new Blob(arr, {
-            type: obj.mime
-          });
-          arr = [];
-          cache = {};
-          blob = _blob;
-          return Promise.resolve(_blob);
-        }
-        return function () {
-          if (blob) {
-            return Promise.resolve(blob);
-          }
-          else {
-            return b();
-          }
-        };
-      })(),
       md5: function () {
         if (obj.length > 50 * 1024 * 1024) {
           return new Promise.resolve('MD5 calculation is skipped');
         }
-        return this.toBlob()
+        return toBlob()
         .then(function (blob) {
           return new Promise(function (resolve) {
             var tmp = new window.FileReader();
@@ -315,9 +316,12 @@ if (app.globals.extension) {
         });
       },
       flush: function () {
-        return this.toBlob()
+        return toBlob()
         .then(function (blob) {
-          window.saveAs(blob, obj.name);
+          let link = document.createElement('a');
+          link.download = obj.name;
+          link.href = URL.createObjectURL(blob);
+          link.dispatchEvent(new MouseEvent('click'));
           return blob.size;
         });
       },
@@ -440,6 +444,19 @@ else {
           });
         }
 
+        function alternative () {
+          fileEntry.file(function (file) {
+            let link = document.createElement('a');
+            link.download = obj.name;
+            link.href = URL.createObjectURL(file);
+            link.dispatchEvent(new MouseEvent('click'));
+            window.setTimeout(function () {
+              d.resolve();
+              link = null;
+            }, 5000);
+          }, (e) => d.reject(e));
+        }
+
         chrome.storage.local.get('folder', function (storage) {
           if (storage.folder) {
             try {
@@ -448,25 +465,16 @@ else {
                   copy(folder);
                 }
                 else {
-                  d.reject(Error('Cannot locate the destination folder'));
+                  alternative();
                 }
               });
             }
             catch (e) {
-              d.reject(e);
+              alternative();
             }
           }
           else {
-            fileEntry.file(function (file) {
-              let link = document.createElement('a');
-              link.download = obj.name;
-              link.href = URL.createObjectURL(file);
-              link.dispatchEvent(new MouseEvent('click'));
-              window.setTimeout(function () {
-                d.resolve();
-                link = null;
-              }, 5000);
-            }, (e) => d.reject(e));
+            alternative();
           }
         });
         return d.promise;

@@ -19,7 +19,6 @@
     2. /plugins/android/*
   3. If screen splashes change the background color of `/plugins/cordova-plugin-chrome-apps-bootstrap/www/chromeapp.html` to `#FFF`
   4. To start a local server to test downloader use: `sudo php -S 127.0.0.1:80 -t .`
-  5. before Firefox submission run `zip firefox.xpi install.rdf icon.png icon64.png` in 'builds/packed' folder.
-  6. Android submission:
+  5. Android submission:
     1. `sudo cca build android --release --webview=crosswalk`
     2. `sudo cca build android --release --webview=system --android-minSdkVersion=21`
