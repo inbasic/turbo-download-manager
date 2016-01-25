@@ -3,7 +3,7 @@
 
 document.querySelector('form').addEventListener('submit', function (e) {
   let folder = document.querySelector('[data-id=folder]').value;
-  if (!folder && manifest.support) {
+  if (!folder && manifest.folder) {
     return background.send('no-folder');
   }
   background.send('download', {
@@ -47,3 +47,5 @@ background.receive('init', function (obj) {
 background.send('init');
 // autofocus is not working on Firefox
 window.setTimeout(() => document.querySelector('[data-id=url]').focus(), 500);
+//
+document.body.dataset.support = manifest.support;

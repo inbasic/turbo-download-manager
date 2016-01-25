@@ -16,5 +16,6 @@ var background = {
   }
 };
 var manifest = {
-  support: true
+  folder: chrome.tabs ? false : true, // only supported for apps
+  support: chrome.tabs ? false : true
 };

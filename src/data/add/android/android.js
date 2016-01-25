@@ -33,5 +33,6 @@ var background = {
 };
 
 var manifest = {
+  folder: false,
   support: false
 };

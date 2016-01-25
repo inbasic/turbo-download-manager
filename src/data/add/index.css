@@ -100,3 +100,7 @@ form:invalid>#add input {
   opacity: 0.3;
   pointer-events: none;
 }
+
+body[data-support=false] [support] {
+  display: none;
+}
