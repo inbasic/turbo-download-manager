@@ -397,7 +397,9 @@ if (typeof require !== 'undefined') {
       modify: function (uo) {
         obj.threads = uo.threads || obj.threads;
         obj.timeout = uo.timeout || obj.timeout;
-        event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-')); // removing exceptions
+        if (uo.name !== obj.name) {
+          event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-')); // removing exceptions
+        }
         if (uo.url && obj.urls.indexOf(uo.url) === -1) {
           app.Promise.race([uo.url, uo.url, uo.url].map(head)).then(
             function (i) {
@@ -411,7 +413,7 @@ if (typeof require !== 'undefined') {
                 }
               }
               else {
-                event.emit('add-log', `Applying the new URL failed. ${uo.url} returned ${i.length}, however the actual file-size is ${info.length}.`);
+                event.emit('add-log', `Applying the new URL failed. ${uo.url} returns ${i.length} bytes for file-size`, uo.url);
               }
             },
             (e) => event.emit('add-log', `Cannot change URL; Cannot access server; ${e.message}.`)
@@ -437,7 +439,7 @@ if (typeof require !== 'undefined') {
       };
     })();
     function guess (obj) {
-      let url = obj.url, name = obj.name, mime = obj.mime, disposition = obj.disposition;
+      let url = obj.urls[0], name = obj.name, mime = obj.mime, disposition = obj.disposition;
       if (!name && disposition) {
         let tmp = /filename\=([^\;]*)/.exec(disposition);
         if (tmp && tmp.length) {
