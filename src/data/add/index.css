@@ -6,6 +6,7 @@ body {
   margin: 0;
   padding: 5px;
   box-sizing: border-box;
+  overflow: auto;
 }
 body,
 table,
@@ -73,17 +74,46 @@ body>form {
 table {
   width: 100%;
 }
-table td:first-child {
+#t1>tbody>tr>td:first-child {
   width: 120px;
 }
 @media (max-width: 600px) {
-  table td:first-child {
+  #t1>tbody>tr>td:first-child {
     width: 70px;
   }
 }
-table td:last-child>div {
+#t1>tbody>tr>td:last-child>div {
   display: flex;
   flex-wrap: wrap;
+}
+#t2 {
+  border-collapse: collapse;
+}
+#t2 td:last-child {
+  width: 20px;
+}
+#t2 td:last-child span {
+  display: block;
+  height: 26px;
+  cursor: pointer;
+  margin-left: 4px;
+}
+#t2 td:last-child span:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+#t2 td:last-child span:active {
+  background-color: rgba(0, 0, 0, 0.2);
+}
+#t2 td:last-child span:before {
+  content: '\e80e';
+  font-size: 120%;
+  line-height: 26px;
+}
+#t2 tr:first-child td:last-child span:before {
+  content: '\e80c';
+}
+#t2 tr:nth-child(2) {
+  display: none;
 }
 
 #add {

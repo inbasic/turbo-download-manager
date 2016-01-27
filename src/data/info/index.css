@@ -2,6 +2,7 @@ body {
   display: flex;
   flex-direction: column;
   height: 95%;
+  overflow: auto;
 }
 body,
 table,

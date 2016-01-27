@@ -9,6 +9,7 @@ if (typeof require !== 'undefined') {
 /**** wrapper (end) ****/
 
 // @param  {[type]} obj.url           [url]
+// @param  {[type]} obj.alternatives  [alternative urls]
 // @param  {[type]} obj.folder        [folder path to store download link to (Firefox only)]
 // @param  {[type]} obj.name          [overwrite suggested file-name]
 // @param  {[type]} obj.timeout       [timeout]
@@ -22,7 +23,7 @@ if (typeof require !== 'undefined') {
 (function () {
   function xhr (obj) {
     let d = app.Promise.defer(), loaded = 0, active = true;
-    let id = app.timer.setTimeout(() => d.reject(new Error('timeout')), obj.timeout);
+    let id = app.timer.setTimeout(() => d.reject(Object.assign(new Error('timeout'), {url: obj.urls[0]})), obj.timeout);
 
     obj.event.on('abort', () => d.reject(new Error('abort')));
     function process (reader) {
@@ -31,7 +32,7 @@ if (typeof require !== 'undefined') {
           return reader.cancel();
         }
         app.timer.clearTimeout(id);
-        id = app.timer.setTimeout(() => d.reject(new Error('timeout')), obj.timeout);
+        id = app.timer.setTimeout(() => d.reject(Object.assign(new Error('timeout'), {url: obj.urls[0]})), obj.timeout);
 
         let chunk = result.value;
         if (chunk) {
@@ -42,12 +43,12 @@ if (typeof require !== 'undefined') {
       });
     }
 
-    app.fetch(obj.url, {headers: obj.headers}).then(function (res) {
+    app.fetch(obj.urls[0], {headers: obj.headers}).then(function (res) {
       if (!res.ok) {
         throw Error('fetch error');
       }
       return process(res.body.getReader());
-    }).catch((e) => d.reject(e));
+    }).catch((e) => d.reject(Object.assign(e, {url: obj.urls[0]})));
 
     return d.promise
       .then((s) => {active = false; return s;}, (e) => {active = false; throw e;});
@@ -77,6 +78,7 @@ if (typeof require !== 'undefined') {
     let d = app.Promise.defer();
 
     req.open('HEAD', url, true);
+    req.setRequestHeader('Cache-Control', 'max-age=0');
     req.onload = function () {
       let length = +req.getResponseHeader('Content-Length');
       let contentEncoding = req.getResponseHeader('Content-Encoding');
@@ -103,6 +105,8 @@ if (typeof require !== 'undefined') {
   function aget (obj) {
     obj.threads = obj.threads || 1;
     obj.retries = obj.retries || 50;
+    obj.alternatives = (obj.alternatives || []).filter(url => url);
+    obj.urls = [];
 
     let event = new app.EventEmitter(), d = app.Promise.defer(), info, segments = [], message, lastCount = 0;
     let internals = {};
@@ -182,6 +186,8 @@ if (typeof require !== 'undefined') {
     }
 
     function add (obj, range) {
+      // rotating mirrors
+      obj.urls.push(obj.urls.shift());
       let e = new app.EventEmitter(), progress;
       e.on('progress', (obj) => fix({
         start: obj.offset + range.start,
@@ -217,6 +223,13 @@ if (typeof require !== 'undefined') {
           event.emit('progress', tmp, progress);
         }
       }
+      function omitURL (url) {
+        let index = obj.urls.indexOf(url);
+        if (index !== -1) {
+          obj.urls.splice(index, 1);
+          event.emit('add-log', `${url} is removed from url list due to a fetch error`, url);
+        }
+      }
 
       chunk(obj, range, e, range.start !== 0 || range.end !== info.length - 1).then(
         function (status) {
@@ -238,7 +251,17 @@ if (typeof require !== 'undefined') {
               }
               // removing locked ranges inside the chunk with error code
               internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
-              app.timer.setTimeout(schedule, obj.pause || 100);
+              // should I validate the failed url
+              if (obj.urls.length > 1 && e.url) { // check link
+                head(e.url).then(function (i) {
+                  if (i.length !== info.length) {
+                    omitURL(e.url);
+                  }
+                }, () => omitURL(e.url)).then(schedule);
+              }
+              else { // there is no alternative mirror; just try with this one
+                app.timer.setTimeout(schedule, obj.pause || 100);
+              }
             }
             else {
               message = e.message;
@@ -249,6 +272,23 @@ if (typeof require !== 'undefined') {
       );
     }
     //
+    function validateMirrors () {
+      return Promise.all(obj.alternatives.map(url => head(url).catch(() => null)))
+      .then(arr => arr.filter(a => a))
+      .then(arr => arr.filter(i => {
+        if (i.length === info.length) {
+          event.emit('add-log', `${i.url} is added as a mirror`, i.url);
+        }
+        else {
+          event.emit('add-log', `Cannot use ${i.url} as a mirror. Server returns ${i.length} bytes for file-size`, i.url);
+        }
+        return i.length === info.length;
+      }))
+      .then(arr => arr.map(i => i.url))
+      .then(urls => {
+        obj.urls = obj.urls.concat(urls);
+      });
+    }
     event.on('info', function () {
       if (info.length === 0) {
         return done('error', 'info.length is equal to zero');
@@ -282,9 +322,29 @@ if (typeof require !== 'undefined') {
       internals.status = 'download';
       if (obj['auto-pause']) {
         event.emit('pause');
+        if (internals.ranges.length > 1) {
+          validateMirrors();
+        }
+        if (internals.ranges.length === 1 && obj.alternatives.length) {
+          event.emit('add-log', 'I am not going to validate mirrors as this download is one threaded');
+        }
       }
       else {
-        schedule();
+        if (internals.ranges.length === 1 || !obj.alternatives.length) {
+          schedule();
+          if (obj.alternatives.length) {
+            event.emit('add-log', 'I am not going to validate mirrors as this download is one threaded');
+          }
+        }
+        else {
+          let tmp = obj.threads;
+          obj.threads = 1;
+          schedule();
+          validateMirrors().then(function () {
+            obj.threads = tmp;
+            schedule();
+          });
+        }
       }
     });
     // pause
@@ -317,10 +377,9 @@ if (typeof require !== 'undefined') {
     app.Promise.race([obj.url, obj.url, obj.url].map(head)).then(
       function (i) {
         info = i;
-        if (info.url) { // bypass redirects
-          obj.url = info.url;
-        }
+        obj.urls = [info.url || obj.url]; // bypass redirects
         event.emit('info', info);
+        event.emit('add-log', `Actual downloadable URL is "${obj.urls[0]}"`, obj.urls[0]);
       },
       (e) => done('error', 'cannot get file information form server;' + e.message)
     );
@@ -339,12 +398,17 @@ if (typeof require !== 'undefined') {
         obj.threads = uo.threads || obj.threads;
         obj.timeout = uo.timeout || obj.timeout;
         event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-')); // removing exceptions
-        if (uo.url && uo.url !== info.url) {
+        if (uo.url && obj.urls.indexOf(uo.url) === -1) {
           app.Promise.race([uo.url, uo.url, uo.url].map(head)).then(
             function (i) {
               if (info.length === i.length) {
-                obj.url = i.url || obj.url;
-                event.emit('add-log', `Download URL is changed to ${obj.url}.`);
+                if (obj.urls.indexOf(i.url) === -1) {
+                  obj.urls = obj.urls.concat(i.url);
+                  event.emit('add-log', `${i.url} is appeded as a mirror. Total number of downloadable links is ${obj.urls.length}`, i.url);
+                }
+                else {
+                  event.emit('add-log', `${i.url} is already in the list`, i.url);
+                }
               }
               else {
                 event.emit('add-log', `Applying the new URL failed. ${uo.url} returned ${i.length}, however the actual file-size is ${info.length}.`);

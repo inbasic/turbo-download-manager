@@ -10,11 +10,11 @@
       <table>
         <tbody>
           <tr>
-            <td>Download:</td>
+            <td>Mirror Links<sup>1, 2</sup>:</td>
             <td><input data-id="url" type="text" placeholder="http(s)://a-downloadable-link" autofocus></td>
           </tr>
           <tr>
-            <td>File Name:</td>
+            <td>File Name<sup>3</sup>:</td>
             <td><input data-id="name" type="text" placeholder="Suggested file name (optional)"></td>
           </tr>
           <tr>
@@ -29,6 +29,13 @@
       </table>
       <div id="add">
         <input type="submit" value="Apply">
+      </div>
+      <div>
+        1: Append a new link as a mirror. TDM checks the link and update logs if the link can be used as a mirror
+        <br>
+        2: To provide more mirror links just submit this form multiple times with new links
+        <br>
+        3: Change local name of the file
       </div>
     </form>
     <script src="shadow_index.js"></script>

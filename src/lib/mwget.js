@@ -111,13 +111,12 @@ if (typeof require !== 'undefined') {
       instance.event.on('retries', (c) => callbacks.details.forEach(d => d(index, 'retries', c)));
       instance.event.once('info', function (c) {
         instance.log.push('File mime is "' + c.mime + '"');
-        instance.log.push('Actual downloadable URL is "' + c.url + '"', c.url);
         instance.log.push('File encoding is "' + c.encoding + '"');
         instance.log.push('Server multi-threading support status is: ' + c['multi-thread']);
         instance.log.push('File length in bytes is "' + c.length + '"');
         callbacks.details.forEach(d => d(index, 'info', c));
       });
-      instance.event.on('add-log', msg => instance.log.push(msg));
+      instance.event.on('add-log', (msg, link) => instance.log.push(msg, link));
       instance.event.once('size-mismatch', () => instance.log.push('File size has been changed'));
       instance.event.on('speed', (s) => callbacks.speed.forEach(d => d(index, s, instance.remained)));
       instance.event.on('md5', (md5) => instance.log.push('MD5 checksum is "' + md5 + '"'));

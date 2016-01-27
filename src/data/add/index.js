@@ -8,6 +8,7 @@ document.querySelector('form').addEventListener('submit', function (e) {
   }
   background.send('download', {
     url: document.querySelector('[data-id=url]').value,
+    alternatives: [].map.call(document.querySelectorAll('[data-id=alternative'), e => e.value),
     name: document.querySelector('[data-id=name]').value,
     description: document.querySelector('[data-id=description]').value,
     timeout: +document.querySelector('[data-id=timeout]').value,
@@ -24,15 +25,25 @@ background.receive('folder', function (folder) {
   document.querySelector('[data-id=folder]').value = folder;
 });
 
-[].forEach.call(document.querySelectorAll('[data-cmd]'), function (elem) {
-  elem.addEventListener('click', function () {
-    background.send('cmd', {
-      cmd: elem.dataset.cmd
-    });
-    if (elem.dataset.cmd === 'empty') {
+document.addEventListener('click', function (e) {
+  let target = e.target;
+  let cmd = target.dataset.cmd;
+  if (cmd) {
+    background.send('cmd', {cmd});
+    if (cmd === 'empty') {
       document.querySelector('[data-id=folder]').value = '';
     }
-  });
+    if (cmd === 'plus') {
+      let parent = document.querySelector('#t2 tbody');
+      let tr = parent.querySelector('tr:nth-child(2)').cloneNode(true);
+      parent.appendChild(tr);
+      tr.querySelector('input').focus();
+    }
+    if (cmd === 'minus') {
+      let tr = target.parentNode.parentNode;
+      tr.parentNode.removeChild(tr);
+    }
+  }
 });
 
 background.receive('init', function (obj) {
