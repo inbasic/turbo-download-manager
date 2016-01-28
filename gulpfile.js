@@ -17,6 +17,7 @@ var runSequence = require('run-sequence');
 gulp.task('clean', function () {
   return gulp.src([
     'builds/unpacked/chrome/*',
+    'builds/unpacked/opera/*',
     'builds/unpacked/firefox/*',
     'builds/unpacked/webapp/*',
     'builds/unpacked/android/*'
@@ -91,12 +92,12 @@ gulp.task('chrome-build', function () {
       return false;
     }
     if (f.relative.split('/').length === 1) {
-      return f.relative === (util.env.app ? 'manifest-app.json' : 'manifest-extension.json') ? true : false;
+      return f.relative === 'manifest-app.json';
     }
     return true;
   }))
   .pipe(rename(function (path) {
-    if (path.basename === 'manifest-app' || path.basename === 'manifest-extension') {
+    if (path.basename === 'manifest-app') {
       path.basename = 'manifest';
     }
     return path;
@@ -105,10 +106,7 @@ gulp.task('chrome-build', function () {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
   }, change(function (content) {
     return content.replace(/\/\*\*\*[\s\S]*\\*\*\*\*\//m, function (a) {
-      if (util.env.app) {
-        return '';
-      }
-      return a.indexOf('only-extension') === -1 ? '' : a;
+      return '';
     });
   })))
   .pipe(gulpif(function (f) {
@@ -127,6 +125,63 @@ gulp.task('chrome-install', function () {
     '"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --console --load-and-launch-app=`pwd` &'
   ], {
     cwd: './builds/unpacked/chrome'
+  }));
+});
+/* opera build */
+gulp.task('opera-build', function () {
+  gulp.src([
+    'src/**/*'
+  ])
+  .pipe(gulpFilter(function (f) {
+    if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('firefox') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('webapp') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('android') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('safari') !== -1) {
+      return false;
+    }
+    if (f.relative.split('/').length === 1) {
+      return f.relative === 'manifest-extension.json';
+    }
+    return true;
+  }))
+  .pipe(rename(function (path) {
+    if (path.basename === 'manifest-extension') {
+      path.basename = 'manifest';
+    }
+    return path;
+  }))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
+  }, change(function (content) {
+    return content.replace(/\/\*\*\*[\s\S]*\\*\*\*\*\//m, function (a) {
+      return a.indexOf('only-extension') === -1 ? '' : a;
+    });
+  })))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.html') !== -1;
+  }, change(function (content) {
+    return content.replace(/.*shadow_index\.js.*/, '    <script src="chrome/chrome.js"></script>\n    <script src="index.js"></script>');
+  })))
+  .pipe(gulp.dest('builds/unpacked/opera'))
+  .pipe(zip('opera.zip'))
+  .pipe(gulp.dest('builds/packed'));
+});
+gulp.task('opera-install', function () {
+  gulp.src('')
+  .pipe(wait(1000))
+  .pipe(shell([
+    '"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --console --load-and-launch-app=`pwd` &'
+  ], {
+    cwd: './builds/unpacked/opera'
   }));
 });
 /* android build */
@@ -249,6 +304,9 @@ gulp.task('android', function (callback) {
 });
 gulp.task('chrome', function (callback) {
   runSequence('clean', 'chrome-build', 'chrome-install', callback);
+});
+gulp.task('opera', function (callback) {
+  runSequence('clean', 'opera-build', 'opera-install', callback);
 });
 gulp.task('firefox', function (callback) {
   runSequence('clean', 'firefox-build', 'firefox-pack', callback);
