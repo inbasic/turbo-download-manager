@@ -4,14 +4,14 @@ a multi-browser download manager with multi-threading support
 For FAQs and discussions around this project visit:
 http://add0n.com/turbo-download-manager.html
 
-# Downloads (released versions):
+### Downloads (released versions):
 1. Firefox: https://addons.mozilla.org/firefox/addon/turbo-download-manager/
 2. Chrome: https://chrome.google.com/webstore/detail/turbo-download-manager/kemfccojgjoilhfmcblgimbggikekjip
 3. Opera: https://addons.opera.com/extensions/details/turbo-download-manager/
 4. Safari: not ready
 5. Android: https://play.google.com/store/apps/details?id=com.add0n.tdm
 
-# Downloads (developer builds):
+### Downloads (developer builds):
 1. Firefox: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/firefox.xpi?raw=true
 2. Chrome: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/chrome.zip?raw=true
 3. Opera: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/opera.zip?raw=true
@@ -19,7 +19,7 @@ http://add0n.com/turbo-download-manager.html
 5. Android: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/android.zip?raw=true
 
 
-## Compile itdmanager project:
+### Compile itdmanager project:
 
 1. Firefox: `gulp firefox`
 2. Google Chrome: `gulp chrome`
@@ -35,7 +35,7 @@ http://add0n.com/turbo-download-manager.html
     1. `sudo cca build android --release --webview=crosswalk`
     2. `sudo cca build android --release --webview=system --android-minSdkVersion=21`
 
-## Technical notes:
+### Technical notes:
 
   1. To inspect the webkit related projects use [chrome://inspect/#devices](chrome://inspect/#devices)
   2. These plugins are required for the Android build:
