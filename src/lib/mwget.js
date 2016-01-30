@@ -55,10 +55,10 @@ if (typeof require !== 'undefined') {
       instance.log = (function () {
         let arr = [];
         return {
-          push: function (a, link) {
-            a = {
-              log: a,
-              link: link,
+          push: function (log, properties) {
+            let a = {
+              log,
+              properties,
               date: (new Date()).toLocaleTimeString()
             };
             arr.push(a);
@@ -76,8 +76,8 @@ if (typeof require !== 'undefined') {
         let md5 = status === 'done' ? instance['internals@b'].md5 : '';
         callbacks.done.forEach(d => d(index, status, md5));
         percent.now(status);
-      }).catch((e) => instance.log.push('internal error; ' + e.message || e));
-      instance.log.push('Downloading "' + obj.url + '"', obj.url);
+      }).catch((e) => instance.log.push(`Internal Error; ${e ? e.message || e : 'no error message'}`, {type: 'error'}));
+      instance.log.push(`Downloading ${obj.url}`);
       instance.event.once('progress', count);
       instance.event.on('progress', function (a, e) {
         let start = a.range.start;
@@ -94,7 +94,6 @@ if (typeof require !== 'undefined') {
       instance.event.on('log', (c) => callbacks.logs.forEach(d => d(index, c)));
       instance.event.on('name', (c) => callbacks.details.forEach(d => d(index, 'name', c)));
       instance.event.on('status', function (c) {
-        instance.log.push(`Download status changed to "${c}"; ${instance.message || ''}`);
         callbacks.details.forEach(d => d(index, 'status', c));
         //instance.threads === 0; download has not been initialized yet
         if (c === 'pause' && !instance.info['multi-thread'] && instance.threads !== 0) {
@@ -102,24 +101,14 @@ if (typeof require !== 'undefined') {
           instance.log.push('Download status changed to paused while this download is not supporting multi-threading.');
         }
       });
-      instance.event.on('error', function (e) {
-        percent.now('error');
-        instance.log.push('Error: ' + (e.message || e));
-      });
+      instance.event.on('error', () => percent.now('error'));
       instance.event.on('cancel', () => percent.now('error'));
       instance.event.on('count', (c) => callbacks.details.forEach(d => d(index, 'count', c)));
       instance.event.on('retries', (c) => callbacks.details.forEach(d => d(index, 'retries', c)));
-      instance.event.once('info', function (c) {
-        instance.log.push('File mime is "' + c.mime + '"');
-        instance.log.push('File encoding is "' + c.encoding + '"');
-        instance.log.push('Server multi-threading support status is: ' + c['multi-thread']);
-        instance.log.push('File length in bytes is "' + c.length + '"');
-        callbacks.details.forEach(d => d(index, 'info', c));
-      });
-      instance.event.on('add-log', (msg, link) => instance.log.push(msg, link));
+      instance.event.once('info', (c) => callbacks.details.forEach(d => d(index, 'info', c)));
+      instance.event.on('add-log', (msg, properties) => instance.log.push(msg, properties));
       instance.event.once('size-mismatch', () => instance.log.push('File size has been changed'));
       instance.event.on('speed', (s) => callbacks.speed.forEach(d => d(index, s, instance.remained)));
-      instance.event.on('md5', (md5) => instance.log.push('MD5 checksum is "' + md5 + '"'));
 
       instance.event.on('percent', function (remained, size) {
         instance.remained = remained;

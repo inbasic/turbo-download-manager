@@ -1,4 +1,4 @@
-/* globals background */
+/* globals background, showdown */
 'use strict';
 
 var id = /id\=([^\&]+)/.exec(document.location.search);
@@ -6,6 +6,10 @@ id = id && id.length ? +id[1] : null;
 
 background.receive('log', function (obj) {
   if (obj.id === id) {
+    let converter = new showdown.Converter({
+      simplifiedAutoLink: true
+    });
+
     let parent = document.querySelector('#log tbody');
 
     obj.log.forEach(function (obj) {
@@ -15,18 +19,15 @@ background.receive('log', function (obj) {
       tr.appendChild(date);
       let msgParent = document.createElement('td');
       let msg = document.createElement('pre');
-
-      if (obj.link) {
-        let tmp = obj.log.split(obj.link);
-        msg.appendChild(document.createTextNode(tmp[0]));
-        let a = document.createElement('a');
-        a.textContent = a.href = obj.link;
-        a.target = '_blank';
-        msg.appendChild(a);
-        msg.appendChild(document.createTextNode(tmp[1]));
-      }
-      else {
-        msg.textContent = obj.log;
+      // this is a safe HTML
+      msg.innerHTML = converter.makeHtml(obj.log);
+      if (obj.properties) {
+        if (obj.properties.type === 'error') {
+          msg.style.color = 'red';
+        }
+        if (obj.properties.type === 'warning') {
+          msg.style.color = 'green';
+        }
       }
 
       msgParent.appendChild(msg);
@@ -57,6 +58,13 @@ document.addEventListener('click', function (e) {
       cmd: cmd,
       id: id
     });
+  }
+
+  let href = target.href;
+  if (href && e.which === 1) { // left click only
+    e.preventDefault();
+    e.stopPropagation();
+    background.send('open', href);
   }
 });
 

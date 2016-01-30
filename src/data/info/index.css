@@ -31,6 +31,16 @@ pre {
   margin: 0;
   white-space: pre-wrap;
 }
+a {
+  text-decoration: none;
+}
+a,
+a:visited {
+  color: #287e93;
+}
+p {
+  margin: 0;
+}
 
 .firefox {
   display: none;

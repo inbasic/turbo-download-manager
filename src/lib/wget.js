@@ -86,6 +86,7 @@ if (typeof require !== 'undefined') {
       //console.error(req.getAllResponseHeaders())
       d.resolve({
         'length': length,
+        'encoding': contentEncoding,
         'url': req.responseURL,
         'mime': req.getResponseHeader('Content-Type'),
         'disposition': req.getResponseHeader('Content-Disposition'),
@@ -108,10 +109,12 @@ if (typeof require !== 'undefined') {
     obj.alternatives = (obj.alternatives || []).filter(url => url);
     obj.urls = [];
 
-    let event = new app.EventEmitter(), d = app.Promise.defer(), info, segments = [], message, lastCount = 0;
+    let event = new app.EventEmitter(), d = app.Promise.defer(), info, segments = [], lastCount = 0;
     let internals = {};
     utils.assign(internals, 'status', event).assign(internals, 'retries', event, 0);
     internals.status = 'head';  // 'head', 'download', 'error', 'done', 'pause'
+
+    event.on('status', (s) => event.emit('add-log', `Download status is changed to **${s}**`));
 
     function count () {
       let c = segments.filter(s => s.status === 'downloading').length;
@@ -119,13 +122,12 @@ if (typeof require !== 'undefined') {
       event.emit('count', c);
       return c;
     }
-    function done (s, msg) {
-      message = message || msg;
+    function done (s) {
       internals.status = s || internals.status;
       event.emit('count', 0);
       if (s === 'error') {
         segments.forEach(s => s.event.emit('abort'));
-        d.reject(msg);
+        d.reject();
       }
       else {
         d.resolve(s);
@@ -159,10 +161,12 @@ if (typeof require !== 'undefined') {
     function fix (range) {
       let rngs = internals.ranges.filter(r => r.start <= range.start && r.end >= range.end);
       if (rngs.length !== 1) {
-        return done('error', 'internals.ranges.length is not equal to one');
+        event.emit('add-log', 'Internal Error: \`internals.ranges.length\` is not equal to one', {type: 'error'});
+        return done('error');
       }
       if (rngs[0].start < range.start) {
-        return done('error', 'rngs[0].start is not euqal to range.start');
+        event.emit('add-log', 'Internal Error: \`rngs[0].start\` is not euqal to range.start', {type: 'error'});
+        return done('error');
       }
       if (rngs[0].end > range.end) {
         (function (tmp) {
@@ -227,7 +231,7 @@ if (typeof require !== 'undefined') {
         let index = obj.urls.indexOf(url);
         if (index !== -1) {
           obj.urls.splice(index, 1);
-          event.emit('add-log', `${url} is removed from url list due to a fetch error`, url);
+          event.emit('add-log', `${url} is removed from url list due to a fetch error`);
         }
       }
 
@@ -277,10 +281,10 @@ if (typeof require !== 'undefined') {
       .then(arr => arr.filter(a => a))
       .then(arr => arr.filter(i => {
         if (i.length === info.length) {
-          event.emit('add-log', `${i.url} is added as a mirror`, i.url);
+          event.emit('add-log', `${i.url} is added as a mirror`);
         }
         else {
-          event.emit('add-log', `Cannot use ${i.url} as a mirror. Server returns ${i.length} bytes for file-size`, i.url);
+          event.emit('add-log', `Cannot use ${i.url} as a mirror. Server returns **${i.length}** bytes for file-size`);
         }
         return i.length === info.length;
       }))
@@ -291,10 +295,12 @@ if (typeof require !== 'undefined') {
     }
     event.on('info', function () {
       if (info.length === 0) {
-        return done('error', 'info.length is equal to zero');
+        event.emit('add-log', 'Internal Error: \`info.length\` is equal to zero', {type: 'error'});
+        return done('error');
       }
       if (info.encoding) {
-        return done('error', 'info.encoding is not null');
+        event.emit('add-log', 'Internal Error: \`info.encoding\` is not null', {type: 'error'});
+        return done('error');
       }
       (function (len) {
         len = Math.max(len, obj.minByteSize ||  50 * 1024);
@@ -314,10 +320,12 @@ if (typeof require !== 'undefined') {
       })(Math.floor(info.length / obj.threads));
       // do not download large files if multi-thread is not supported
       if (!info['multi-thread'] && info.length > 200 * 1024 * 1024) {
-        return done('error', 'Server does not support multi-threading.');
+        event.emit('add-log', 'Server does not support multi-threading; file-size is more than **200MB**', {type: 'error'});
+        return done('error');
       }
       if (!info['can-download']) {
-        return done('error', 'Server does not support multi-threading.');
+        event.emit('add-log', 'Server does not support multi-threading; Either file-size is not defined or file is encoded', {type: 'error'});
+        return done('error');
       }
       internals.status = 'download';
       if (obj['auto-pause']) {
@@ -326,14 +334,14 @@ if (typeof require !== 'undefined') {
           validateMirrors();
         }
         if (internals.ranges.length === 1 && obj.alternatives.length) {
-          event.emit('add-log', 'I am not going to validate mirrors as this download is one threaded');
+          event.emit('add-log', 'I am not going to validate mirrors as this download is single threaded');
         }
       }
       else {
         if (internals.ranges.length === 1 || !obj.alternatives.length) {
           schedule();
           if (obj.alternatives.length) {
-            event.emit('add-log', 'I am not going to validate mirrors as this download is one threaded');
+            event.emit('add-log', 'I am not going to validate mirrors as this download is single threaded');
           }
         }
         else {
@@ -379,9 +387,16 @@ if (typeof require !== 'undefined') {
         info = i;
         obj.urls = [info.url || obj.url]; // bypass redirects
         event.emit('info', info);
-        event.emit('add-log', `Actual downloadable URL is "${obj.urls[0]}"`, obj.urls[0]);
+        event.emit('add-log', `File mime tpye is **${info.mime}**`);
+        event.emit('add-log', `File encoding is **${info.encoding}**`);
+        event.emit('add-log', `Server multi-threading support status is **${info['multi-thread']}**`);
+        event.emit('add-log', `File length in bytes is **${info.length}**`);
+        event.emit('add-log', `Actual downloadable URL is ${obj.urls[0]}`);
       },
-      (e) => done('error', 'cannot get file information form server;' + e.message)
+      (e) => {
+        event.emit('add-log', `Cannot get file information form server; ${e.message}`, {type: 'error'});
+        done('error');
+      }
     );
     return {
       event: event,
@@ -389,7 +404,6 @@ if (typeof require !== 'undefined') {
       resolve: d.resolve,
       reject: d.reject,
       get threads () {return lastCount;},
-      get message () {return message;},
       get status () {return internals.status;},
       get retries () {return internals.retries;},
       get info () {return info;},
@@ -406,14 +420,14 @@ if (typeof require !== 'undefined') {
               if (info.length === i.length) {
                 if (obj.urls.indexOf(i.url) === -1) {
                   obj.urls = obj.urls.concat(i.url);
-                  event.emit('add-log', `${i.url} is appeded as a mirror. Total number of downloadable links is ${obj.urls.length}`, i.url);
+                  event.emit('add-log', `[${i.url}](${i.url}) is appeded as a mirror. Total number of downloadable links is **${obj.urls.length}**`);
                 }
                 else {
-                  event.emit('add-log', `${i.url} is already in the list`, i.url);
+                  event.emit('add-log', `[${i.url}](${i.url}) is already in the list`);
                 }
               }
               else {
-                event.emit('add-log', `Applying the new URL failed. ${uo.url} returns ${i.length} bytes for file-size`, uo.url);
+                event.emit('add-log', `Applying the new URL failed. ${uo.url} returns **${i.length}** bytes for file-size`);
               }
             },
             (e) => event.emit('add-log', `Cannot change URL; Cannot access server; ${e.message}.`)
@@ -525,7 +539,7 @@ if (typeof require !== 'undefined') {
         a.event.emit('log', `File-name is changed to ${internals.name}`);
       }
       if (internals.file) {
-        internals.file.rename(name).then(okay, (e) => a.event.emit('add-log', `Unsuccesful renaming; ${e.message}`));
+        internals.file.rename(name).then(okay, (e) => a.event.emit('add-log', `**Unsuccesful** renaming; ${e.message}`));
       }
       else {
         okay();
@@ -540,6 +554,7 @@ if (typeof require !== 'undefined') {
           .then(function (md5) {
             internals.md5 = md5;
             a.event.emit('md5', md5);
+            a.event.emit('add-log', `MD5 checksum is **${md5}**`);
             return internals.file.flush().then(() => status);
           });
       }

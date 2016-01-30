@@ -537,7 +537,7 @@ exports.OS = (function () {
   );
   exports.info = attach(
     data.url('info/index.html') + '*',
-    [data.url('./info/firefox/firefox.js'), data.url('./info/index.js')]
+    [data.url('./info/showdown.js'), data.url('./info/firefox/firefox.js'), data.url('./info/index.js')]
   );
   exports.modify = attach(
     data.url('modify/index.html') + '*',

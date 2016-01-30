@@ -215,6 +215,7 @@ app.info.receive('cmd', function (obj) {
     mwget.get(obj.id)['internals@b'].file.remove(true);
   }
 });
+app.info.receive('open', app.tab.open);
 /* modify ui */
 app.modify.receive('init', function (id) {
   let instance = mwget.get(id);
