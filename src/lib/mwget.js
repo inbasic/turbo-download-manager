@@ -192,13 +192,3 @@ if (typeof require !== 'undefined') {
     }
   };
 })();
-
-/*(function (id) {
-  console.error(`new job is added with id [${id}]`);
-})(mwget.download({
-  url: 'http://pad1.whstatic.com/images/thumb/4/4e/Download-a-New-Web-Browser-Step-1.jpg/670px-Download-a-New-Web-Browser-Step-1.jpg',
-  threads: 10,
-  timeout: 30000,
-  retries: 200,
-  folder: '/Users/amin/Desktop/'
-}));*/

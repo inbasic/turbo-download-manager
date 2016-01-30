@@ -23,10 +23,10 @@ background.receive('log', function (obj) {
       msg.innerHTML = converter.makeHtml(obj.log);
       if (obj.properties) {
         if (obj.properties.type === 'error') {
-          msg.style.color = 'red';
+          date.style.color = 'red';
         }
         if (obj.properties.type === 'warning') {
-          msg.style.color = 'green';
+          date.style.color = 'green';
         }
       }
 
