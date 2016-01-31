@@ -156,6 +156,7 @@ var get = function (id) {
   });
   background.receive('hide', function () {
     loader.dataset.visible = false;
+    iframe.src = 'about:blank';
   });
   background.receive('info', function (id) {
     loader.dataset.visible = true;
