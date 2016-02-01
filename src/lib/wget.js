@@ -112,7 +112,7 @@ if (typeof require !== 'undefined') {
     }
 
     req.onreadystatechange = function () {
-      if ((req.readyState === 2 || req.readyState === 3) && forced) {
+      if ((req.readyState === 2 || req.readyState === 3 || req.readyState === 4) && forced) {
         analyze();
         req.abort();
       }
@@ -437,7 +437,7 @@ if (typeof require !== 'undefined') {
           event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-')); // removing exceptions
         }
         if (uo.url && obj.urls.indexOf(uo.url) === -1) {
-          app.Promise.race([uo.url, uo.url, uo.url].map(head)).then(
+          app.Promise.race([uo.url, uo.url, uo.url].map(url => head(url))).then(
             function (i) {
               if (info.length === i.length) {
                 if (obj.urls.indexOf(i.url) === -1) {
