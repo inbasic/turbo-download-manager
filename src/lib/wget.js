@@ -73,30 +73,52 @@ if (typeof require !== 'undefined') {
     });
     return xhr(obj);
   }
-  var head = function (url) {
+  /**
+   * Get information from a URL
+   * @param  {[string]} url    [description]
+   * @param  {[boolean]} forced [send 'GET' instead of 'HEAD']
+   * @param  {[object]} d      [defer object]
+   * @return {[object]}        [information object]
+   */
+  var head = function (url, forced, d) {
     let req = new app.XMLHttpRequest();
-    let d = app.Promise.defer();
+    d = d || app.Promise.defer();
 
-    req.open('HEAD', url, true);
+    req.open(forced ? 'GET' : 'HEAD', url, true);
     req.setRequestHeader('Cache-Control', 'max-age=0');
-    req.onload = function () {
+
+    function analyze () {
       let length = +req.getResponseHeader('Content-Length');
       let contentEncoding = req.getResponseHeader('Content-Encoding');
       let lengthComputable = req.getResponseHeader('Length-Computable');
       //console.error(req.getAllResponseHeaders())
-      d.resolve({
-        'length': length,
-        'encoding': contentEncoding,
-        'url': req.responseURL,
-        'mime': req.getResponseHeader('Content-Type'),
-        'disposition': req.getResponseHeader('Content-Disposition'),
-        'can-download': contentEncoding === null && lengthComputable !== 'false',
-        'multi-thread': !!length &&
-          contentEncoding === null &&
-          req.getResponseHeader('Accept-Ranges') === 'bytes' &&
-          lengthComputable !== 'false'
-      });
+      if (req.getResponseHeader('Content-Length') === null && !forced) {
+        head(url, true, d);
+      }
+      else {
+        d.resolve({
+          'length': length,
+          'encoding': contentEncoding,
+          'url': req.responseURL,
+          'mime': req.getResponseHeader('Content-Type'),
+          'disposition': req.getResponseHeader('Content-Disposition'),
+          'can-download': contentEncoding === null && lengthComputable !== 'false',
+          'multi-thread': !!length &&
+            contentEncoding === null &&
+            req.getResponseHeader('Accept-Ranges') === 'bytes' &&
+            lengthComputable !== 'false'
+        });
+      }
+    }
+
+    req.onreadystatechange = function () {
+      if ((req.readyState === 2 || req.readyState === 3) && forced) {
+        analyze();
+        req.abort();
+      }
     };
+    req.onerror = analyze;
+    req.onload = analyze;
     req.onerror = req.ontimeout = (e) => d.reject(e);
     req.timeout = 120000;
     req.send();
@@ -268,7 +290,7 @@ if (typeof require !== 'undefined') {
               }
             }
             else {
-              message = e.message;
+              // message = e.message;
               return event.emit('pause');
             }
           }
@@ -382,10 +404,10 @@ if (typeof require !== 'undefined') {
       obj.name = name || obj.name;
     });
     // getting header
-    app.Promise.race([obj.url, obj.url, obj.url].map(head)).then(
+    app.Promise.race([obj.url, obj.url, obj.url].map(url => head(url))).then(
       function (i) {
         info = i;
-        obj.urls = [info.url || obj.url]; // bypass redirects
+        obj.urls = [info && info.url ? info.url : obj.url]; // bypass redirects
         event.emit('info', info);
         event.emit('add-log', `File mime tpye is **${info.mime}**`);
         event.emit('add-log', `File encoding is **${info.encoding}**`);

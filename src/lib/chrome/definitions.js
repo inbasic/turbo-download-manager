@@ -44,4 +44,5 @@ var utils = {};
 var icon = {};
 var wget = {};
 var mwget = {};
+var simpleGet = {};
 var config = {};
