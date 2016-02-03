@@ -83,6 +83,9 @@ input:active{
 body:not([data-browser=chrome]) #menu li[data-role=helper] {
   display: none;
 }
+body:not([data-browser=electron]) #menu li[data-role=console] {
+  display: none;
+}
 
 #toolbar {
   display: flex;

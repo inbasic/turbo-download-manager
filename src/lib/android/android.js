@@ -178,11 +178,7 @@ app.storage = (function () {
   };
 })();
 
-app.canvas = (function (canvas) {
-  return function () {
-    return canvas;
-  };
-})(document.createElement('canvas'));
+app.canvas = () => null;
 
 app.button = {
   onCommand: function () {},

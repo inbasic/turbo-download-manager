@@ -44,7 +44,7 @@ exports.fetch = function (url, props) {
   function result() {
     return {
       value: buffers.shift(),
-      get done() { return done; }
+      get done() { return done && buffers.length === 0; }
     };
   }
   req.mozBackgroundRequest = true;  //No authentication
@@ -58,7 +58,7 @@ exports.fetch = function (url, props) {
     Object.keys(props.headers).forEach((k) => req.setRequestHeader(k, props.headers[k]));
   }
 
-  req.onprogress = function() {
+  req.onprogress = function () {
     buffers.push(req.response);
     if (!sent) {
       sent = true;
@@ -131,8 +131,6 @@ exports.EventEmitter = (function () {
   };
   return EventEmitter;
 })();
-// this needs to be fired after firefox.js is loaded on all modules
-timers.setTimeout(() => exports.emit('load'), 3000);
 
 // Event Emitter
 exports.on = on.bind(null, exports);
@@ -441,8 +439,7 @@ exports.disk = (function () {
       filePicker.appendFilters(Ci.nsIFilePicker.filterAll);
       let pickerStatus = filePicker.show();
       if (pickerStatus === Ci.nsIFilePicker.returnOK || pickerStatus === Ci.nsIFilePicker.returnReplace) {
-        var path = filePicker.file.path;
-        d.resolve(path);
+        d.resolve(filePicker.file.path);
       }
       else {
         d.reject();

@@ -264,6 +264,7 @@ if (typeof require !== 'undefined') {
           app.timer.setTimeout(schedule, obj.pause || 100);
         },
         function (e) {
+          console.error(e)
           tmp.status = e.message;
           after();
           if (e.message === 'abort') {
@@ -461,19 +462,7 @@ if (typeof require !== 'undefined') {
   /* handling IO */
   function bget (obj) {
     let internals = {}, buffers = [];
-    let mimeToExtension  = (function () {
-      let types = {}, xhr = new app.XMLHttpRequest();
-      xhr.onload = function () {
-        types = xhr.response;
-      };
-      xhr.open('GET', app.getURL('assets/mime.json'), true);
-      xhr.responseType = 'json';
-      xhr.send();
-      return function (m) {
-        m = m.split(';')[0];
-        return types[m] ? types[m][0] : '';
-      };
-    })();
+
     function guess (obj) {
       let url = obj.urls[0], name = obj.name, mime = obj.mime, disposition = obj.disposition;
       if (!name && disposition) {
@@ -507,7 +496,7 @@ if (typeof require !== 'undefined') {
         return name + se[0];
       }
       // extension
-      let extension = mimeToExtension(mime);
+      let extension =  app.mimes()[mime] || '';
       if (extension) {
         let r = new RegExp('\.' + extension + '$');
         name = name.replace(r, '');
@@ -631,6 +620,7 @@ if (typeof require !== 'undefined') {
   //listeners clean up
   function vget (obj) {
     let c = cget(obj);
+
     c.promise = c.promise.then(
       (a) => {app.timer.setTimeout(() => c.event.removeAllListeners(), 5000); return a;},
       (e) => {app.timer.setTimeout(() => c.event.removeAllListeners(), 5000); throw e;}

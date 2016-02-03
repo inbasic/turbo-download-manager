@@ -44,8 +44,8 @@ function download (obj) {
   obj.pause = obj.pause || config.wget.pause;
   obj['write-size'] = obj['write-size'] || config.wget['write-size'];
   obj.retries = obj.retries || config.wget.retrie;
-  obj.folder = obj.folder || config.persist.add.folder;
-  if (!obj.folder && !app.storage.read('notice-download') && app.globals.browser === 'firefox') {
+  obj.folder = obj.folder || app.storage.read('add-directory');
+  if (!obj.folder && !app.storage.read('notice-download')) {
     app.notification('Saving in the default download directory. Add a new job from manager to change the directory.');
     app.storage.write('notice-download', 'shown');
   }
@@ -158,34 +158,40 @@ app.manager.receive('open', function (cmd) {
   if (cmd === 'helper') {
     app.tab.open('https://chrome.google.com/webstore/detail/turbo-download-manager-he/gnaepfhefefonbijmhcmnfjnchlcbnfc');
   }
+  if (cmd === 'console') {
+    app.developer.console();
+  }
 });
 /* add ui */
 app.add.receive('download', function (obj) {
   app.manager.send('hide');
-  app.storage.write('save-add-ui', JSON.stringify({
-    threads: obj.threads,
-    timeout: obj.timeout,
-    folder: obj.folder
-  }));
+  if (obj.threads) {
+    app.storage.write('add-threads', obj.threads);
+  }
+  if (obj.timeout) {
+    app.storage.write('add-timeout', obj.timeout);
+  }
   download(obj);
 });
 app.add.receive('cmd', function (obj) {
   if (obj.cmd === 'browse') {
     app.disk.browse().then(function (folder) {
+      app.storage.write('add-directory', folder);
       app.add.send('folder', folder);
     }, function () {});
   }
   if (obj.cmd === 'empty') {
-    let tmp = config.persist.add;
-    tmp.folder = '';
-    app.storage.write('save-add-ui', JSON.stringify(tmp));
+    app.storage.write('add-directory', '');
   }
 });
 app.add.receive('init', function () {
-  let json = config.persist.add;
   app.OS.clipboard.get().then(function (clipboard) {
     app.add.send('init', {
-      settings: json || {},
+      settings: {
+        threads: app.storage.read('add-threads'),
+        timeout: app.storage.read('add-timeout'),
+        folder: app.storage.read('add-directory')
+      },
       clipboard: utils.validate(clipboard) ? clipboard : ''
     });
   });

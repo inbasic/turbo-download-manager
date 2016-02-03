@@ -457,8 +457,8 @@ else {
           }, (e) => d.reject(e));
         }
 
-        chrome.storage.local.get('folder', function (storage) {
-          if (storage.folder) {
+        chrome.storage.local.get(null, function (storage) {
+          if (storage.folder && storage['add-directory']) {
             try {
               chrome.fileSystem.restoreEntry(storage.folder, function (folder) {
                 if (folder) {

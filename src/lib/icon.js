@@ -143,6 +143,9 @@ if (typeof require !== 'undefined') {
   icon.percent = (function () {
     var oValue, oType, id;
     return function (type, value, reset) {
+      if (!canvas) {
+        return;
+      }
       if (type !== 'done' && type !== 'error') {
         type = 'normal';
       }

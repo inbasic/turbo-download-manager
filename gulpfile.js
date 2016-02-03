@@ -20,6 +20,7 @@ gulp.task('clean', function () {
     'builds/unpacked/opera/*',
     'builds/unpacked/firefox/*',
     'builds/unpacked/webapp/*',
+    'builds/unpacked/electron/*',
     'builds/unpacked/android/*'
   ], {read: false})
     .pipe(clean());
@@ -40,6 +41,9 @@ gulp.task('webapp-build', function () {
       return false;
     }
     if (f.relative.indexOf('android') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('electron') !== -1) {
       return false;
     }
     if (f.relative.indexOf('shadow_index.js') !== -1) {
@@ -75,6 +79,73 @@ gulp.task('webapp-build', function () {
   .pipe(zip('webapp.zip'))
   .pipe(gulp.dest('builds/packed'));
 });
+
+
+
+/* electron build */
+gulp.task('electron-build', function () {
+  gulp.src([
+    'src/**/*'
+  ])
+  .pipe(gulpFilter(function (f) {
+    if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('firefox') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('webapp') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('android') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('chrome') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('safari') !== -1) {
+      return false;
+    }
+    if (f.relative.split('/').length === 1) {
+      return f.relative === 'package-electron.json';
+    }
+    return true;
+  }))
+  .pipe(rename(function (path) {
+    if (path.basename === 'package-electron') {
+      path.basename = 'package';
+    }
+    return path;
+  }))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
+  }, change(function (content) {
+    return content.replace('firefox/firefox', 'electron/electron');
+  })))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
+  }, change(function (content) {
+    return content.replace(/.*shadow_index\.js.*/, '    <script src="electron/electron.js"></script>\n    <script src="index.js"></script>');
+  })))
+  .pipe(gulpif(function (f) {
+    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') !== -1;
+  }, change(function (content) {
+    return content.replace(/.*shadow_index\.js.*/, '    <script src="showdown.js"></script>    <script src="electron/electron.js"></script>\n    <script src="index.js"></script>');
+  })))
+  .pipe(gulp.dest('builds/unpacked/electron'))
+  .pipe(zip('electron.zip'))
+  .pipe(gulp.dest('builds/packed'));
+});
+gulp.task('electron-install', function () {
+  gulp.src('')
+  .pipe(wait(1000))
+  .pipe(shell([
+    '"/Applications/Electron.app/Contents/MacOS/Electron" `pwd` &'
+  ], {
+    cwd: './builds/unpacked/electron'
+  }));
+});
+
 /* chrome build */
 gulp.task('chrome-build', function () {
   gulp.src([
@@ -91,6 +162,9 @@ gulp.task('chrome-build', function () {
       return false;
     }
     if (f.relative.indexOf('android') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('electron') !== -1) {
       return false;
     }
     if (f.relative.indexOf('safari') !== -1) {
@@ -153,6 +227,9 @@ gulp.task('opera-build', function () {
       return false;
     }
     if (f.relative.indexOf('android') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('electron') !== -1) {
       return false;
     }
     if (f.relative.indexOf('safari') !== -1) {
@@ -218,6 +295,9 @@ gulp.task('android-build', function () {
       return false;
     }
     if (f.relative.indexOf('safari') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('electron') !== -1) {
       return false;
     }
     if (f.relative.indexOf('shadow_index.js') !== -1) {
@@ -286,10 +366,19 @@ gulp.task('firefox-build', function () {
     if (f.relative.indexOf('safari') !== -1) {
       return false;
     }
+    if (f.relative.indexOf('electron') !== -1) {
+      return false;
+    }
     if (f.relative.split('/').length === 1) {
-      return ['package.json', 'chrome.manifest'].indexOf(f.relative) !== -1;
+      return ['package-firefox.json', 'chrome.manifest'].indexOf(f.relative) !== -1;
     }
     return true;
+  }))
+  .pipe(rename(function (path) {
+    if (path.basename === 'package-firefox') {
+      path.basename = 'package';
+    }
+    return path;
   }))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.html') !== -1;
@@ -330,4 +419,7 @@ gulp.task('opera', function (callback) {
 });
 gulp.task('firefox', function (callback) {
   runSequence('clean', 'firefox-build', 'firefox-pack', callback);
+});
+gulp.task('electron', function (callback) {
+  runSequence('clean', 'electron-build', 'electron-install', callback);
 });
