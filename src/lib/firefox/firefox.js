@@ -37,6 +37,8 @@ exports.Promise = {defer, all, race, resolve};
 exports.XMLHttpRequest = xhr.XMLHttpRequest;
 exports.URL = urls.URL;
 
+exports.mimes = require('../../data/assets/mime.json');
+
 exports.fetch = function (url, props) {
   let d = defer(), req = new xhr.XMLHttpRequest(), buffers = [], done = false;
   let ppp, sent = false;

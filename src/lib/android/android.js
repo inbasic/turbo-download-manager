@@ -180,6 +180,17 @@ app.storage = (function () {
   };
 })();
 
+app.mimes = (function (cache) {
+  let req = new XMLHttpRequest();
+  req.open('GET', '../../data/assets/mime.json');
+  req.responseType = 'json';
+  req.onloadend = function () {
+    cache = req.response || cache;
+  };
+  req.send();
+  return cache;
+})({});
+
 app.canvas = () => null;
 
 app.button = {
