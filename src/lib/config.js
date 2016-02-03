@@ -4,6 +4,9 @@ if (typeof require !== 'undefined') {
   var app = require('./firefox/firefox');
   var config = exports;
 }
+else {
+  var config = {};
+}
 
 config.mwget = {
   percent: {

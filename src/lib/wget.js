@@ -1,12 +1,13 @@
 'use strict';
 
-/**** wrapper (start) ****/
 if (typeof require !== 'undefined') {
   var utils = require('./utils');
   var app = require('./firefox/firefox');
   var wget = exports;
 }
-/**** wrapper (end) ****/
+else {
+  var wget = {};
+}
 
 // @param  {[type]} obj.url           [url]
 // @param  {[type]} obj.alternatives  [alternative urls]

@@ -1,4 +1,4 @@
-/* globals CryptoJS, app, FileTransfer, BackgroundTransfer, AdMob, cordova */
+/* globals utils, CryptoJS, FileTransfer, AdMob, cordova */
 'use strict';
 
 var listeners = {
@@ -139,13 +139,15 @@ if (!Promise.defer) {
   };
 }
 
+var app = new utils.EventEmitter();
+
 app.globals = {
   browser: 'android'
 };
 
 app.Promise = Promise;
 app.XMLHttpRequest = window.XMLHttpRequest;
-app.EventEmitter = EventEmitter;
+app.EventEmitter = utils.EventEmitter;
 app.timer = window;
 app.URL = window.URL;
 app.fetch = function (url, props) {

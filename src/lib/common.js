@@ -1,13 +1,11 @@
 'use strict';
 
-/**** wrapper (start) ****/
 if (typeof require !== 'undefined') {
   var app = require('./firefox/firefox');
   var config = require('./config');
   var mwget = require('./mwget');
   var utils = require('./utils');
 }
-/**** wrapper (end) ****/
 
 /* welcome page */
 app.startup(function () {
@@ -45,7 +43,8 @@ function download (obj) {
   obj['write-size'] = obj['write-size'] || config.wget['write-size'];
   obj.retries = obj.retries || config.wget.retrie;
   obj.folder = obj.folder || app.storage.read('add-directory');
-  if (!obj.folder && !app.storage.read('notice-download')) {
+  // on Android and Opera, there is no directory selection
+  if (!obj.folder && !app.storage.read('notice-download') && ['android', 'opera'].indexOf(app.globals.browser) === -1) {
     app.notification('Saving in the default download directory. Add a new job from manager to change the directory.');
     app.storage.write('notice-download', 'shown');
   }

@@ -1,8 +1,10 @@
-/* globals CryptoJS, app, utils */
+/* globals CryptoJS, utils */
 'use strict';
 
+var app = new utils.EventEmitter();
+
 app.globals = {
-  browser: navigator.userAgent.indexOf('OPR') === -1 ? 'chrome' : 'opera',
+  browser: chrome.tabs ? 'opera' : 'chrome',
   extension: !!chrome.tabs
 };
 
@@ -17,7 +19,7 @@ app.XMLHttpRequest = window.XMLHttpRequest;
 app.fetch = function (url, props) {
   return fetch(url, props);
 };
-app.EventEmitter = EventEmitter;
+app.EventEmitter = utils.EventEmitter;
 app.timer = window;
 app.URL = window.URL;
 

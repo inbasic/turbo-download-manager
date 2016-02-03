@@ -5,6 +5,9 @@ if (typeof require !== 'undefined') {
   var config = require('./config');
   var icon = exports;
 }
+else {
+  var icon = {};
+}
 
 (function () {
   var canvas = app.canvas();

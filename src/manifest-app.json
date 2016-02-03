@@ -17,9 +17,8 @@
     "background": {
       "scripts": [
         "lib/chrome/md5.js",
-        "lib/chrome/definitions.js",
-        "lib/config.js",
         "lib/utils.js",
+        "lib/config.js",
         "lib/chrome/chrome.js",
         "lib/wget.js",
         "lib/icon.js",

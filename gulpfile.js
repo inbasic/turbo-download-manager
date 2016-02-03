@@ -58,11 +58,6 @@ gulp.task('webapp-build', function () {
     return true;
   }))
   .pipe(gulpif(function (f) {
-    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
-  }, change(function (content) {
-    return content.replace(/\/\*\*\*[\s\S]*\\*\*\*\*\//m, '');
-  })))
-  .pipe(gulpif(function (f) {
     return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
   }, change(function (content) {
     return content.replace(/.*shadow_index\.js.*/, '    <script src="chrome/chrome.js"></script>\n    <script src="index.js"></script>');
@@ -182,13 +177,6 @@ gulp.task('chrome-build', function () {
     return path;
   }))
   .pipe(gulpif(function (f) {
-    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
-  }, change(function (content) {
-    return content.replace(/\/\*\*\*[\s\S]*\\*\*\*\*\//m, function (a) {
-      return '';
-    });
-  })))
-  .pipe(gulpif(function (f) {
     return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
   }, change(function (content) {
     return content.replace(/.*shadow_index\.js.*/, '    <script src="chrome/chrome.js"></script>\n    <script src="index.js"></script>');
@@ -246,13 +234,6 @@ gulp.task('opera-build', function () {
     }
     return path;
   }))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
-  }, change(function (content) {
-    return content.replace(/\/\*\*\*[\s\S]*\\*\*\*\*\//m, function (a) {
-      return a.indexOf('only-extension') === -1 ? '' : a;
-    });
-  })))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
   }, change(function (content) {
@@ -314,11 +295,6 @@ gulp.task('android-build', function () {
     }
     return path;
   }))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
-  }, change(function (content) {
-    return content.replace(/\/\*\*[\s\S]*\\*\*\*\//m, '');
-  })))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
   }, change(function (content) {

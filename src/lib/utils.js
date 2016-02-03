@@ -1,11 +1,12 @@
 'use strict';
 
-/**** wrapper (start) ****/
 if (typeof require !== 'undefined') {
   var app = require('./firefox/firefox');
   var utils = exports;
 }
-/**** wrapper (end) ****/
+else {
+  var utils = {};
+}
 
 (function () {
   // debounce

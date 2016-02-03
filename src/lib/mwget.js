@@ -1,6 +1,5 @@
 'use strict';
 
-/**** wrapper (start) ****/
 if (typeof require !== 'undefined') {
   var app = require('./firefox/firefox');
   var wget = require('./wget');
@@ -9,7 +8,9 @@ if (typeof require !== 'undefined') {
   var icon = require('./icon');
   var mwget = exports;
 }
-/**** wrapper (end) ****/
+else {
+  var mwget = {};
+}
 
 (function () {
   let instances = [];
