@@ -70,8 +70,8 @@ utils.EventEmitter = (function () {
     this.onces[name].push(callback);
   };
   EventEmitter.prototype.emit = function (name) {
-    var args = Array.prototype.slice.call(arguments);
-    var tobeSent = args.splice(1);
+    let args = Array.prototype.slice.call(arguments);
+    let tobeSent = args.splice(1);
     if (this.listeners[name]) {
       this.listeners[name].forEach(function (f) {
         try {

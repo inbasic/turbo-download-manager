@@ -3,7 +3,7 @@
   "short_name": "itdmanager",
   "description": "a download manager with multi-threading support",
   "author": "Inbasic",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "manifest_version": 2,
   "permissions": [
     "storage",

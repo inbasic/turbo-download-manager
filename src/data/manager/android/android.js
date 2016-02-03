@@ -30,17 +30,14 @@ window.addEventListener('message', function (e) {
   sendMessage(e.data, 'unknown.html');
 });
 
-var background = {
-  send: function (id, data) {
-    id += '@ui';
-    sendMessage({method: id, data: data});
-  },
-  receive: function (id, callback) {
-    id += '@ui';
-    addListener(function (request, sender) {
-      if (request.method === id && (!sender.url || sender.url.indexOf('background') !== -1)) {
-        callback(request.data);
-      }
-    });
-  }
+var background = { // jshint ignore:line
+  send: (id, data) => sendMessage({
+    method: id + '@ui',
+    data
+  }),
+  receive: (id, callback) => addListener(function (request, sender) {
+    if (request.method === id + '@ui' && (!sender.url || sender.url.indexOf('background') !== -1)) {
+      callback(request.data);
+    }
+  })
 };

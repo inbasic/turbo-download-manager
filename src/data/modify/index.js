@@ -1,4 +1,4 @@
-/* globals background, manifest */
+/* globals background */
 'use strict';
 
 var id = /id\=([^\&]+)/.exec(document.location.search);

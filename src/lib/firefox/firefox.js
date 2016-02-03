@@ -14,8 +14,9 @@ var self          = require('sdk/self'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
     {all, defer, race, resolve}  = require('sdk/core/promise'),
-    {on, off, once, emit} = require('sdk/event/core'),
     {Ci, Cc, Cu, components}  = require('chrome');
+
+var utils = require('../utils');
 
 var {Services} = Cu.import('resource://gre/modules/Services.jsm');
 var {NetUtil} = Cu.import('resource://gre/modules/NetUtil.jsm');
@@ -95,52 +96,16 @@ exports.fetch = function (url, props) {
   return d.promise;
 };
 
-exports.EventEmitter = (function () {
-  let EventEmitter = function () {
-    this.listeners = {};
-    this.onces = {};
-  };
-  EventEmitter.prototype.on = function (name, callback) {
-    this.listeners[name] = this.listeners[name] || [];
-    this.listeners[name].push(callback);
-  };
-  EventEmitter.prototype.once = function (name, callback) {
-    this.onces[name] = this.onces[name] || [];
-    this.onces[name].push(callback);
-  };
-  EventEmitter.prototype.emit = function (name) {
-    var args = Array.prototype.slice.call(arguments);
-    var tobeSent = args.splice(1);
-    if (this.listeners[name]) {
-      this.listeners[name].forEach(f => f.apply(this, tobeSent));
-    }
-    if (this.onces[name]) {
-      this.onces[name].forEach(f => f.apply(this, tobeSent));
-      this.onces[name] = [];
-    }
-  };
-  EventEmitter.prototype.removeListener = function (name, callback) {
-    if (this.listeners[name]) {
-      var index = this.listeners[name].indexOf(callback);
-      if (index !== -1) {
-        this.listeners[name].splice(index, 1);
-      }
-    }
-  };
-  EventEmitter.prototype.removeAllListeners = function () {
-    this.listeners = {};
-    this.onces = {};
-  };
-  return EventEmitter;
-})();
+exports.EventEmitter = utils.EventEmitter;
 
 // Event Emitter
-exports.on = on.bind(null, exports);
-exports.once = once.bind(null, exports);
-exports.emit = emit.bind(null, exports);
-exports.removeListener = function removeListener (type, listener) {
-  off(exports, type, listener);
-};
+(function (e) {
+  exports.on = e.on.bind(e);
+  exports.once = e.once.bind(e);
+  exports.emit = e.emit.bind(e);
+  exports.removeListener = e.removeListener.bind(e);
+})(new utils.EventEmitter());
+
 //startup
 exports.startup = function (callback) {
   if (self.loadReason === 'install' || self.loadReason === 'startup') {

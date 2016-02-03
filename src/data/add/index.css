@@ -36,6 +36,9 @@ input:active{
 input:invalid {
   border-color: red;
 }
+input:disabled {
+  background: rgba(0, 0, 0, 0.05);
+}
 
 input[type=text] {
   flex: 1;

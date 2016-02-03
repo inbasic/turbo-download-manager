@@ -180,7 +180,7 @@ app.storage = (function () {
   };
 })();
 
-app.mimes = (function (cache) {
+(function (cache) {
   let req = new XMLHttpRequest();
   req.open('GET', '../../data/assets/mime.json');
   req.responseType = 'json';
@@ -188,8 +188,13 @@ app.mimes = (function (cache) {
     cache = req.response || cache;
   };
   req.send();
-  return cache;
+  Object.defineProperty(app, 'mimes', {
+    get: function () {
+      return cache;
+    }
+  });
 })({});
+console.error('check mimes', app.mimes);
 
 app.canvas = () => null;
 

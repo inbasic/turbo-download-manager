@@ -82,3 +82,9 @@ body:not([data-status=done]):not([data-status=error]) #toolbar input[data-cmd=fi
   padding-right: 6px;
   border-right: solid 10px #d5d5d5;
 }
+#log tr[data-type=warning] td:first-child {
+  border-right-color: #fb9500;
+}
+#log tr[data-type=error] td:first-child {
+  border-right-color: #ff0000;
+}

@@ -2,12 +2,6 @@
 
 var listeners = [];
 
-var addListener = function (c) {
-  listeners.push(c);
-};
-var sendMessage = function (obj) {
-  window.top.postMessage(obj, '*');
-};
 window.addEventListener('message', function (e) {
   if (e.source === e.target) {
     return;
@@ -17,22 +11,19 @@ window.addEventListener('message', function (e) {
   });
 });
 
-var background = {
-  send: function send (id, data) {
-    id += '@ad';
-    sendMessage({ method: id, data: data });
-  },
-  receive: function receive (id, callback) {
-    id += '@ad';
-    addListener(function (request, sender) {
-      if (request.method === id && (!sender.url || sender.url.indexOf('background') !== -1)) {
-        callback(request.data);
-      }
-    });
-  }
+var background = { // jshint ignore:line
+  send: (id, data) => window.top.postMessage({
+    method: id + '@ad',
+    data
+  }, '*'),
+  receive:  (id, callback) => listeners.push(function (request, sender) {
+    if (request.method === id + '@ad' && (!sender.url || sender.url.indexOf('background') !== -1)) {
+      callback(request.data);
+    }
+  })
 };
 
-var manifest = {
+var manifest = { // jshint ignore:line
   folder: false,
   support: false
 };

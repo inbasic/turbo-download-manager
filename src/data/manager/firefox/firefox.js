@@ -1,11 +1,7 @@
 /* globals self */
 'use strict';
 
-var background = {
+var background = { // jshint ignore:line
   send: self.port.emit,
   receive: self.port.on
-};
-
-var manifest = {
-  url: self.options.base
 };

@@ -254,7 +254,7 @@ else {
         let index = obj.urls.indexOf(url);
         if (index !== -1) {
           obj.urls.splice(index, 1);
-          event.emit('add-log', `${url} is removed from url list due to a fetch error`);
+          event.emit('add-log', `${url} is removed from url list due to a fetch error`, {type: 'warning'});
         }
       }
 
@@ -265,7 +265,6 @@ else {
           app.timer.setTimeout(schedule, obj.pause || 100);
         },
         function (e) {
-          console.error(e)
           tmp.status = e.message;
           after();
           if (e.message === 'abort') {
@@ -308,7 +307,7 @@ else {
           event.emit('add-log', `${i.url} is added as a mirror`);
         }
         else {
-          event.emit('add-log', `Cannot use ${i.url} as a mirror. Server returns **${i.length}** bytes for file-size`);
+          event.emit('add-log', `Cannot use ${i.url} as a mirror. Server returns **${i.length}** bytes for file-size`, {type: 'warning'});
         }
         return i.length === info.length;
       }))
@@ -358,14 +357,14 @@ else {
           validateMirrors();
         }
         if (internals.ranges.length === 1 && obj.alternatives.length) {
-          event.emit('add-log', 'I am not going to validate mirrors as this download is single threaded');
+          event.emit('add-log', 'I am not going to validate mirrors as this download is single threaded', {type: 'warning'});
         }
       }
       else {
         if (internals.ranges.length === 1 || !obj.alternatives.length) {
           schedule();
           if (obj.alternatives.length) {
-            event.emit('add-log', 'I am not going to validate mirrors as this download is single threaded');
+            event.emit('add-log', 'I am not going to validate mirrors as this download is single threaded', {type: 'warning'});
           }
         }
         else {
@@ -447,14 +446,14 @@ else {
                   event.emit('add-log', `[${i.url}](${i.url}) is appeded as a mirror. Total number of downloadable links is **${obj.urls.length}**`);
                 }
                 else {
-                  event.emit('add-log', `[${i.url}](${i.url}) is already in the list`);
+                  event.emit('add-log', `[${i.url}](${i.url}) is already in the list`, {type: 'warning'});
                 }
               }
               else {
-                event.emit('add-log', `Applying the new URL failed. ${uo.url} returns **${i.length}** bytes for file-size`);
+                event.emit('add-log', `Applying the new URL failed. ${uo.url} returns **${i.length}** bytes for file-size`, {type: 'warning'});
               }
             },
-            (e) => event.emit('add-log', `Cannot change URL; Cannot access server; ${e.message}.`)
+            (e) => event.emit('add-log', `Cannot change URL; Cannot access server; ${e.message}.`, {type: 'warning'})
           );
         }
       }
@@ -473,7 +472,6 @@ else {
         }
       }
       if (!name) {
-        url = decodeURIComponent(url);
         url = url.replace(/\/$/, '');
         let tmp = /(title|filename)\=([^\&]+)/.exec(url);
         if (tmp && tmp.length) {
@@ -482,7 +480,7 @@ else {
         else {
           name = url.substring(url.lastIndexOf('/') + 1);
         }
-        name = name.split('?')[0].split('&')[0] || 'unknown';
+        name = decodeURIComponent(name.split('?')[0].split('&')[0]) || 'unknown';
       }
       // extracting extension from file name
       let se = /\.\w+$/.exec(name);
@@ -497,7 +495,8 @@ else {
         return name + se[0];
       }
       // extension
-      let extension =  app.mimes()[mime] || '';
+      let extension =  app.mimes[mime] || '';
+      console.error(extension);
       if (extension) {
         let r = new RegExp('\.' + extension + '$');
         name = name.replace(r, '');
@@ -551,7 +550,7 @@ else {
         a.event.emit('log', `File-name is changed to ${internals.name}`);
       }
       if (internals.file) {
-        internals.file.rename(name).then(okay, (e) => a.event.emit('add-log', `**Unsuccesful** renaming; ${e.message}`));
+        internals.file.rename(name).then(okay, (e) => a.event.emit('add-log', `**Unsuccesful** renaming; ${e.message}`, {type: 'warning'}));
       }
       else {
         okay();

@@ -1,24 +1,22 @@
 'use strict';
-
+// electron
 var electron = require('electron');
 var BrowserWindow = electron.BrowserWindow;
 var ipcMain = require('electron').ipcMain;
 var dialog = require('electron').dialog;
 var clipboard = require('electron').clipboard;
 var shell = require('electron').shell;
-
+// node
 var path = require('path');
 var fs = require('fs');
-
+// libs
 var Storage = require('node-storage');
 var md5 = require('md5');
 var request = require('request');
 
-/**** wrapper (start) ****/
 if (typeof require !== 'undefined') {
   var utils = require('../utils');
 }
-/**** wrapper (end) ****/
 
 var self = JSON.parse(fs.readFileSync(path.resolve('package.json')));
 
@@ -71,10 +69,10 @@ var XMLHttpRequest = function () {
 var mainWindow;
 
 (function (e) {
-  exports.on = e.on.bind(e, exports);
-  exports.once = e.once.bind(e, exports);
-  exports.emit = e.emit.bind(e, exports);
-  exports.removeListener = e.removeListener.bind(e, exports);
+  exports.on = e.on.bind(e);
+  exports.once = e.once.bind(e);
+  exports.emit = e.emit.bind(e);
+  exports.removeListener = e.removeListener.bind(e);
 })(new utils.EventEmitter());
 
 exports.globals = {
@@ -119,7 +117,7 @@ exports.fetch = function (uri, props) {
                 }
                 return d.promise;
               },
-              cancel: () => request.abort()
+              cancel: () => req.abort()
             };
           }
         }
@@ -194,78 +192,54 @@ exports.OS = {
 
 // manager
 exports.manager = {
-  send: function (id, data) {
-    id += '@ui';
-    mainWindow.webContents.send(id, {
-      url: 'background.html',
-      data
-    });
-  },
-  receive: function (id, callback) {
-    id += '@ui';
-    ipcMain.on(id, function (event, arg) {
-      if (arg &&  arg.url === 'manager/index.html') {
-        callback(arg.data);
-      }
-    });
-  }
+  send: (id, data) => mainWindow.webContents.send(id + '@ui', {
+    url: 'background.html',
+    data
+  }),
+  receive: (id, callback) => ipcMain.on(id + '@ui', function (event, arg) {
+    if (arg &&  arg.url === 'manager/index.html') {
+      callback(arg.data);
+    }
+  })
 };
 
 // add
 exports.add = {
-  send: function (id, data) {
-    id += '@ad';
-    mainWindow.webContents.send(id, {
-      url: 'background.html',
-      data
-    });
-  },
-  receive: function (id, callback) {
-    id += '@ad';
-    ipcMain.on(id, function (event, arg) {
-      if (arg &&  arg.url === 'add/index.html') {
-        callback(arg.data);
-      }
-    });
-  }
+  send: (id, data) => mainWindow.webContents.send(id + '@ad', {
+    url: 'background.html',
+    data
+  }),
+  receive: (id, callback) => ipcMain.on(id + '@ad', function (event, arg) {
+    if (arg &&  arg.url === 'add/index.html') {
+      callback(arg.data);
+    }
+  })
 };
 
 // info
 exports.info = {
-  send: function (id, data) {
-    id += '@if';
-    mainWindow.webContents.send(id, {
-      url: 'background.html',
-      data
-    });
-  },
-  receive: function (id, callback) {
-    id += '@if';
-    ipcMain.on(id, function (event, arg) {
-      if (arg &&  arg.url === 'info/index.html') {
-        callback(arg.data);
-      }
-    });
-  }
+  send: (id, data) => mainWindow.webContents.send(id + '@if', {
+    url: 'background.html',
+    data
+  }),
+  receive: (id, callback) => ipcMain.on(id + '@if', function (event, arg) {
+    if (arg &&  arg.url === 'info/index.html') {
+      callback(arg.data);
+    }
+  })
 };
 
 // modify
 exports.modify = {
-  send: function (id, data) {
-    id += '@md';
-    mainWindow.webContents.send(id, {
-      url: 'background.html',
-      data
-    });
-  },
-  receive: function (id, callback) {
-    id += '@md';
-    ipcMain.on(id, function (event, arg) {
-      if (arg &&  arg.url === 'modify/index.html') {
-        callback(arg.data);
-      }
-    });
-  }
+  send: (id, data) => mainWindow.webContents.send(id + '@md', {
+    url: 'background.html',
+    data
+  }),
+  receive: (id, callback) => ipcMain.on(id + '@md', function (event, arg) {
+    if (arg &&  arg.url === 'modify/index.html') {
+      callback(arg.data);
+    }
+  })
 };
 
 exports.File = function (obj) { // {name, path, mime, length}

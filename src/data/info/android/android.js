@@ -3,12 +3,6 @@
 
 var listeners = [];
 
-var addListener = function (c) {
-  listeners.push(c);
-};
-var sendMessage = function (obj) {
-  window.top.postMessage(obj, '*');
-};
 window.addEventListener('message', function (e) {
   if (e.source === e.target) {
     return;
@@ -18,17 +12,11 @@ window.addEventListener('message', function (e) {
   });
 });
 
-var background = {
-  send: function (id, data) {
-    id += '@if';
-    sendMessage({method: id, data: data});
-  },
-  receive: function (id, callback) {
-    id += '@if';
-    addListener(function (request, sender) {
-      if (request.method === id && (!sender.url || sender.url.indexOf('background') !== -1)) {
-        callback(request.data);
-      }
-    });
-  }
+var background = { // jshint ignore:line
+  send: (id, data) => window.top.postMessage({method: id + '@if', data: data}, '*'),
+  receive: (id, callback) => listeners.push(function (request, sender) {
+    if (request.method === id + '@if' && (!sender.url || sender.url.indexOf('background') !== -1)) {
+      callback(request.data);
+    }
+  })
 };

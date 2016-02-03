@@ -16,40 +16,36 @@ app.once('load', function () {
 
 app.Promise = Promise;
 app.XMLHttpRequest = window.XMLHttpRequest;
-app.fetch = function (url, props) {
-  return fetch(url, props);
-};
+app.fetch = (url, props) => fetch(url, props);
 app.EventEmitter = utils.EventEmitter;
 app.timer = window;
 app.URL = window.URL;
 
+app.canvas = () => document.createElement('canvas');
+
 app.storage = (function () {
-  var objs = {};
+  let objs = {};
   chrome.storage.local.get(null, function (o) {
     objs = o;
     app.emit('load');
   });
   return {
-    read: function (id) {
-      return (objs[id] || !isNaN(objs[id])) ? objs[id] + '' : objs[id];
-    },
+    read: (id) => (objs[id] || !isNaN(objs[id])) ? objs[id] + '' : objs[id],
     write: function (id, data) {
       objs[id] = data;
       var tmp = {};
       tmp[id] = data;
       chrome.storage.local.set(tmp, function () {});
     },
-    on: function (name, callback) {
-      chrome.storage.onChanged.addListener(function (obj) {
-        if (name in obj) {
-          callback();
-        }
-      });
-    }
+    on: (name, callback) => chrome.storage.onChanged.addListener(function (obj) {
+      if (name in obj) {
+        callback();
+      }
+    })
   };
 })();
 
-app.mimes = (function (cache) {
+(function (cache) {
   let req = new XMLHttpRequest();
   req.open('GET', '../../data/assets/mime.json');
   req.responseType = 'json';
@@ -57,14 +53,12 @@ app.mimes = (function (cache) {
     cache = req.response || cache;
   };
   req.send();
-  return cache;
+  Object.defineProperty(app, 'mimes', {
+    get: function () {
+      return cache;
+    }
+  });
 })({});
-
-app.canvas = (function (canvas) {
-  return function () {
-    return canvas;
-  };
-})(document.createElement('canvas'));
 
 app.button = (function () {
   var onCommand;
@@ -111,9 +105,7 @@ app.button = (function () {
   };
 })();
 
-app.getURL = function (path) {
-  return chrome.runtime.getURL('/data/' + path);
-};
+app.getURL = (path) => chrome.runtime.getURL('/data/' + path);
 
 app.tab = {
   open: function (url, inBackground, inCurrent) {
@@ -168,18 +160,14 @@ app.menu = function (title, ...items) {
   });
 };
 
-app.notification = function (text) {
-  chrome.notifications.create(null, {
-    type: 'basic',
-    iconUrl: chrome.runtime.getURL('./') + 'data/icons/48.png',
-    title: 'Turbo Download Manager',
-    message: text
-  }, function () {});
-};
+app.notification = (text) => chrome.notifications.create(null, {
+  type: 'basic',
+  iconUrl: 'data/icons/48.png',
+  title: 'Turbo Download Manager',
+  message: text
+});
 
-app.version = function () {
-  return chrome[chrome.runtime && chrome.runtime.getManifest ? 'runtime' : 'extension'].getManifest().version;
-};
+app.version = () => chrome[chrome.runtime && chrome.runtime.getManifest ? 'runtime' : 'extension'].getManifest().version;
 
 app.OS = (function (clipboard) {
   document.body.appendChild(clipboard);
@@ -201,72 +189,60 @@ app.OS = (function (clipboard) {
 // manager
 app.manager = (function () {
   return {
-    send: function (id, data) {
-      id += '@ui';
-      chrome.runtime.sendMessage({method: id, data: data});
-    },
-    receive: function (id, callback) {
-      id += '@ui';
-      chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method && sender.url !== document.location.href) {
-          callback.call(sender.tab, message.data);
-        }
-      });
-    }
+    send: (id, data) => chrome.runtime.sendMessage({
+      method: id + '@ui',
+      data
+    }),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@ui' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
   };
 })();
 
 // add
 app.add = (function () {
   return {
-    send: function (id, data) {
-      id += '@ad';
-      chrome.runtime.sendMessage({method: id, data: data});
-    },
-    receive: function (id, callback) {
-      id += '@ad';
-      chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method && sender.url !== document.location.href) {
-          callback.call(sender.tab, message.data);
-        }
-      });
-    }
+    send: (id, data) => chrome.runtime.sendMessage({
+      method: id + '@ad',
+      data
+    }),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@ad' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
   };
 })();
 
 // info
 app.info = (function () {
   return {
-    send: function (id, data) {
-      id += '@if';
-      chrome.runtime.sendMessage({method: id, data: data});
-    },
-    receive: function (id, callback) {
-      id += '@if';
-      chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method && sender.url !== document.location.href) {
-          callback.call(sender.tab, message.data);
-        }
-      });
-    }
+    send: (id, data) => chrome.runtime.sendMessage({
+      method: id + '@if',
+      data
+    }),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@if' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
   };
 })();
 
 // modify
 app.modify = (function () {
   return {
-    send: function (id, data) {
-      id += '@md';
-      chrome.runtime.sendMessage({method: id, data: data});
-    },
-    receive: function (id, callback) {
-      id += '@md';
-      chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method && sender.url !== document.location.href) {
-          callback.call(sender.tab, message.data);
-        }
-      });
-    }
+    send: (id, data) => chrome.runtime.sendMessage({
+      method: id + '@md',
+      data
+    }),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@md' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
   };
 })();
 
@@ -520,21 +496,22 @@ else {
 
 app.disk = {
   browse: function () {
-    let d = Promise.defer();
-    let wins = chrome.app.window.getAll();
-    if (wins && wins.length) {
-      let win = wins[0].contentWindow;
-      win.chrome.fileSystem.chooseEntry({type: 'openDirectory'}, function (folder) {
-        chrome.storage.local.set({
-          folder: chrome.fileSystem.retainEntry(folder)
+    return new Promise(function (resolve, reject) {
+      let wins = chrome.app.window.getAll();
+      if (wins && wins.length) {
+        let win = wins[0].contentWindow;
+        win.chrome.fileSystem.chooseEntry({type: 'openDirectory'}, function (folder) {
+          chrome.storage.local.set({
+            folder: chrome.fileSystem.retainEntry(folder)
+          });
+          resolve(folder.name);
         });
-        d.resolve(folder.name);
-      });
-    }
-    else {
-      d.reject();
-    }
-    return d.promise;
+      }
+      else {
+        reject();
+      }
+    });
+
   }
 };
 // webapp
@@ -622,4 +599,3 @@ app.startup = (function () {
     check();
   };
 })();
-

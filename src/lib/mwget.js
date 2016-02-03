@@ -99,7 +99,7 @@ else {
         //instance.threads === 0; download has not been initialized yet
         if (c === 'pause' && !instance.info['multi-thread'] && instance.threads !== 0) {
           instance.event.emit('cancel');
-          instance.log.push('Download status changed to paused while this download is not supporting multi-threading.');
+          instance.log.push('Download status changed to paused while this download is not supporting multi-threading.', {type: 'error'});
         }
       });
       instance.event.on('error', () => percent.now('error'));

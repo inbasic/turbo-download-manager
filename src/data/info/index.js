@@ -22,11 +22,8 @@ background.receive('log', function (obj) {
       // this is a safe HTML
       msg.innerHTML = converter.makeHtml(obj.log);
       if (obj.properties) {
-        if (obj.properties.type === 'error') {
-          date.style.color = 'red';
-        }
-        if (obj.properties.type === 'warning') {
-          date.style.color = 'green';
+        if (obj.properties.type) {
+          tr.dataset.type = obj.properties.type;
         }
       }
 
