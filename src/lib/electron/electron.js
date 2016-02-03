@@ -18,7 +18,7 @@ if (typeof require !== 'undefined') {
   var utils = require('../utils');
 }
 
-var self = JSON.parse(fs.readFileSync(path.resolve('package.json')));
+var self = require('../../package.json');
 
 var XMLHttpRequest = function () {
   let method = 'GET', uri, headers = {}, readyState = 2;
@@ -366,7 +366,7 @@ exports.startup = function () {};
 
 exports.developer = {
   console: () => mainWindow.webContents.openDevTools()
-}
+};
 
 /* internals */
 function createWindow () {
@@ -374,7 +374,7 @@ function createWindow () {
     width: 800,
     height: 600
   });
-  mainWindow.loadURL('file://' + path.resolve('data/manager/index.html'));
+  mainWindow.loadURL('file://' + __dirname + '/../../data/manager/index.html');
 
   mainWindow.on('closed', function () {
     mainWindow = null;

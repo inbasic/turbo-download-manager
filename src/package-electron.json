@@ -24,7 +24,6 @@
   },
   "homepage": "http://add0n.com/turbo-download-manager.html",
   "dependencies": {
-    "node-notifier": "^4.4.0",
     "node-storage": "^4.4.0",
     "md5": "^4.4.0",
     "request": "^4.4.0"
