@@ -9,10 +9,16 @@ var shell = require('electron').shell;
 
 var path = require('path');
 var fs = require('fs');
-var notifier = require('node-notifier');
+
 var Storage = require('node-storage');
 var md5 = require('md5');
 var request = require('request');
+
+/**** wrapper (start) ****/
+if (typeof require !== 'undefined') {
+  var utils = require('../utils');
+}
+/**** wrapper (end) ****/
 
 var self = JSON.parse(fs.readFileSync(path.resolve('package.json')));
 
@@ -62,59 +68,6 @@ var XMLHttpRequest = function () {
   };
 };
 
-var EventEmitter = (function () {
-  let EventEmitter = function () {
-    this.listeners = {};
-    this.onces = {};
-  };
-  EventEmitter.prototype.on = function (name, callback) {
-    this.listeners[name] = this.listeners[name] || [];
-    this.listeners[name].push(callback);
-  };
-  EventEmitter.prototype.once = function (name, callback) {
-    this.onces[name] = this.onces[name] || [];
-    this.onces[name].push(callback);
-  };
-  EventEmitter.prototype.emit = function (name) {
-    var args = Array.prototype.slice.call(arguments);
-    var tobeSent = args.splice(1);
-    if (this.listeners[name]) {
-      this.listeners[name].forEach(function (f) {
-        try {
-          f.apply(this, tobeSent);
-        }
-        catch (e) {
-          console.error(e);
-        }
-      });
-    }
-    if (this.onces[name]) {
-      this.onces[name].forEach(function (f) {
-        try {
-          f.apply(this, tobeSent);
-        }
-        catch (e) {
-          console.error(e);
-        }
-      });
-      this.onces[name] = [];
-    }
-  };
-  EventEmitter.prototype.removeListener = function (name, callback) {
-    if (this.listeners[name]) {
-      var index = this.listeners[name].indexOf(callback);
-      if (index !== -1) {
-        this.listeners[name].splice(index, 1);
-      }
-    }
-  };
-  EventEmitter.prototype.removeAllListeners = function () {
-    this.listeners = {};
-    this.onces = {};
-  };
-  return EventEmitter;
-})();
-
 var mainWindow;
 
 (function (e) {
@@ -122,7 +75,7 @@ var mainWindow;
   exports.once = e.once.bind(e, exports);
   exports.emit = e.emit.bind(e, exports);
   exports.removeListener = e.removeListener.bind(e, exports);
-})(new EventEmitter());
+})(new utils.EventEmitter());
 
 exports.globals = {
   browser: 'electron',
@@ -182,7 +135,7 @@ exports.fetch = function (uri, props) {
   return d.promise;
 };
 
-exports.EventEmitter = EventEmitter;
+exports.EventEmitter = utils.EventEmitter;
 exports.timer = {setTimeout, clearTimeout, setInterval, clearInterval};
 exports.URL = require('url').parse;
 
