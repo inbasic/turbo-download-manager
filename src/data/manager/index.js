@@ -144,20 +144,23 @@ var get = function (id) {
 };
 // add && info
 (function (add, loader, iframe) {
-  add.addEventListener('click', function () {
-    loader.dataset.visible = true;
-    iframe.src = '../add/index.html';
-  });
-  loader.addEventListener('click', function (e) {
-    if (!iframe.contains(e.target)) {
+  (function (blank) {
+    loader.addEventListener('click', e => iframe.contains(e.target) ? '' : blank());
+    background.receive('hide', blank, false);
+    document.addEventListener('backbutton', (e) => {
+      e.preventDefault();
+      blank();
+    }, false);
+  })(function () {
+    if (loader.dataset.visible === 'true') {
       loader.dataset.visible = false;
       iframe.src = 'about:blank';
     }
   });
-  background.receive('hide', function () {
-    loader.dataset.visible = false;
-    iframe.src = 'about:blank';
-  });
+  add.addEventListener('click', function () {
+    loader.dataset.visible = true;
+    iframe.src = '../add/index.html';
+  }, false);
   background.receive('info', function (id) {
     loader.dataset.visible = true;
     iframe.src = '../info/index.html?id=' + id;

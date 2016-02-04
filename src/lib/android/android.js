@@ -194,7 +194,6 @@ app.storage = (function () {
     }
   });
 })({});
-console.error('check mimes', app.mimes);
 
 app.canvas = () => null;
 

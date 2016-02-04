@@ -28,13 +28,13 @@ http://add0n.com/turbo-download-manager.html
 4. Android:
   1. Preparing project: `gulp android`
   2. Preparing plugins:
-    1. `sudo cca plugin remove plugin-name`
-    2. `sudo cca plugin add path-to-plugin`
+    1. `cca plugin remove plugin-name`
+    2. `cca plugin add path-to-plugin`
   3. Creating a new project: `cca create TDM --link-to=path/to/manifest.json`
-  4. Installing to a device: `sudo cca run android --device` or `sudo cca run android --emulator`
+  4. Installing to a device: `cca run android --device` or `cca run android --emulator`
   5. Android submission:
-    1. `sudo cca build android --release --webview=crosswalk`
-    2. `sudo cca build android --release --webview=system --android-minSdkVersion=21`
+    1. `cca build android --release --webview=crosswalk`
+    2. `cca build android --release --webview=system --android-minSdkVersion=21`
 5. Electron:
   1. Mac: `electron-packager . "Turbo Download Manager" --platform=darwin --arch=x64 --version=0.36.7 --icon ../512.icns --overwrite`
   2. Windows: `electron-packager . "Turbo Download Manager" --platform=win32 --arch=x64 --version=0.36.7 --icon ../512.ico --overwrite`

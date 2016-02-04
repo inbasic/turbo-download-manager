@@ -2488,8 +2488,6 @@ showdown.subParser('unescapeSpecialChars', function (text) {
   return text;
 });
 
-var root = this;
-
 // CommonJS/nodeJS Loader
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = showdown;
@@ -2503,7 +2501,7 @@ if (typeof module !== 'undefined' && module.exports) {
 
 // Regular Browser loader
 } else {
-  root.showdown = showdown;
+  window.showdown = showdown;
 }
 }).call(this);
 
