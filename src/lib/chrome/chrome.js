@@ -246,6 +246,21 @@ app.modify = (function () {
   };
 })();
 
+// triggers
+app.triggers = (function () {
+  return {
+    send: (id, data) => chrome.runtime.sendMessage({
+      method: id + '@tr',
+      data
+    }),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@tr' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
+  };
+})();
+
 if (app.globals.extension) {
   app.File = function (obj) { // {name, path, mime, length}
     var cache = {};

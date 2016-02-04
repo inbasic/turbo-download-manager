@@ -507,6 +507,10 @@ exports.OS = (function () {
     data.url('modify/index.html') + '*',
     [data.url('./modify/firefox/firefox.js'), data.url('./modify/index.js')]
   );
+  exports.triggers = attach(
+    data.url('triggers/index.html') + '*',
+    [data.url('./triggers/firefox/firefox.js'), data.url('./triggers/index.js')]
+  );
 })(function (include, contentScriptFile) {
   let workers = [], contentScripts = [];
   pageMod.PageMod({

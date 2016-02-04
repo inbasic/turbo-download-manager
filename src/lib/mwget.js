@@ -171,6 +171,7 @@ else {
         }
       }
       delete instances[index];
+      app.manager.send(remove, index);
       count();
     }
   };

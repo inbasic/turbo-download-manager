@@ -320,6 +320,24 @@ app.modify = (function () {
   };
 })();
 
+// triggers
+app.triggers = (function () {
+  return {
+    send: function (id, data) {
+      id += '@tr';
+      chrome.runtime.sendMessage({method: id, data: data});
+    },
+    receive: function (id, callback) {
+      id += '@tr';
+      chrome.runtime.onMessage.addListener(function (message, sender) {
+        if (id === message.method && sender.url !== document.location.href) {
+          callback.call(sender.tab, message.data);
+        }
+      });
+    }
+  };
+})();
+
 app.File = function (obj) { // {name, path, mime, length}
   window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
   let fileEntry, cache = [], postponed, length = 0;

@@ -169,6 +169,10 @@ var get = function (id) {
     loader.dataset.visible = true;
     iframe.src = '../modify/index.html?id=' + id;
   });
+  background.receive('triggers', function () {
+    loader.dataset.visible = true;
+    iframe.src = '../triggers/index.html';
+  });
 })(document.getElementById('add'), document.getElementById('loader'), document.querySelector('#loader iframe'));
 
 // items
@@ -186,7 +190,7 @@ function remove(id) {
     parent.parentNode.removeChild(parent);
   }
 }
-
+background.receive('remove', remove);
 background.receive('add', function (obj) {
   let item = add(obj.id);
   item.percent = obj.percent || 0;

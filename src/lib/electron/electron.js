@@ -242,6 +242,19 @@ exports.modify = {
   })
 };
 
+// triggers
+exports.triggers = {
+  send: (id, data) => mainWindow.webContents.send(id + '@tr', {
+    url: 'background.html',
+    data
+  }),
+  receive: (id, callback) => ipcMain.on(id + '@tr', function (event, arg) {
+    if (arg &&  arg.url === 'triggers/index.html') {
+      callback(arg.data);
+    }
+  })
+};
+
 exports.File = function (obj) { // {name, path, mime, length}
   let file, filePath;
   let cache = [];

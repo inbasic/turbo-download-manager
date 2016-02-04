@@ -160,6 +160,9 @@ app.manager.receive('open', function (cmd) {
   if (cmd === 'console') {
     app.developer.console();
   }
+  if (cmd === 'triggers') {
+    app.manager.send('triggers');
+  }
 });
 /* add ui */
 app.add.receive('download', function (obj) {
@@ -239,4 +242,36 @@ app.modify.receive('modified', function (obj) {
   if (instance) {
     instance.modify(obj);
   }
+});
+/* triggers ui */
+app.triggers.receive('init', function () {
+  app.triggers.send('init', {
+    pause: {
+      enabled: config.triggers.pause.enabled,
+      value: config.triggers.pause.value
+    },
+    start: {
+      enabled: config.triggers.start.enabled,
+      value: config.triggers.start.value
+    },
+    fail: {
+      enabled: config.triggers.fail.enabled,
+      value: config.triggers.fail.value
+    },
+    success: {
+      enabled: config.triggers.success.enabled,
+      value: config.triggers.success.value
+    }
+  });
+});
+app.triggers.receive('change', function (obj) {
+  config.triggers[obj.id].value = obj.value;
+  config.triggers[obj.id].enabled = obj.enabled;
+  app.triggers.send('change', {
+    name: obj.id,
+    settings: {
+      enabled: config.triggers[obj.id].enabled,
+      value: config.triggers[obj.id].value
+    }
+  });
 });

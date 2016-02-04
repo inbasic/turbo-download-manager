@@ -28,6 +28,71 @@ config.icon = {
   timeout: 5 // seconds
 };
 
+config.triggers = {
+  pause: {
+    get enabled () {
+      return app.storage.read('triggers-pause-disabled') === 'false' ? false : true;
+    },
+    set enabled (val) {
+      app.storage.write('triggers-pause-disabled', val);
+    },
+    get value () {
+      return +app.storage.read('triggers-pause-value') || 3;
+    },
+    set value (val) {
+      val = Math.max(val, 1);
+      val = Math.min(val, 10);
+      app.storage.write('triggers-pause-value', val);
+    }
+  },
+  start: {
+    get enabled () {
+      return app.storage.read('triggers-start-disabled') === 'false' ? false : true;
+    },
+    set enabled (val) {
+      app.storage.write('triggers-start-disabled', val);
+    },
+    get value () {
+      return +app.storage.read('triggers-start-value') || 3;
+    },
+    set value (val) {
+      val = Math.max(val, 1);
+      val = Math.min(val, 10);
+      app.storage.write('triggers-start-value', val);
+    }
+  },
+  success: {
+    get enabled () {
+      return app.storage.read('triggers-success-disabled') === 'true' ? true : false;
+    },
+    set enabled (val) {
+      app.storage.write('triggers-success-disabled', val);
+    },
+    get value () {
+      return +app.storage.read('triggers-success-value') || 60;
+    },
+    set value (val) {
+      val = Math.max(val, 10);
+      app.storage.write('triggers-success-value', val);
+    }
+  },
+  fail: {
+    get enabled () {
+      return app.storage.read('triggers-fail-disabled') === 'true' ? true : false;
+    },
+    set enabled (val) {
+      app.storage.write('triggers-fail-disabled', val);
+    },
+    get value () {
+      return +app.storage.read('triggers-fail-value') || 3 * 60;
+    },
+    set value (val) {
+      val = Math.max(val, 10);
+      app.storage.write('triggers-fail-value', val);
+    }
+  }
+};
+
 config.welcome = {
   get version () {
     return app.storage.read('version');
