@@ -138,6 +138,10 @@ exports.timer = {setTimeout, clearTimeout, setInterval, clearInterval};
 exports.URL = require('url').parse;
 
 exports.storage = (function () {
+  let dir = path.resolve(process.env.HOME || process.env.USERPROFILE, '.tdm');
+  if (!fs.existsSync(dir)) {  // node-storage is not creating the directory if it does not exist
+    fs.mkdirSync(dir);
+  }
   let store = new Storage(path.resolve(process.env.HOME || process.env.USERPROFILE, '.tdm', 'storage'));
   let callbacks = {};
   return {

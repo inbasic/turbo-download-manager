@@ -1,0 +1,42 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Triggers - Turbo Download Manager</title>
+    <link rel="stylesheet" href="index.css">
+    <meta name=viewport content="width=device-width, initial-scale=1">
+  </head>
+  <body>
+    <table>
+      <thead>
+        <tr>
+          <th>Enabled</th>
+          <th>Description</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr data-id="pause">
+          <td><input type="checkbox"></td>
+          <td>Auto-pause new jobs if the number of active jobs exceeds</td>
+          <td><input type="number" data-cmd="script" min="1" max="10"></td>
+        </tr>
+        <tr data-id="start">
+          <td><input type="checkbox"></td>
+          <td>Auto-start paused jobs if the number of active jobs is less than</td>
+          <td><input type="number" data-cmd="script" min="1" max="10"></td>
+        </tr>
+        <tr data-id="success">
+          <td><input type="checkbox"></td>
+          <td>Remove finished jobs after (in minutes)</td>
+          <td><input type="number" data-cmd="script" min="10"></td>
+        </tr>
+        <tr data-id="fail">
+          <td><input type="checkbox"></td>
+          <td>Remove failed jobs after (in minutes)</td>
+          <td><input type="number" data-cmd="script" min="10"></td>
+        </tr>
+      </tbody>
+    </table>
+    <script src="shadow_index.js"></script>
+  </body>
+</html>
