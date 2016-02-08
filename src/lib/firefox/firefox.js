@@ -134,8 +134,9 @@ exports.button = (function () {
       id: self.name,
       label: 'Turbo Download Manager',
       icon: {
-        '18': './icons/18.png',
-        '36': './icons/36.png'
+        '16': './icons/16.png',
+        '32': './icons/32.png',
+        '64': './icons/64.png'
       },
       onClick: function () {
         if (callback) {
