@@ -47,7 +47,7 @@ config.triggers = {
   },
   start: {
     get enabled () {
-      return app.storage.read('triggers-start-disabled') === 'false' ? false : true;
+      return app.storage.read('triggers-start-disabled') === 'true' ? true : false;
     },
     set enabled (val) {
       app.storage.write('triggers-start-disabled', val);

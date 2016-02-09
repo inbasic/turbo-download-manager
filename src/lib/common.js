@@ -43,6 +43,10 @@ function download (obj) {
   obj['write-size'] = obj['write-size'] || config.wget['write-size'];
   obj.retries = obj.retries || config.wget.retrie;
   obj.folder = obj.folder || app.storage.read('add-directory');
+  // pause trigger
+  obj['auto-pause'] = obj['auto-pause'] ||
+    (config.triggers.pause.enabled && mwget.count() >= config.triggers.pause.value);
+
   // on Android and Opera, there is no directory selection
   if (!obj.folder && !app.storage.read('notice-download') && ['android', 'opera'].indexOf(app.globals.browser) === -1) {
     app.notification('Saving in the default download directory. Add a new job from manager to change the directory.');
@@ -73,6 +77,25 @@ mwget.addEventListener('details', function (id, type, value) {
   if (type === 'status') {
     app.manager.send('status', {id, status: value});
     app.info.send('status', {id, status: value});
+  }
+  // start trigger
+  if (type === 'status' && config.triggers.start.enabled) {
+    if (value === 'error' || value === 'pause' || value === 'done') {
+      if (mwget.count() < config.triggers.start.value) {
+        let instance = mwget.list().filter(i => i.status === 'pause' && i.internals.available).shift();
+        if (instance) {
+          mwget.resume(mwget.id(instance));
+        }
+      }
+    }
+  }
+  // success trigger
+  if (type === 'status' && value === 'done' && config.triggers.success.enabled) {
+    app.timer.setTimeout(mwget.remove, config.triggers.success.value * 60 * 1000, id);
+  }
+  // fail trigger
+  if (type === 'status' && value === 'error' && config.triggers.fail.enabled) {
+    app.timer.setTimeout(mwget.remove, config.triggers.fail.value * 60 * 1000, id);
   }
   if (type === 'count') {
     app.manager.send('count', {id, count: value});
@@ -220,7 +243,8 @@ app.info.receive('cmd', function (obj) {
     mwget.get(obj.id)['internals@b'].file.launch();
   }
   if (obj.cmd === 'remove') {
-    mwget.get(obj.id)['internals@b'].file.remove(true);
+    mwget.remove(obj.id);
+    app.manager.send('hide');
   }
 });
 app.info.receive('open', app.tab.open);

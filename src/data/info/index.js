@@ -46,7 +46,7 @@ document.addEventListener('click', function (e) {
 
   if (cmd) {
     if (cmd === 'remove') {
-      let rtn = window.confirm('File will be removed permanently. Proceed?');
+      let rtn = window.confirm('File will be removed permanently (if it is not yet fully downloaded). Proceed?');
       if (!rtn) {
         return;
       }

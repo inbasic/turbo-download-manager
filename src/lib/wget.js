@@ -134,7 +134,9 @@ else {
 
     let event = new app.EventEmitter(), d = app.Promise.defer(), info, segments = [], lastCount = 0;
     let internals = {};
-    utils.assign(internals, 'status', event).assign(internals, 'retries', event, 0);
+    utils.assign(internals, 'status', event)
+         .assign(internals, 'retries', event, 0)
+         .assign(internals, 'available', event, true);
     internals.status = 'head';  // 'head', 'download', 'error', 'done', 'pause'
 
     event.on('status', (s) => event.emit('add-log', `Download status is changed to **${s}**`));
@@ -380,6 +382,9 @@ else {
     });
     // pause
     event.on('pause', function () {
+      // do not let triggers to resume the download when it goes to the pause mode
+      internals.available = false;
+      app.timer.setTimeout(() => internals.available = true, 10 * 1000);
       internals.status = 'pause';
       segments.forEach(s => s.event.emit('abort'));
     });
@@ -496,7 +501,6 @@ else {
       }
       // extension
       let extension =  app.mimes[mime] || '';
-      console.error(extension);
       if (extension) {
         let r = new RegExp('\.' + extension + '$');
         name = name.replace(r, '');

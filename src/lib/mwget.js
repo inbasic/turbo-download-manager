@@ -26,7 +26,7 @@ else {
     'logs': []
   };
   function count () {
-    let c = instances.filter(i => i.status === 'download').length;
+    let c = instances.filter(i => i.status === 'download' || i.status === 'head').length;
     callbacks.count.forEach(a => a(c));
     app.button.badge = c ? c : '';
     return c;
@@ -73,13 +73,10 @@ else {
       let index = instances.push(instance) - 1;
       instance.obj = obj;
       instance.promise.then(function (status) {
-        app.timer.setTimeout(count, 500);
         let md5 = status === 'done' ? instance['internals@b'].md5 : '';
         callbacks.done.forEach(d => d(index, status, md5));
-        percent.now(status);
       }).catch((e) => instance.log.push(`Internal Error; ${e ? e.message || e : 'no error message'}`, {type: 'error'}));
       instance.log.push(`Downloading ${obj.url}`);
-      instance.event.once('progress', count);
       instance.event.on('progress', function (a, e) {
         let start = a.range.start;
         let length = e.offset + e.length;
@@ -99,11 +96,14 @@ else {
         //instance.threads === 0; download has not been initialized yet
         if (c === 'pause' && !instance.info['multi-thread'] && instance.threads !== 0) {
           instance.event.emit('cancel');
-          instance.log.push('Download status changed to paused while this download is not supporting multi-threading.', {type: 'error'});
+          instance.log.push(
+            'Download status changed to paused while this download is not supporting multi-threading.',
+            {type: 'error'}
+          );
         }
+        app.timer.setTimeout(count, 500);
+        percent.now(c);
       });
-      instance.event.on('error', () => percent.now('error'));
-      instance.event.on('cancel', () => percent.now('error'));
       instance.event.on('count', (c) => callbacks.details.forEach(d => d(index, 'count', c)));
       instance.event.on('retries', (c) => callbacks.details.forEach(d => d(index, 'retries', c)));
       instance.event.once('info', (c) => callbacks.details.forEach(d => d(index, 'info', c)));
@@ -116,22 +116,18 @@ else {
         percent();
       });
       callbacks.add.forEach(d => d(index));
-      app.timer.setTimeout(count, 500);
+      app.timer.setTimeout(count, 0);
       return index;
     }
     else {
       return app.notification('URL is not valid');
     }
   };
-  mwget.list = function () {
-    return instances;
-  };
-  mwget.get = function (id) {
-    return instances[id];
-  };
-  mwget.log = function (id) {
-    return instances[id].log.get();
-  };
+  mwget.list = () => instances;
+  mwget.get = (id) => instances[id];
+  mwget.id = (obj) => instances.indexOf(obj);
+  mwget.count = () => count(),
+  mwget.log = (id) => instances[id].log.get();
   mwget.stats = function (index) {
     let wget = instances[index];
     if (wget) {
@@ -143,21 +139,18 @@ else {
     if (wget) {
       wget.event.emit('pause');
     }
-    app.timer.setTimeout(count, 500);
   };
   mwget.resume = function (index) {
     let wget = instances[index];
     if (wget) {
       wget.event.emit('resume');
     }
-    app.timer.setTimeout(count, 500);
   };
   mwget.cancel = function (index) {
     let wget = instances[index];
     if (wget) {
       wget.event.emit('cancel');
     }
-    app.timer.setTimeout(count, 500);
   };
   mwget.remove = function (index) {
     let wget = instances[index];
@@ -171,8 +164,7 @@ else {
         }
       }
       delete instances[index];
-      app.manager.send(remove, index);
-      count();
+      app.manager.send('remove', index);
     }
   };
   mwget.addEventListener = function (type, func) {
