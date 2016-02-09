@@ -234,8 +234,11 @@ app.notification = function (text) {
   }, function () {});
 };
 
-app.version = function () {
-  return chrome[chrome.runtime && chrome.runtime.getManifest ? 'runtime' : 'extension'].getManifest().version;
+app.version = () => chrome[chrome.runtime && chrome.runtime.getManifest ? 'runtime' : 'extension'].getManifest().version;
+app.platform = function () {
+  let v1 = /Chrome\/[\d\.]*/.exec(navigator.userAgent);
+  let v2 = /OPR\/[\d\.]*/.exec(navigator.userAgent);
+  return (v2 ? v2[0].replace('OPR/', 'OPR ') : v1[0].replace('Chrome/', 'Chrome ') + ` & Cordova ${cordova.version}`);
 };
 
 app.OS = {
@@ -251,90 +254,72 @@ app.OS = {
 // manager
 app.manager = (function () {
   return {
-    send: function (id, data) {
-      id += '@ui';
-      chrome.runtime.sendMessage({method: id, data: data});
-    },
-    receive: function (id, callback) {
-      id += '@ui';
-      chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method && sender.url !== document.location.href) {
-          callback.call(sender.tab, message.data);
-        }
-      });
-    }
+    send: (id, data) => chrome.runtime.sendMessage({method: id + '@ui', data}),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@ui' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
   };
 })();
 
 // add
 app.add = (function () {
   return {
-    send: function (id, data) {
-      id += '@ad';
-      chrome.runtime.sendMessage({method: id, data: data});
-    },
-    receive: function (id, callback) {
-      id += '@ad';
-      chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method && sender.url !== document.location.href) {
-          callback.call(sender.tab, message.data);
-        }
-      });
-    }
+    send: (id, data) => chrome.runtime.sendMessage({method: id + '@ad', data}),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@ad' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
   };
 })();
 
 // info
 app.info = (function () {
   return {
-    send: function (id, data) {
-      id += '@if';
-      chrome.runtime.sendMessage({method: id, data: data});
-    },
-    receive: function (id, callback) {
-      id += '@if';
-      chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method && sender.url !== document.location.href) {
-          callback.call(sender.tab, message.data);
-        }
-      });
-    }
+    send: (id, data) => chrome.runtime.sendMessage({method: id + '@if', data}),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@if' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
   };
 })();
 
 // modify
 app.modify = (function () {
   return {
-    send: function (id, data) {
-      id += '@md';
-      chrome.runtime.sendMessage({method: id, data: data});
-    },
-    receive: function (id, callback) {
-      id += '@md';
-      chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method && sender.url !== document.location.href) {
-          callback.call(sender.tab, message.data);
-        }
-      });
-    }
+    send: (id, data) => chrome.runtime.sendMessage({method: id + '@md', data}),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@md' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
   };
 })();
 
 // triggers
 app.triggers = (function () {
   return {
-    send: function (id, data) {
-      id += '@tr';
-      chrome.runtime.sendMessage({method: id, data: data});
-    },
-    receive: function (id, callback) {
-      id += '@tr';
-      chrome.runtime.onMessage.addListener(function (message, sender) {
-        if (id === message.method && sender.url !== document.location.href) {
-          callback.call(sender.tab, message.data);
-        }
-      });
-    }
+    send: (id, data) => chrome.runtime.sendMessage({method: id + '@tr', data}),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@tr' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
+  };
+})();
+
+// about
+app.about = (function () {
+  return {
+    send: (id, data) => chrome.runtime.sendMessage({method: id + '@ab', data}),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@ab' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
   };
 })();
 

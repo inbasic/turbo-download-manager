@@ -182,9 +182,8 @@ exports.notification = function (message) {
   mainWindow.webContents.send('_notification', message);
 };
 
-exports.version = function () {
-  return self.version;
-};
+exports.version = () => self.version;
+exports.platform = () => `io.js ${process.version} & Electron ${process.versions['electron']}`;
 
 exports.OS = {
   clipboard: {
@@ -254,6 +253,19 @@ exports.triggers = {
   }),
   receive: (id, callback) => ipcMain.on(id + '@tr', function (event, arg) {
     if (arg &&  arg.url === 'triggers/index.html') {
+      callback(arg.data);
+    }
+  })
+};
+
+// about
+exports.about = {
+  send: (id, data) => mainWindow.webContents.send(id + '@ab', {
+    url: 'background.html',
+    data
+  }),
+  receive: (id, callback) => ipcMain.on(id + '@ab', function (event, arg) {
+    if (arg &&  arg.url === 'about/index.html') {
       callback(arg.data);
     }
   })

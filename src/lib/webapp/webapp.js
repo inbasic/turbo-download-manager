@@ -84,6 +84,21 @@ app.triggers = {
   }
 };
 
+app.about = {
+  send: function (id, msg) {
+    id += '@ab';
+    window.frames[0].frames[0].postMessage({id, msg}, '*');
+  },
+  receive: function (id, callback) {
+    id += '@ab';
+    window.addEventListener('message', function (e) {
+      if (e.data && e.data.id === id) {
+        callback(e.data.msg);
+      }
+    });
+  }
+};
+
 app.canvas = function () {
   return document.querySelector('canvas');
 };

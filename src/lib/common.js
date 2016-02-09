@@ -186,6 +186,9 @@ app.manager.receive('open', function (cmd) {
   if (cmd === 'triggers') {
     app.manager.send('triggers');
   }
+  if (cmd === 'about') {
+    app.manager.send('about');
+  }
 });
 /* add ui */
 app.add.receive('download', function (obj) {
@@ -299,3 +302,11 @@ app.triggers.receive('change', function (obj) {
     }
   });
 });
+/* about ui */
+app.about.receive('init', function () {
+  app.about.send('init', {
+    version: app.version(),
+    platform: app.platform()
+  });
+});
+app.about.receive('open', url => app.tab.open(url));

@@ -168,6 +168,11 @@ app.notification = (text) => chrome.notifications.create(null, {
 });
 
 app.version = () => chrome[chrome.runtime && chrome.runtime.getManifest ? 'runtime' : 'extension'].getManifest().version;
+app.platform = function () {
+  let v1 = /Chrome\/[\d\.]*/.exec(navigator.userAgent);
+  let v2 = /OPR\/[\d\.]*/.exec(navigator.userAgent);
+  return v2 ? v2[0].replace('OPR/', 'OPR ') : v1[0].replace('Chrome/', 'Chrome ');
+};
 
 app.OS = (function (clipboard) {
   document.body.appendChild(clipboard);
@@ -255,6 +260,21 @@ app.triggers = (function () {
     }),
     receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
       if (id + '@tr' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
+  };
+})();
+
+// about
+app.about = (function () {
+  return {
+    send: (id, data) => chrome.runtime.sendMessage({
+      method: id + '@ab',
+      data
+    }),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@ab' === message.method && sender.url !== document.location.href) {
         callback.call(sender.tab, message.data);
       }
     })

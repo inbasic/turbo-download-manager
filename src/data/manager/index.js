@@ -173,6 +173,10 @@ var get = function (id) {
     loader.dataset.visible = true;
     iframe.src = '../triggers/index.html';
   });
+  background.receive('about', function () {
+    loader.dataset.visible = true;
+    iframe.src = '../about/index.html';
+  });
 })(document.getElementById('add'), document.getElementById('loader'), document.querySelector('#loader iframe'));
 
 // items

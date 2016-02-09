@@ -11,6 +11,7 @@ var self          = require('sdk/self'),
     urls          = require('sdk/url'),
     timers        = require('sdk/timers'),
     platform      = require('sdk/system').platform,
+    xul           = require('sdk/system/xul-app'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
     {all, defer, race, resolve}  = require('sdk/core/promise'),
@@ -252,9 +253,8 @@ exports.menu = function (label, ...items) {
   }
 };
 
-exports.version = function () {
-  return self.version;
-};
+exports.version = () => self.version;
+exports.platform = () => `Firefox v.${xul.platformVersion}`;
 
 exports.timer = timers;
 
@@ -510,6 +510,10 @@ exports.OS = (function () {
   exports.triggers = attach(
     data.url('triggers/index.html') + '*',
     [data.url('./triggers/firefox/firefox.js'), data.url('./triggers/index.js')]
+  );
+  exports.about = attach(
+    data.url('about/index.html'),
+    [data.url('./about/firefox/firefox.js'), data.url('./about/index.js')]
   );
 })(function (include, contentScriptFile) {
   let workers = [], contentScripts = [];
