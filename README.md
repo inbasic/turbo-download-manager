@@ -11,6 +11,8 @@ http://add0n.com/turbo-download-manager.html
 3. Opera: https://addons.opera.com/extensions/details/turbo-download-manager/
 4. Safari: not ready
 5. Android: https://play.google.com/store/apps/details?id=com.add0n.tdm
+6. Windows: https://sourceforge.net/projects/turbo-download-manager/files/
+7. Mac: https://sourceforge.net/projects/turbo-download-manager/
 
 ### Downloads (developer builds):
 1. Firefox: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/firefox.xpi?raw=true
@@ -18,6 +20,7 @@ http://add0n.com/turbo-download-manager.html
 3. Opera: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/opera.zip?raw=true
 4. Safari: not ready
 5. Android: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/android.zip?raw=true
+6. Electron: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/electron.zip?raw=true
 
 
 ### Compile itdmanager project:
