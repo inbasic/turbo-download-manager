@@ -85,6 +85,7 @@ exports.XMLHttpRequest = XMLHttpRequest;
 exports.fetch = function (uri, props) {
   let d = Promise.defer(), buffers = [], done = false;
   let ppp, sent = false;
+  let status;
 
   function result() {
     return {
@@ -98,12 +99,18 @@ exports.fetch = function (uri, props) {
     headers: props.headers
   });
   req.on('error', (e) => d.reject(e));
+  req.on('response', function (response) {
+    status = response.statusCode;
+  });
   req.on('data', function (chunk) {
     buffers.push(chunk);
     if (!sent) {
       sent = true;
       d.resolve({
         ok: true,
+        get status () {
+          return status;
+        },
         body: {
           getReader: function () {
             return {
@@ -352,7 +359,9 @@ exports.File = function (obj) { // {name, path, mime, length}
       return Promise.resolve();
     },
     remove: function () {
-
+      if (filePath && file) {
+        fs.unlink(filePath);
+      }
     },
     launch: function () {},
     reveal: function () {},

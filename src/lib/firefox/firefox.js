@@ -68,6 +68,7 @@ exports.fetch = function (url, props) {
       sent = true;
       d.resolve({
         ok: req.status >= 200 && req.status < 300,
+        status: req.status,
         body: {
           getReader: function () {
             return {
@@ -454,7 +455,7 @@ exports.OS = (function () {
     windows.push(window);
   }
   var windowListener = {
-    onOpenWindow: function(xulWindow) {
+    onOpenWindow: function (xulWindow) {
       var window = xulWindow.QueryInterface(Ci.nsIInterfaceRequestor)
         .getInterface(Ci.nsIDOMWindow);
       function onWindowLoad() {
@@ -463,13 +464,13 @@ exports.OS = (function () {
       }
       window.addEventListener('load', onWindowLoad);
     },
-    onCloseWindow: function(xulWindow) {
+    onCloseWindow: function (xulWindow) {
       var index = windows.indexOf(xulWindow);
       if (index !== -1) {
         windows.splice(index, 1);
       }
     },
-    onWindowTitleChange: function() { }
+    onWindowTitleChange: function () { }
   };
   Services.wm.addListener(windowListener);
   unload.when(function () {

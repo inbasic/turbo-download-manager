@@ -27,10 +27,14 @@ else {
     let id = app.timer.setTimeout(() => d.reject(Object.assign(new Error('timeout'), {url: obj.urls[0]})), obj.timeout);
 
     obj.event.on('abort', () => d.reject(new Error('abort')));
-    function process (reader) {
+    function process (reader, status) {
       return reader.read().then(function (result) {
         if (!active) {
           return reader.cancel();
+        }
+        if (status && status !== 206 && obj.headers.Range) {
+          reader.cancel();
+          throw Error('server response status is not equal to 206; try again with just a single segment');
         }
         app.timer.clearTimeout(id);
         id = app.timer.setTimeout(() => d.reject(Object.assign(new Error('timeout'), {url: obj.urls[0]})), obj.timeout);
@@ -48,7 +52,8 @@ else {
       if (!res.ok) {
         throw Error('fetch error');
       }
-      return process(res.body.getReader());
+      // make sure server supports partial content fetching; 206
+      return process(res.body.getReader(), res.status);
     }).catch((e) => d.reject(Object.assign(e, {url: obj.urls[0]})));
 
     return d.promise
@@ -268,6 +273,7 @@ else {
         },
         function (e) {
           tmp.status = e.message;
+          event.emit('add-log', `fetch error; "${e.message}"`, {type: 'warning'});
           after();
           if (e.message === 'abort') {
             // removing locked ranges inside the chunk with abort code
@@ -293,7 +299,6 @@ else {
               }
             }
             else {
-              // message = e.message;
               return event.emit('pause');
             }
           }
