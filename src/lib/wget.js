@@ -22,42 +22,59 @@ else {
 // @param  {[type]} obj.pause         [delay in between multiple schedule calls; 100 mSecs]
 
 (function () {
-  function xhr (obj) {
-    let d = app.Promise.defer(), loaded = 0, active = true;
-    let id = app.timer.setTimeout(() => d.reject(Object.assign(new Error('timeout'), {url: obj.urls[0]})), obj.timeout);
+  function CError (message, code, obj) {
+    this.code = code || -1;
+    this.message = message || -1;
+    Object.keys(obj || {}).forEach(n => this[n] = obj[n]);
+  }
+  CError.prototype = Error.prototype;
 
-    obj.event.on('abort', () => d.reject(new Error('abort')));
-    function process (reader, status) {
+  function xhr (obj) {
+    let d = app.Promise.defer(), loaded = 0, dead = false;
+    let id = app.timer.setTimeout(() => d.reject(new CError('timeout', 3, {url: obj.urls[0]})), obj.timeout);
+    let reader = {
+      cancel: function () {}
+    };
+
+    obj.event.on('abort', () => {
+      d.reject(new CError('abort', 2));
+    });
+    function process () {
       return reader.read().then(function (result) {
-        if (!active) {
-          return reader.cancel();
-        }
-        if (status && status !== 206 && obj.headers.Range) {
-          reader.cancel();
-          throw Error('server response status is not equal to 206; try again with just a single segment');
-        }
         app.timer.clearTimeout(id);
-        id = app.timer.setTimeout(() => d.reject(Object.assign(new Error('timeout'), {url: obj.urls[0]})), obj.timeout);
+        id = app.timer.setTimeout(() => d.reject(new CError('timeout', 3, {url: obj.urls[0]})), obj.timeout);
 
         let chunk = result.value;
         if (chunk) {
           loaded += chunk.byteLength;
           obj.event.emit('progress@xhr', {loaded, chunk, length: chunk.byteLength});
         }
-        return result.done ? d.resolve('done') : process(reader);
+        return result.done ? d.resolve('done') : process();
       });
     }
 
     app.fetch(obj.urls[0], {headers: obj.headers}).then(function (res) {
+      if (res.body) {
+        reader = res.body.getReader();
+      }
+      if (dead) {
+        reader.cancel();
+      }
       if (!res.ok) {
-        throw Error('fetch error');
+        throw new CError('fetch error', 4);
       }
       // make sure server supports partial content fetching; 206
-      return process(res.body.getReader(), res.status);
+      if (res.status && res.status !== 206 && obj.headers.Range) {
+        throw new CError('server response status is not equal to 206; try again with just a single segment', 1, {url: obj.urls[0]});
+      }
+      return process();
     }).catch((e) => d.reject(Object.assign(e, {url: obj.urls[0]})));
 
-    return d.promise
-      .then((s) => {active = false; return s;}, (e) => {active = false; throw e;});
+    return d.promise.catch(e => {
+      dead = true;
+      reader.cancel();
+      throw e;
+    });
   }
   function chunk (obj, range, event, report) {
     obj = Object.assign({ // clone
@@ -272,10 +289,10 @@ else {
           app.timer.setTimeout(schedule, obj.pause || 100);
         },
         function (e) {
-          tmp.status = e.message;
+          tmp.status = 'error';
           event.emit('add-log', `fetch error; "${e.message}"`, {type: 'warning'});
           after();
-          if (e.message === 'abort') {
+          if (e.message === 'abort' || e.code === 2) {
             // removing locked ranges inside the chunk with abort code
             internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
           }
@@ -286,13 +303,36 @@ else {
               }
               // removing locked ranges inside the chunk with error code
               internals.locks = internals.locks.filter(r => r.start < range.start || r.end > range.end);
+
               // should I validate the failed url
-              if (obj.urls.length > 1 && e.url) { // check link
+              if (obj.urls.length > 1 && e.url && e.code !== 1) { // check link
                 head(e.url).then(function (i) {
                   if (i.length !== info.length) {
                     omitURL(e.url);
                   }
                 }, () => omitURL(e.url)).then(schedule);
+              }
+              // server is not supporting ranging; still there are other sources
+              else if (obj.urls.length > 1 && e.url && e.code === 1) {
+                omitURL(e.url);
+                schedule();
+              }
+              // server is not supporting ranging and there is no other source
+              else if (obj.urls.length === 1 && e.code === 1) {
+                if (range.start === 0) {
+                  segments.forEach(s => s.event.emit('abort'));
+                  internals.locks = [];
+                  obj.threads = 1;
+                  internals.ranges = [{
+                    start: 0,
+                    end: info.length - 1
+                  }];
+                  event.emit('add-log', 'resuming with one thread', {type: 'warning'});
+                  app.timer.setTimeout(() => {
+                    schedule();
+                    info['multi-thread'] = false;
+                  }, obj.pause || 100);
+                }
               }
               else { // there is no alternative mirror; just try with this one
                 app.timer.setTimeout(schedule, obj.pause || 100);
