@@ -22,12 +22,26 @@ else {
 // @param  {[type]} obj.pause         [delay in between multiple schedule calls; 100 mSecs]
 
 (function () {
+  // helpers; Custom Error
   function CError (message, code, obj) {
     this.code = code || -1;
     this.message = message || -1;
     Object.keys(obj || {}).forEach(n => this[n] = obj[n]);
   }
   CError.prototype = Error.prototype;
+  // helpers; spy a promise
+  function spy (promise, callback) {
+    return promise.then(
+     function (a) {
+       callback(null, a);
+       return a;
+     },
+     function (e) {
+       callback(e, null);
+       throw e;
+     }
+    );
+  }
 
   function xhr (obj) {
     let d = app.Promise.defer(), loaded = 0, dead = false;
@@ -65,15 +79,14 @@ else {
       }
       // make sure server supports partial content fetching; 206
       if (res.status && res.status !== 206 && obj.headers.Range) {
-        throw new CError('server response status is not equal to 206; try again with just a single segment', 1, {url: obj.urls[0]});
+        throw new CError(`expected 206 but got ${res.status}`, 1, {url: obj.urls[0]});
       }
       return process();
     }).catch((e) => d.reject(Object.assign(e, {url: obj.urls[0]})));
 
-    return d.promise.catch(e => {
+    return spy(d.promise, () => {
       dead = true;
       reader.cancel();
-      throw e;
     });
   }
   function chunk (obj, range, event, report) {
@@ -290,7 +303,7 @@ else {
         },
         function (e) {
           tmp.status = 'error';
-          event.emit('add-log', `fetch error; "${e.message}"`, {type: 'warning'});
+          event.emit('add-log', `fetch error[${e.code}]; "${e.message}"`, {type: 'warning'});
           after();
           if (e.message === 'abort' || e.code === 2) {
             // removing locked ranges inside the chunk with abort code
@@ -319,19 +332,23 @@ else {
               }
               // server is not supporting ranging and there is no other source
               else if (obj.urls.length === 1 && e.code === 1) {
+                // reseting download with a single thread
                 if (range.start === 0) {
                   segments.forEach(s => s.event.emit('abort'));
-                  internals.locks = [];
                   obj.threads = 1;
+                  internals.locks = [];
                   internals.ranges = [{
                     start: 0,
                     end: info.length - 1
                   }];
+                  info['multi-thread'] = false;
+                  event.emit('info', info);
                   event.emit('add-log', 'resuming with one thread', {type: 'warning'});
-                  app.timer.setTimeout(() => {
-                    schedule();
-                    info['multi-thread'] = false;
-                  }, obj.pause || 100);
+                  app.timer.setTimeout(schedule, obj.pause || 100);
+                }
+                else {
+                  // wait a bit longer before trying again as server requested reset
+                  app.timer.setTimeout(schedule, (obj.pause || 100) * 10);
                 }
               }
               else { // there is no alternative mirror; just try with this one
@@ -432,6 +449,7 @@ else {
       app.timer.setTimeout(() => internals.available = true, 10 * 1000);
       internals.status = 'pause';
       segments.forEach(s => s.event.emit('abort'));
+      count();
     });
     event.on('resume', function () {
       if (internals.status === 'pause') {

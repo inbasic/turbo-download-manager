@@ -334,8 +334,9 @@ body:not([data-browser=electron]) #menu li[data-role=console] {
     display: none;
   }
 }
-/* loader */
-#loader {
+/* loader & confirm */
+#loader,
+#confirm {
   position: fixed;
   top: 0;
   left: 0;
@@ -348,10 +349,12 @@ body:not([data-browser=electron]) #menu li[data-role=console] {
   justify-content: center;
   transition: visibility 0s linear 0.2s, opacity 0.2s ease-in-out;
 }
+#confirm[data-visible=false],
 #loader[data-visible=false] {
   opacity: 0;
   visibility: hidden;
 }
+#confirm[data-visible=true],
 #loader[data-visible=true] {
   transition-delay: 0s;
   visibility: visible;
@@ -367,6 +370,27 @@ body:not([data-browser=electron]) #menu li[data-role=console] {
   #loader iframe {
     width: 90%;
   }
+}
+#confirm>div {
+  width: 80%;
+  max-width: 400px;
+  height: 100px;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 10px;
+}
+#confirm>div>span {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+#confirm>div>div {
+  flex: 1;
+  display: flex;
+  flex-direction: row-reverse;
 }
 /* animation */
 .animated {

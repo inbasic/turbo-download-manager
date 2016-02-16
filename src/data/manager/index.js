@@ -25,6 +25,28 @@ function intervalToTime (sec) {
 
   return [days,hours,  minutes, seconds].join(':');
 }
+
+var confirm = (function (parent, ok, cancel, span) {
+  let callback = function () {};
+  ok.addEventListener('click', function () {
+    parent.dataset.visible = false;
+    callback();
+  });
+  cancel.addEventListener('click', function () {
+    parent.dataset.visible = false;
+  });
+  return (msg, c) => {
+    span.textContent = msg;
+    parent.dataset.visible = true;
+    callback = c;
+  };
+})(
+  document.getElementById('confirm'),
+  document.querySelector('#confirm input'),
+  document.querySelector('#confirm input:last-child'),
+  document.querySelector('#confirm span')
+);
+
 // menu
 (function (button, menu) {
   // clear
@@ -283,10 +305,10 @@ document.addEventListener('click', function (e) {
       if (target.dataset.cmd === 'pause') {
         let cmd = i.dataset.type === 'download' ? 'pause' : 'resume';
         if (cmd === 'pause' && i.dataset.chunkable === 'false') {
-          let rtn = window.confirm('Download is not resumable. Pausing will result in termination. Proceed?');
-          if (rtn) {
-            background.send('cmd', {id: i.dataset.id, cmd});
-          }
+          confirm(
+            'Download is not resumable. Pausing will result in termination. Proceed?',
+            () => background.send('cmd', {id: i.dataset.id, cmd})
+          );
         }
         else {
           background.send('cmd', {id: i.dataset.id, cmd});
