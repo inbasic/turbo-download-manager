@@ -14,6 +14,17 @@ app.once('load', function () {
   script.src = 'lib/common.js';
 });
 
+if (!Promise.defer) {
+  Promise.defer = function () {
+    let deferred = {};
+    let promise = new Promise(function (resolve, reject) {
+      deferred.resolve = resolve;
+      deferred.reject  = reject;
+    });
+    deferred.promise = promise;
+    return deferred;
+  };
+}
 app.Promise = Promise;
 app.XMLHttpRequest = window.XMLHttpRequest;
 app.fetch = (url, props) => fetch(url, props);

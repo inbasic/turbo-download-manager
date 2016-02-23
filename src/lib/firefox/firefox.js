@@ -12,6 +12,7 @@ var self          = require('sdk/self'),
     timers        = require('sdk/timers'),
     platform      = require('sdk/system').platform,
     xul           = require('sdk/system/xul-app'),
+    runtime       = require('sdk/system/runtime'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
     {all, defer, race, resolve}  = require('sdk/core/promise'),
@@ -134,7 +135,7 @@ exports.button = (function () {
   if (desktop) {
     button = require('sdk/ui/button/action').ActionButton({
       id: self.name,
-      label: 'Turbo Download Manager',
+      label: `Turbo Download Manager (${self.version})`,
       icon: {
         '18': './icons/18.png',
         '36': './icons/36.png'
@@ -148,12 +149,18 @@ exports.button = (function () {
   }
   else {
     button = {};
-    id = getNativeWindow().menu.add('Turbo Download Manager', null, function () {
-      if (callback) {
-        callback();
+    let window = getNativeWindow();
+    id = window.menu.add({
+      name: 'Turbo Download Manager',
+      parent: window.menu.toolsMenuID,
+      callback: function () {
+        if (callback) {
+          callback();
+        }
       }
     });
-    unload.when(() => getNativeWindow().menu.remove(id));
+
+    unload.when(() => window.menu.remove(id));
   }
   return {
     onCommand: function (c) {
@@ -239,12 +246,13 @@ unload.when(function () {
 });
 
 exports.menu = function (label, ...items) {
+  let selector = 'a[href], video, audio, img';
   if (desktop) {
     let contextMenu = require('sdk/context-menu');
     contextMenu.Menu({
       label,
       image: data.url('./icons/32.png'),
-      context: contextMenu.SelectorContext('a[href], video, audio, img'),
+      context: contextMenu.SelectorContext(selector),
       items: items.map(arr => contextMenu.Item({
         label: arr[0],
         contentScriptFile: data.url('./firefox/menu.js'),
@@ -252,19 +260,34 @@ exports.menu = function (label, ...items) {
       }))
     });
   }
+  else {
+    let window = Services.wm.getMostRecentWindow('navigator:browser');
+    let id = window.NativeWindow.contextmenus.add(
+      'Download With Turbo Download Manager',
+      window.NativeWindow.contextmenus.SelectorContext(selector),
+      (target) => items[0][1](require('../../data/firefox/menu.js').click(target))
+    );
+    unload.when(() => window.NativeWindow.contextmenus.remove(id));
+  }
 };
 
 exports.version = () => self.version;
-exports.platform = () => `Firefox v.${xul.platformVersion}`;
+exports.platform = () => `${xul.name} v.${xul.platformVersion} on ${runtime.OS}`;
 
 exports.timer = timers;
 
 exports.notification = function (text) {
-  notifications.notify({
-    title: 'Turbo Download Manager',
-    text: text,
-    iconURL: data.url('icons/32.png')
-  });
+  if (desktop) {
+    notifications.notify({
+      title: 'Turbo Download Manager',
+      text: text,
+      iconURL: data.url('icons/32.png')
+    });
+  }
+  else {
+    let window = Services.wm.getMostRecentWindow('navigator:browser');
+    window.NativeWindow.toast.show(text, 'short');
+  }
 };
 
 exports.File = function (obj) { // {name, path, mime}

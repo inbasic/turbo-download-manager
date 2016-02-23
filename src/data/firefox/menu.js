@@ -1,7 +1,7 @@
 /* global self */
 'use strict';
 
-self.on('click', function (node) {
+function click (node) {
   while ((
     node.tagName.toLowerCase() !== 'a' &&
     node.tagName.toLowerCase() !== 'img' &&
@@ -18,9 +18,15 @@ self.on('click', function (node) {
     if (node.tagName.toLowerCase() === 'video' || node.tagName.toLowerCase() === 'audio') {
       url = node.src || node.querySelector('source').src;
     }
-    self.postMessage({
+    return {
       url: url,
-      referrer: document.location.href
-    });
+      referrer: node.ownerDocument.location.href
+    };
   }
-});
+}
+if (typeof self !== 'undefined') {
+  self.on('click', (node) => self.postMessage(click(node)));
+}
+if (typeof exports !== 'undefined') {
+  exports.click = click;
+}

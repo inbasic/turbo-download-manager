@@ -20,8 +20,8 @@ var itdmanager = {
     try {
       this.referrer = dialog.mContext.QueryInterface(Components.interfaces.nsIWebNavigation).currentURI.spec;
     }
-    catch (e) {
-    }
+    catch (e) {}
+
     this.pointer = dialog.onOK;
     dialog.onOK = this.accept.bind(itdmanager);
 
@@ -37,7 +37,7 @@ var itdmanager = {
   attach: function () {
     this.radio = document.getElementById('itdmanager-radio');
     this.number = document.getElementById('itdmanager-number');
-    if (true || this.url.indexOf('http') === 0) {
+    if (this.url.indexOf('http') === 0) {
       this.radio.removeAttribute('disabled');
     }
     this.number.addEventListener('change', () => {
