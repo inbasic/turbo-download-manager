@@ -310,7 +310,6 @@ app.triggers.receive('init', function () {
 app.triggers.receive('change', function (obj) {
   config.triggers[obj.id].value = obj.value;
   config.triggers[obj.id].enabled = obj.enabled;
-  console.error(obj, config.triggers[obj.id].enabled)
   app.triggers.send('change', {
     name: obj.id,
     settings: {

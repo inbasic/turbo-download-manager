@@ -2,9 +2,10 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-direction: column;
   height: 100%;
   margin: 0;
-  padding: 5px;
+  padding: 15px;
   box-sizing: border-box;
 }
 body,
@@ -60,4 +61,14 @@ tr[data-state=hide] + tr {
     display: table-row;
   }
 }
-\
+
+#container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+#notes {
+  height: 50px;
+  display: flex;
+  align-items: center;
+}

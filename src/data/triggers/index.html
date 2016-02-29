@@ -6,47 +6,52 @@
     <meta name=viewport content="width=device-width, initial-scale=1">
   </head>
   <body>
-    <table>
-      <thead>
-        <tr>
-          <th>Enabled</th>
-          <th>Description</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr data-id="pause">
-          <td><input type="checkbox"></td>
-          <td>Auto-pause new jobs if the number of active jobs exceeds</td>
-          <td><input type="number" min="1" max="10"></td>
-        </tr>
-        <tr data-id="start">
-          <td><input type="checkbox"></td>
-          <td>Auto-start paused jobs if the number of active jobs is less than</td>
-          <td><input type="number" min="1" max="10"></td>
-        </tr>
-        <tr data-id="success">
-          <td><input type="checkbox"></td>
-          <td>Remove finished jobs after (in minutes)</td>
-          <td><input type="number" min="10"></td>
-        </tr>
-        <tr data-id="fail">
-          <td><input type="checkbox"></td>
-          <td>Remove failed jobs after (in minutes)</td>
-          <td><input type="number" min="10"></td>
-        </tr>
-        <tr data-id="play-single">
-          <td><input type="checkbox"></td>
-          <td>Play sound notification when a job is finished</td>
-          <td><input type="checkbox" style="display: none;"></td>
-        </tr>
-        <tr data-id="play-combined">
-          <td><input type="checkbox"></td>
-          <td>Play sound notification when all jobs are finished</td>
-          <td><input type="checkbox" style="display: none;"></td>
-        </tr>
-      </tbody>
-    </table>
+    <div id="container">
+      <table>
+        <thead>
+          <tr>
+            <th>Enabled</th>
+            <th>Description</th>
+            <th>Value</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr data-id="pause">
+            <td><input type="checkbox"></td>
+            <td>Auto-pause new jobs if the number of active jobs exceeds<sup>1</sup></td>
+            <td><input type="number" min="1" max="10"></td>
+          </tr>
+          <tr data-id="start">
+            <td><input type="checkbox"></td>
+            <td>Auto-start paused jobs if the number of active jobs is less than</td>
+            <td><input type="number" min="1" max="10"></td>
+          </tr>
+          <tr data-id="success">
+            <td><input type="checkbox"></td>
+            <td>Remove finished jobs after (in minutes)</td>
+            <td><input type="number" min="10"></td>
+          </tr>
+          <tr data-id="fail">
+            <td><input type="checkbox"></td>
+            <td>Remove failed jobs after (in minutes)</td>
+            <td><input type="number" min="10"></td>
+          </tr>
+          <tr data-id="play-single">
+            <td><input type="checkbox"></td>
+            <td>Play sound notification when a job is finished</td>
+            <td><input type="checkbox" style="display: none;"></td>
+          </tr>
+          <tr data-id="play-combined">
+            <td><input type="checkbox"></td>
+            <td>Play sound notification when all jobs are finished</td>
+            <td><input type="checkbox" style="display: none;"></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div id="notes">
+      1: There is always a limitation when it comes to the total number of open network channels. It is generally not recommended to have more than 3 jobs unless otherwise platform's settings are adjusted.
+    </div>
     <script src="shadow_index.js"></script>
   </body>
 </html>
