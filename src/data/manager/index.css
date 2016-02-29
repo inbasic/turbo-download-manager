@@ -76,7 +76,7 @@ input:active{
   border-color: rgba(0,0,0,0.5) transparent rgba(0,0,0,0.2) transparent;
 }
 #menu li {
-  padding: 5px 5px 5px 30px;
+  padding: 5px 5px 5px 26px;
   cursor: pointer;
   background-position: left 5px center;
   background-repeat: no-repeat;
