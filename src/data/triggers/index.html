@@ -18,22 +18,32 @@
         <tr data-id="pause">
           <td><input type="checkbox"></td>
           <td>Auto-pause new jobs if the number of active jobs exceeds</td>
-          <td><input type="number" data-cmd="script" min="1" max="10"></td>
+          <td><input type="number" min="1" max="10"></td>
         </tr>
         <tr data-id="start">
           <td><input type="checkbox"></td>
           <td>Auto-start paused jobs if the number of active jobs is less than</td>
-          <td><input type="number" data-cmd="script" min="1" max="10"></td>
+          <td><input type="number" min="1" max="10"></td>
         </tr>
         <tr data-id="success">
           <td><input type="checkbox"></td>
           <td>Remove finished jobs after (in minutes)</td>
-          <td><input type="number" data-cmd="script" min="10"></td>
+          <td><input type="number" min="10"></td>
         </tr>
         <tr data-id="fail">
           <td><input type="checkbox"></td>
           <td>Remove failed jobs after (in minutes)</td>
-          <td><input type="number" data-cmd="script" min="10"></td>
+          <td><input type="number" min="10"></td>
+        </tr>
+        <tr data-id="play-single">
+          <td><input type="checkbox"></td>
+          <td>Play sound notification when a job is finished</td>
+          <td><input type="checkbox" style="display: none;"></td>
+        </tr>
+        <tr data-id="play-combined">
+          <td><input type="checkbox"></td>
+          <td>Play sound notification when all jobs are finished</td>
+          <td><input type="checkbox" style="display: none;"></td>
         </tr>
       </tbody>
     </table>

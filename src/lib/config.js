@@ -90,7 +90,23 @@ config.triggers = {
       val = Math.max(val, 10);
       app.storage.write('triggers-fail-value', val);
     }
-  }
+  },
+  'play-single': {
+    get enabled () {
+      return app.storage.read('triggers-play-single-disabled') === 'true' ? true : false;
+    },
+    set enabled (val) {
+      app.storage.write('triggers-play-single-disabled', val);
+    }
+  },
+  'play-combined': {
+    get enabled () {
+      return app.storage.read('triggers-play-combined-disabled') === 'false' ? false : true;
+    },
+    set enabled (val) {
+      app.storage.write('triggers-play-combined-disabled', val);
+    }
+  },
 };
 
 config.welcome = {

@@ -97,6 +97,16 @@ mwget.addEventListener('details', function (id, type, value) {
   if (type === 'status' && value === 'error' && config.triggers.fail.enabled) {
     app.timer.setTimeout(mwget.remove, config.triggers.fail.value * 60 * 1000, id);
   }
+  // play-single trigger
+  if (type === 'status' && value === 'done' && config.triggers['play-single'].enabled) {
+    app.play('sounds/1.ogg');
+  }
+  // play-combined trigger
+  if (type === 'status' && value === 'done' && config.triggers['play-combined'].enabled) {
+    if (!config.triggers['play-single'].enabled && mwget.count() === 0) {
+      app.play('sounds/1.ogg');
+    }
+  }
   if (type === 'count') {
     app.manager.send('count', {id, count: value});
   }
@@ -288,12 +298,19 @@ app.triggers.receive('init', function () {
     success: {
       enabled: config.triggers.success.enabled,
       value: config.triggers.success.value
+    },
+    'play-single': {
+      enabled: config.triggers['play-single'].enabled
+    },
+    'play-combined': {
+      enabled: config.triggers['play-combined'].enabled
     }
   });
 });
 app.triggers.receive('change', function (obj) {
   config.triggers[obj.id].value = obj.value;
   config.triggers[obj.id].enabled = obj.enabled;
+  console.error(obj, config.triggers[obj.id].enabled)
   app.triggers.send('change', {
     name: obj.id,
     settings: {

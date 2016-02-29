@@ -528,3 +528,8 @@ app.download = function (obj) {
   }
 })();
 app.startup = function () {};
+
+app.play = (src) => {
+  let audio = new Audio(chrome.runtime.getURL('/data/' + src));
+  audio.play();
+};

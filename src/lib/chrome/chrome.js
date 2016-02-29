@@ -645,3 +645,8 @@ app.startup = (function () {
     check();
   };
 })();
+
+app.play = (src) => {
+  let audio = new Audio(chrome.runtime.getURL('/data/' + src));
+  audio.play();
+};

@@ -152,7 +152,10 @@ exports.storage = (function () {
   let store = new Storage(path.resolve(process.env.HOME || process.env.USERPROFILE, '.tdm', 'storage'));
   let callbacks = {};
   return {
-    read: (id) => store.get(id),
+    read: (id) => {
+      let val = store.get(id);
+      return (val || !isNaN(val)) ? val + '' : val;
+    },
     write: (id, data) => {
       if (store.get(id) !== data) {
         store.put(id, data);
@@ -185,9 +188,7 @@ exports.tab = {
 
 exports.menu = function () {};
 
-exports.notification = function (message) {
-  mainWindow.webContents.send('_notification', message);
-};
+exports.notification = (message) => mainWindow.webContents.send('_notification', message);
 
 exports.version = () => self.version;
 exports.platform = () => `io.js ${process.version} & Electron ${process.versions['electron']}`;
@@ -385,7 +386,7 @@ exports.disk = {
         properties: ['openDirectory']
       });
       if (dirs && dirs.length) {
-        exports.storage.write('')
+        exports.storage.write('');
         resolve(dirs[0]);
       }
       else {
@@ -396,15 +397,15 @@ exports.disk = {
 };
 
 // native downloader
-exports.download = function (obj) {
-  shell.openExternal(obj.url);
-};
+exports.download = (obj) => shell.openExternal(obj.url);
 
 exports.startup = function () {};
 
 exports.developer = {
   console: () => mainWindow.webContents.openDevTools()
 };
+
+exports.play = (src) => mainWindow.webContents.send('_sound', src);
 
 /* internals */
 function createWindow () {

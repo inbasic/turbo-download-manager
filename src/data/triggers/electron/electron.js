@@ -8,7 +8,7 @@ var background = {  // jshint ignore:line
     }
   }),
   send: (id, data) => ipcRenderer.send(id + '@tr', {
-    url: 'modify/index.html',
+    url: 'triggers/index.html',
     data
   })
 };

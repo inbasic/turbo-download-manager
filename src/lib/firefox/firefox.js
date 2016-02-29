@@ -595,3 +595,17 @@ exports.download = function (obj) {
     });
   });
 };
+
+// sound
+exports.play = function (src) {
+  let page = require('sdk/page-worker').Page({
+    contentScript: 'let sound = new Audio(self.options.url);' +
+      'sound.addEventListener("ended", self.postMessage);' +
+      'sound.play();',
+    contentScriptOptions: {
+      url: self.data.url(src)
+    },
+    contentURL: self.data.url('firefox/sound.html'),
+    onMessage: () => page.destroy()
+  });
+};

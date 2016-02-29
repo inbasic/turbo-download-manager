@@ -18,7 +18,9 @@ function update (name, obj) {
   var tr = document.querySelector('[data-id="' + name + '"]');
   if (tr) {
     tr.querySelector('td:nth-child(1) input').checked = obj.enabled;
-    tr.querySelector('td:nth-child(3) input').value = obj.value;
+    if (obj.value) {
+      tr.querySelector('td:nth-child(3) input').value = obj.value;
+    }
   }
 }
 background.receive('change', (obj) => update(obj.name, obj.settings));
