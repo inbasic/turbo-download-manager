@@ -182,7 +182,8 @@ app.version = () => chrome[chrome.runtime && chrome.runtime.getManifest ? 'runti
 app.platform = function () {
   let v1 = /Chrome\/[\d\.]*/.exec(navigator.userAgent);
   let v2 = /OPR\/[\d\.]*/.exec(navigator.userAgent);
-  return v2 ? v2[0].replace('OPR/', 'OPR ') : v1[0].replace('Chrome/', 'Chrome ');
+  let version = v2 ? v2[0].replace('OPR/', 'OPR ') : v1[0].replace('Chrome/', 'Chrome ');
+  return `${version} on ${navigator.platform}`;
 };
 
 app.OS = (function (clipboard) {

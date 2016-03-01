@@ -191,7 +191,7 @@ exports.menu = function () {};
 exports.notification = (message) => mainWindow.webContents.send('_notification', message);
 
 exports.version = () => self.version;
-exports.platform = () => `io.js ${process.version} & Electron ${process.versions['electron']}`;
+exports.platform = () => `io.js ${process.version} & Electron ${process.versions['electron']} on ${process.platform}`;
 
 exports.OS = {
   clipboard: {
