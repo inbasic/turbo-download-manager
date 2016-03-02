@@ -61,10 +61,10 @@ app.on('download', download);
 (function (arr) {
   if (app.globals.browser !== 'opera') {
     arr.push(
-      ['Bypass redirects then download', (obj) => download(Object.assign(obj, {
+      ['Bypass page redirect then download', (obj) => download(Object.assign(obj, {
         'use-native': true
       }))],
-      ['Bypass redirects then pause', (obj) => download(Object.assign(obj, {
+      ['Bypass page redirect then pause', (obj) => download(Object.assign(obj, {
         'use-native': true,
         'auto-pause': true
       }))]
@@ -193,6 +193,12 @@ app.manager.receive('cmd', function (obj) {
       name: instance['internals@b'].name,
       path: instance.obj.folder
     });
+  }
+  if (obj.cmd === 'use-native') {
+    let instance = mwget.get(obj.id);
+    download(Object.assign(instance.obj, {
+      'use-native': true
+    }));
   }
 });
 app.manager.receive('open', function (cmd) {

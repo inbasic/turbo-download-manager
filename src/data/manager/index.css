@@ -252,10 +252,12 @@ body:not([data-browser=electron]) #menu li[data-role=console] {
 .item[data-type=done] i[data-cmd=pause] {
   display: none;
 }
+.item i[data-cmd=use-native],
 .item i[data-cmd=native],
 .item i[data-cmd=trash] {
   display: none;
 }
+.item[data-type=error] i[data-cmd=use-native],
 .item[data-type=error] i[data-cmd=native],
 .item[data-type=error] i[data-cmd=trash],
 .item[data-type=done] i[data-cmd=trash] {
@@ -316,6 +318,9 @@ body:not([data-browser=electron]) #menu li[data-role=console] {
 }
 .item i[data-cmd=native]:before {
   content: '\e805';
+}
+.item i[data-cmd=use-native]:before {
+  content: '\e814';
 }
 .item i[data-cmd=modify]:before {
   content: '\e809';
