@@ -15,6 +15,10 @@ var self          = require('sdk/self'),
     runtime       = require('sdk/system/runtime'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
+    xpcom         = require('sdk/platform/xpcom'),
+    {URL}         = require('sdk/url'),
+    {Page}        = require('sdk/page-worker'),
+    {Class}       = require('sdk/core/heritage'),
     {all, defer, race, resolve}  = require('sdk/core/promise'),
     {Ci, Cc, Cu, components}  = require('chrome');
 
@@ -36,7 +40,16 @@ exports.globals = {
   browser: 'firefox'
 };
 
-exports.Promise = {defer, all, race, resolve};
+exports.Promise = function (callback) {
+  let d = defer();
+  callback(d.resolve, d.reject);
+  return d.promise;
+};
+exports.Promise.defer = defer;
+exports.Promise.all = all;
+exports.Promise.race = race;
+exports.Promise.resolve = resolve;
+
 exports.XMLHttpRequest = xhr.XMLHttpRequest;
 exports.URL = urls.URL;
 
@@ -609,3 +622,71 @@ exports.play = function (src) {
     onMessage: () => page.destroy()
   });
 };
+
+// sandbox
+exports.sandbox = (function () {
+  let callbacks = [];
+  let categoryManager = Cc['@mozilla.org/categorymanager;1']
+    .getService(Ci.nsICategoryManager);
+  let Interceptor = new Class({
+    extends:  xpcom.Unknown,
+    interfaces: ['nsIContentPolicy'],
+
+    shouldLoad : function (contentType, contentLocation, requestOrigin) {
+      if (!requestOrigin || !contentLocation || contentType !== Ci.nsIContentPolicy.TYPE_DOCUMENT) {
+        return Ci.nsIContentPolicy.ACCEPT;
+      }
+      callbacks.filter(c => c.spec === requestOrigin.spec)
+        .forEach(o => o.callback(contentLocation.spec));
+      return Ci.nsIContentPolicy.ACCEPT;
+    },
+    shouldProcess: () => Ci.nsIContentPolicy.ACCEPT
+  });
+  let factory = xpcom.Factory({
+    contract: `@add0n.com/tdm;${Math.random()}`,
+    Component: Interceptor,
+    unregister: false
+  });
+  categoryManager.addCategoryEntry('content-policy', factory.contract, factory.contract, false, true);
+  unload.when(function () {
+    categoryManager.deleteCategoryEntry('content-policy', factory.contract, factory.contract, false, true);
+  });
+
+  return function (contentURL, options) {
+    let d = defer(), id, spec = contentURL;
+    let obj = {
+      get spec () {
+        return spec;
+      },
+      callback: destroy
+    };
+    callbacks.push(obj);
+    let page = new Page({
+      contentURL,
+      contentScriptFile: self.data.url('firefox/redirect.js'),
+      contentScriptWhen: 'start'
+    });
+    page.port.on('url', url => spec = url);
+    function destroy (url) {  // jshint ignore:line
+      if (page) {
+        page.destroy();
+        page = null;
+      }
+      let index = callbacks.indexOf(obj);
+      if (index !== -1) {
+        callbacks.splice(index, 1);
+      }
+      d[url ? 'resolve' : 'reject'](url);
+      timers.clearTimeout(id);
+    }
+    id = timers.setTimeout(destroy, options['no-response'], null);
+
+    page.port.once('redirect', function (url) {
+      d.resolve(url);
+      timers.clearTimeout(id);
+      page.destroy();
+    });
+
+    return d.promise;
+  };
+})();

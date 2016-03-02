@@ -651,3 +651,29 @@ app.play = (src) => {
   let audio = new Audio(chrome.runtime.getURL('/data/' + src));
   audio.play();
 };
+
+app.sandbox = function (url, options) {
+  let d = Promise.defer();
+  let webview = document.createElement('webview');
+  document.body.appendChild(webview);
+
+  function destroy () {
+    if (webview) {
+      webview.parentNode.removeChild(webview);
+      webview = null;
+    }
+  }
+
+  let id = window.setTimeout(d.reject, options['no-response'], null);
+  webview.addEventListener('permissionrequest', function (e) {
+    if (e.permission === 'download') {
+      window.clearTimeout(id);
+      destroy();
+      d.resolve(e.request.url);
+      e.request.deny();
+    }
+  });
+  webview.src = url;
+
+  return d.promise;
+};

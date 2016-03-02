@@ -20,6 +20,7 @@ else {
 // @param  {[type]} obj.minByteSize   [minimum thread size; 50 KBytes]
 // @param  {[type]} obj.maxByteSize   [maximum thread size; 50 MBytes]
 // @param  {[type]} obj.pause         [delay in between multiple schedule calls; 100 mSecs]
+// @param  {[type]} obj.use-native    [use native method to find the actual downloadable url]
 
 (function () {
   // helpers; Custom Error
@@ -473,7 +474,28 @@ else {
       obj.name = name || obj.name;
     });
     // getting header
-    app.Promise.race([obj.url, obj.url, obj.url].map(url => head(url))).then(
+    // if use-native is true, app.sandbox finds the actual downloadable url
+    (function () {
+      return new app.Promise(function (resolve) {
+        if (obj['use-native']) {
+          return app.sandbox(obj.url, {
+            'no-response': 40 * 1000
+          }).then(function (url) {
+            event.emit('add-log', `native-method returned ${url}`);
+            obj.url = url;
+            resolve();
+          }).catch (function () {
+            event.emit('add-log', `native-method is not responding; timeout`, {type: 'warning'});
+            resolve();
+          });
+        }
+        else {
+          resolve();
+        }
+      });
+    })()
+    .then(() => app.Promise.race([obj.url, obj.url, obj.url].map(url => head(url))))
+    .then(
       function (i) {
         info = i;
         obj.urls = [info && info.url ? info.url : obj.url]; // bypass redirects

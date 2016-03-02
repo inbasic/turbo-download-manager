@@ -40,6 +40,7 @@ function download (obj) {
   obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
   obj.update = obj.update * 1000 || config.wget.update * 1000;
   obj.pause = obj.pause || config.wget.pause;
+  obj['use-native'] = obj['use-native'] || false;
   obj['write-size'] = obj['write-size'] || config.wget['write-size'];
   obj.retries = obj.retries || config.wget.retrie;
   obj.folder = obj.folder || app.storage.read('add-directory');
@@ -57,11 +58,25 @@ function download (obj) {
 /* connect */
 app.on('download', download);
 /* context menu */
-app.menu(
-  'Turbo Download Manager',
+(function (arr) {
+  if (app.globals.browser !== 'opera') {
+    arr.push(
+      ['Bypass redirects then download', (obj) => download(Object.assign(obj, {
+        'use-native': true
+      }))],
+      ['Bypass redirects then pause', (obj) => download(Object.assign(obj, {
+        'use-native': true,
+        'auto-pause': true
+      }))]
+    );
+  }
+  app.menu.bind(app, 'Turbo Download Manager').apply(app, arr);
+})([
   ['Download Now', download],
-  ['Download Later', (obj) => download(Object.assign(obj, {'auto-pause': true}))]
-);
+  ['Download Later', (obj) => download(Object.assign(obj, {
+    'auto-pause': true
+  }))]
+]);
 
 /* manager */
 mwget.addEventListener('done', function (id, status) {

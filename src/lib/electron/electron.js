@@ -407,11 +407,30 @@ exports.developer = {
 
 exports.play = (src) => mainWindow.webContents.send('_sound', src);
 
+exports.sandbox = (function () {
+  let cache = {};
+  ipcMain.on('_sandbox', function (event, arg) {
+    if (cache[arg.id]) {
+      let url = arg.url;
+      cache[arg.id][url ? 'resolve' : 'reject'](url);
+    }
+  });
+
+  return function (url, options) {
+    let d = Promise.defer();
+    let id = Math.random();
+    cache[id] = d;
+    mainWindow.webContents.send('_sandbox', {url, id, options});
+    setTimeout(d.reject, options['no-response'], null);
+    return d.promise;
+  };
+})();
+
 /* internals */
 function createWindow () {
   mainWindow = new BrowserWindow({
     width: 800,
-    height: 600
+    height: 700
   });
   mainWindow.loadURL('file://' + __dirname + '/../../data/manager/index.html');
 

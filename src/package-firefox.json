@@ -14,6 +14,7 @@
     "fennec": ">=29.0"
   },
   "permissions": {
-    "private-browsing": true
+    "private-browsing": true,
+    "unsafe-content-script": true
   }
 }

@@ -47,8 +47,12 @@
             <td>Thread timeout (in seconds)<sup>*</sup>:</td>
             <td><input data-id="timeout" type="number" min=5 max=120 placeholder="30"></td>
           </tr>
+          <tr support>
+            <td title="Use native method to find the actual downloadable url. Use this method only if download link is not direct or download has already failed. Note that the initial process will take longer than usual.">Bypass redirects<sup>&dagger;</sup>:</td>
+            <td><input data-id="use-native" type="checkbox"></td>
+          </tr>
           <tr>
-            <td title="Pause download after retrieving file details">Download later:</td>
+            <td title="Pause download after retrieving file details">Download later<sup>&dagger;</sup>:</td>
             <td><input data-id="auto-pause" type="checkbox"></td>
           </tr>
           <tr support>
@@ -67,7 +71,9 @@
         <input type="submit" value="Add as a new Job">
       </div>
       <div>
-        *: This value is stored when a new job is added
+        *: This value is stored upon a new job submission
+        <br>
+        &dagger;: Hover mouse for more info
       </div>
     </form>
     <script src="shadow_index.js"></script>
