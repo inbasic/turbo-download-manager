@@ -1,6 +1,6 @@
 {
   "name": "Turbo Download Manager",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "a download manager with multi-threading support",
   "main": "lib/common.js",
   "scripts": {

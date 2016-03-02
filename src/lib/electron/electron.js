@@ -399,7 +399,7 @@ exports.disk = {
 // native downloader
 exports.download = (obj) => shell.openExternal(obj.url);
 
-exports.startup = function () {};
+exports.startup = (c) => c();
 
 exports.developer = {
   console: () => mainWindow.webContents.openDevTools()
