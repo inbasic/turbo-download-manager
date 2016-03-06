@@ -25,5 +25,6 @@ var background = { // jshint ignore:line
 
 var manifest = { // jshint ignore:line
   folder: false,
-  support: false
+  support: false,
+  sandbox: true
 };

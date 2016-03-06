@@ -518,7 +518,7 @@ app.download = function (obj) {
   if (AdMob) {
     AdMob.createBanner({
       adId: admobid.banner,
-      position: AdMob.AD_POSITION.BOTTOM_CENTER,
+      position: AdMob.AD_POSITION.TOP_CENTER,
       autoShow: true,
       success: function () {},
       error: function () {
@@ -527,9 +527,29 @@ app.download = function (obj) {
     });
   }
 })();
+
 app.startup = function () {};
 
 app.play = (src) => {
   let audio = new Audio(chrome.runtime.getURL('/data/' + src));
   audio.play();
+};
+
+app.sandbox = function (url, options) {
+  let d = Promise.defer(), id;
+  let webview = cordova.InAppBrowser.open(url, '_blank', 'hidden=true');
+
+  function destroy (url) {
+    window.clearTimeout(id);
+    d[url ? 'resolve' : 'reject'](url);
+    webview.close();
+  }
+
+  id = window.setTimeout(destroy, options['no-response'], null);
+  webview.addEventListener('loadstop', function (e) {
+    if (e.url !== url) {
+      destroy(e.url);
+    }
+  });
+  return d.promise;
 };

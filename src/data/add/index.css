@@ -137,3 +137,6 @@ form:invalid>#add input {
 body[data-support=false] [support] {
   display: none;
 }
+body[data-sandbox=false] [sandbox] {
+  display: none;
+}

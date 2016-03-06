@@ -14,5 +14,6 @@ var background = { // jshint ignore:line
 };
 var manifest = { // jshint ignore:line
   folder: chrome.tabs ? false : true, // only supported for packaged apps
-  support: chrome.tabs ? false : true
+  support: chrome.tabs ? false : true,
+  sandbox: chrome.tabs ? false : true
 };

@@ -61,3 +61,4 @@ background.send('init');
 window.setTimeout(() => document.querySelector('[data-id=url]').focus(), 500);
 //
 document.body.dataset.support = manifest.support;
+document.body.dataset.sandbox = manifest.sandbox;

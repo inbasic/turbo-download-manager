@@ -478,6 +478,7 @@ else {
     (function () {
       return new app.Promise(function (resolve) {
         if (obj['use-native']) {
+          event.emit('add-log', 'waiting for native-method to catch download link ...');
           return app.sandbox(obj.url, {
             'no-response': 40 * 1000
           }).then(function (url) {
