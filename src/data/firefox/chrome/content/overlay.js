@@ -25,14 +25,38 @@ var itdmanager = {
     this.pointer = dialog.onOK;
     dialog.onOK = this.accept.bind(itdmanager);
 
-    var observer = new MutationObserver(function () {
+    let observer = new MutationObserver(function () {
       itdmanager.attach();
       observer.disconnect();
     });
     observer.observe(this.mode, {
       childList: true
     });
-    //
+  },
+  /* make sure normal mode is active (from FlashGot) */
+  forceNormal: function (secondChance) {
+    let basicBox = document.getElementById('basicBox');
+    let normalBox = document.getElementById('normalBox');
+    if (normalBox && basicBox) {
+      if (normalBox.collapsed && basicBox.collapsed && !secondChance) {
+        window.setTimeout(() => this.forceNormal(true), 10);
+        return;
+      }
+      if (normalBox.collapsed) {
+        let e = document.getElementById('open');
+        e.parentNode.collapsed = true;
+        e.disabled = true;
+
+        let nodes = normalBox.getElementsByTagName('separator');
+        for (let j = nodes.length; j-- > 0;) {
+          nodes[j].collapsed = true;
+        }
+
+        basicBox.collapsed = true;
+        normalBox.collapsed = false;
+      }
+    }
+    window.sizeToContent();
   },
   attach: function () {
     this.radio = document.getElementById('itdmanager-radio');
@@ -43,7 +67,7 @@ var itdmanager = {
     this.number.addEventListener('change', () => {
       document.querySelector('radiogroup').selectedItem = this.radio;
     }, true);
-    window.sizeToContent();
+    this.forceNormal();
   },
   message: function (e) {
     if (e.data === 'detach') {
@@ -66,7 +90,7 @@ var itdmanager = {
   },
   detach: function () {
     window.removeEventListener('message', this.message, false);
-    var elem = this.radio.parentNode;
+    let elem = this.radio.parentNode;
     if (elem && elem.parentNode) {
       elem.parentNode.removeChild(elem);
     }
