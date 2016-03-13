@@ -56,9 +56,8 @@ var itdmanager = {
 
         basicBox.collapsed = true;
         normalBox.collapsed = false;
-
-        window.sizeToContent();
       }
+      window.sizeToContent();
     }
   },
   attach: function () {

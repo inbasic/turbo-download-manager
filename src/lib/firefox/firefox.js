@@ -16,7 +16,6 @@ var self          = require('sdk/self'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
     xpcom         = require('sdk/platform/xpcom'),
-    {URL}         = require('sdk/url'),
     {Page}        = require('sdk/page-worker'),
     {Class}       = require('sdk/core/heritage'),
     {all, defer, race, resolve}  = require('sdk/core/promise'),
@@ -480,7 +479,7 @@ exports.OS = (function () {
 
 // Overlay Manager
 (function () {
-  var windows = [];
+  let windows = [];
   function inject (window) {
     if (window.document.location.href !== 'chrome://mozapps/content/downloads/unknownContentType.xul') {
       return;
@@ -490,9 +489,9 @@ exports.OS = (function () {
     });
     windows.push(window);
   }
-  var windowListener = {
+  let windowListener = {
     onOpenWindow: function (xulWindow) {
-      var window = xulWindow.QueryInterface(Ci.nsIInterfaceRequestor)
+      let window = xulWindow.QueryInterface(Ci.nsIInterfaceRequestor)
         .getInterface(Ci.nsIDOMWindow);
       function onWindowLoad() {
         window.removeEventListener('load', onWindowLoad);
@@ -501,7 +500,7 @@ exports.OS = (function () {
       window.addEventListener('load', onWindowLoad);
     },
     onCloseWindow: function (xulWindow) {
-      var index = windows.indexOf(xulWindow);
+      let index = windows.indexOf(xulWindow);
       if (index !== -1) {
         windows.splice(index, 1);
       }
