@@ -32,16 +32,18 @@ var itdmanager = {
     observer.observe(this.mode, {
       childList: true
     });
+    // make sure normal mode is displayed
+    new MutationObserver(function () {
+      itdmanager.forceNormal();
+    }).observe(document.getElementById('normalBox'), {
+      attributes: true
+    });
   },
   /* make sure normal mode is active (from FlashGot) */
-  forceNormal: function (secondChance) {
+  forceNormal: function () {
     let basicBox = document.getElementById('basicBox');
     let normalBox = document.getElementById('normalBox');
     if (normalBox && basicBox) {
-      if (normalBox.collapsed && basicBox.collapsed && !secondChance) {
-        window.setTimeout(() => this.forceNormal(true), 10);
-        return;
-      }
       if (normalBox.collapsed) {
         let e = document.getElementById('open');
         e.parentNode.collapsed = true;
@@ -54,9 +56,10 @@ var itdmanager = {
 
         basicBox.collapsed = true;
         normalBox.collapsed = false;
+
+        window.sizeToContent();
       }
     }
-    window.sizeToContent();
   },
   attach: function () {
     this.radio = document.getElementById('itdmanager-radio');
