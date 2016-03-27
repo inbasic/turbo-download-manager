@@ -8,6 +8,7 @@ document.querySelector('form').addEventListener('submit', function (e) {
   }
   background.send('download', {
     url: document.querySelector('[data-id=url]').value,
+    referrer: document.querySelector('[data-id=referrer]').value,
     alternatives: [].map.call(document.querySelectorAll('[data-id=alternative'), e => e.value),
     name: document.querySelector('[data-id=name]').value,
     description: document.querySelector('[data-id=description]').value,
@@ -62,3 +63,8 @@ window.setTimeout(() => document.querySelector('[data-id=url]').focus(), 500);
 //
 document.body.dataset.support = manifest.support;
 document.body.dataset.sandbox = manifest.sandbox;
+if (manifest.referrer) {
+  let input = document.querySelector('[data-id=referrer]');
+  input.disabled = false;
+  input.placeholder = 'http(s)://the-referring-page';
+}

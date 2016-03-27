@@ -74,6 +74,9 @@ exports.fetch = function (url, props) {
   if (props.headers) {
     Object.keys(props.headers).forEach((k) => req.setRequestHeader(k, props.headers[k]));
   }
+  if (props.referrer) {
+    req.setRequestHeader('referer', props.referrer);
+  }
 
   req.onprogress = function () {
     buffers.push(req.response);

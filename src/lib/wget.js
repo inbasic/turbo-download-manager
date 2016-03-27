@@ -10,6 +10,7 @@ else {
 }
 
 // @param  {[type]} obj.url           [url]
+// @param  {[type]} obj.referrer      [referrer]
 // @param  {[type]} obj.alternatives  [alternative urls]
 // @param  {[type]} obj.folder        [folder path to store download link to (Firefox only)]
 // @param  {[type]} obj.name          [overwrite suggested file-name]
@@ -67,8 +68,11 @@ else {
         return result.done ? d.resolve('done') : process();
       });
     }
-
-    app.fetch(obj.urls[0], {headers: obj.headers}).then(function (res) {
+    let options = {headers: obj.headers};
+    if (obj.referrer) {
+      options.referrer = obj.referrer;
+    }
+    app.fetch(obj.urls[0], options).then(function (res) {
       if (res.body) {
         reader = res.body.getReader();
       }
@@ -112,17 +116,21 @@ else {
   }
   /**
    * Get information from a URL
-   * @param  {[string]} url    [description]
+   * @param  {[object]} obj     [{url, referrer}]
    * @param  {[boolean]} forced [send 'GET' instead of 'HEAD']
-   * @param  {[object]} d      [defer object]
-   * @return {[object]}        [information object]
+   * @param  {[object]} d       [defer object]
+   * @return {[object]}         [information object]
    */
-  var head = function (url, forced, d) {
+  var head = function (obj, forced, d) {
     let req = new app.XMLHttpRequest();
     d = d || app.Promise.defer();
 
-    req.open(forced ? 'GET' : 'HEAD', url, true);
+    req.open(forced ? 'GET' : 'HEAD', obj.url, true);
     req.setRequestHeader('Cache-Control', 'max-age=0');
+
+    if (obj.referrer) {
+      req.setRequestHeader('referer', obj.referrer);
+    }
 
     function analyze () {
       let length = +req.getResponseHeader('Content-Length');
@@ -130,7 +138,7 @@ else {
       let lengthComputable = req.getResponseHeader('Length-Computable');
       //console.error(req.getAllResponseHeaders())
       if (req.getResponseHeader('Content-Length') === null && !forced) {
-        head(url, true, d);
+        head(obj, true, d);
       }
       else {
         d.resolve({
@@ -320,7 +328,7 @@ else {
 
               // should I validate the failed url
               if (obj.urls.length > 1 && e.url && e.code !== 1) { // check link
-                head(e.url).then(function (i) {
+                head({url: e.url, referrer: obj.referrer}).then(function (i) {
                   if (i.length !== info.length) {
                     omitURL(e.url);
                   }
@@ -365,7 +373,7 @@ else {
     }
     //
     function validateMirrors () {
-      return Promise.all(obj.alternatives.map(url => head(url).catch(() => null)))
+      return Promise.all(obj.alternatives.map(url => head({url, referrer: obj.referrer}).catch(() => null)))
       .then(arr => arr.filter(a => a))
       .then(arr => arr.filter(i => {
         if (i.length === info.length) {
@@ -495,7 +503,7 @@ else {
         }
       });
     })()
-    .then(() => app.Promise.race([obj.url, obj.url, obj.url].map(url => head(url))))
+    .then(() => app.Promise.race([obj.url, obj.url, obj.url].map(url => head({url, referrer: obj.referrer}))))
     .then(
       function (i) {
         info = i;
@@ -529,7 +537,7 @@ else {
           event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-')); // removing exceptions
         }
         if (uo.url && obj.urls.indexOf(uo.url) === -1) {
-          app.Promise.race([uo.url, uo.url, uo.url].map(url => head(url))).then(
+          app.Promise.race([uo.url, uo.url, uo.url].map(url => head({url, referrer: obj.referrer}))).then(
             function (i) {
               if (info.length === i.length) {
                 if (obj.urls.indexOf(i.url) === -1) {

@@ -61,10 +61,10 @@ app.on('download', download);
 (function (arr) {
   if (app.globals.browser !== 'opera') {
     arr.push(
-      ['Bypass page redirect then download', (obj) => download(Object.assign(obj, {
+      ['Bypass page redirection then download', (obj) => download(Object.assign(obj, {
         'use-native': true
       }))],
-      ['Bypass page redirect then pause', (obj) => download(Object.assign(obj, {
+      ['Bypass page redirection then pause', (obj) => download(Object.assign(obj, {
         'use-native': true,
         'auto-pause': true
       }))]
@@ -72,8 +72,8 @@ app.on('download', download);
   }
   app.menu.bind(app, 'Turbo Download Manager').apply(app, arr);
 })([
-  ['Download Now', download],
-  ['Download Later', (obj) => download(Object.assign(obj, {
+  ['Download now', download],
+  ['Download later', (obj) => download(Object.assign(obj, {
     'auto-pause': true
   }))]
 ]);

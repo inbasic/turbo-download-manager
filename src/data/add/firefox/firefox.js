@@ -9,5 +9,6 @@ var background = { // jshint ignore:line
 var manifest = { // jshint ignore:line
   folder: false,
   support: true,
-  sandbox: true
+  sandbox: true,
+  referrer: true
 };
