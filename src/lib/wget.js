@@ -471,11 +471,11 @@ else {
       }
     });
     // cancel
-    event.on('cancel', () => internals.status = 'error');
+    event.on('cancel', () => done('error'));
     // error
     event.on('error', function () {
       if (internals.status !== 'error') {
-        internals.status = 'error';
+        done('error');
       }
     });
     event.on('name', function (name) {  // used after successful rename of the file
