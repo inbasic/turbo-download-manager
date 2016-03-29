@@ -717,10 +717,9 @@ else {
     });
     b.event.on('resume', start);
     start();
-    b.promise = b.promise.then(
-      (a) => {done(); return a;},
-      (e) => {done(); throw e;}
-    );
+
+    b.promise = spy(b.promise, done);
+
     Object.defineProperty(b, 'speed', {
       get: function () {
         return speed();
@@ -732,10 +731,10 @@ else {
   function vget (obj) {
     let c = cget(obj);
 
-    c.promise = c.promise.then(
-      (a) => {app.timer.setTimeout(() => c.event.removeAllListeners(), 5000); return a;},
-      (e) => {app.timer.setTimeout(() => c.event.removeAllListeners(), 5000); throw e;}
-    );
+    c.promise = spy(c.promise, function () {
+      app.timer.setTimeout(() => c.event.removeAllListeners(), 5000);
+    });
+
     return c;
   }
   wget.download = vget;
