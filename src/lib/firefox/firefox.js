@@ -316,7 +316,7 @@ exports.File = function (obj) { // {name, path, mime}
         file = obj.path ? FileUtils.File(obj.path) : dnldMgr.userDownloadsDirectory;
         file.append(obj.name);
         file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
-        resolve();
+        resolve(file.leafName);
       });
     },
     get native () {
@@ -326,7 +326,7 @@ exports.File = function (obj) { // {name, path, mime}
       let d = defer();
       let ostream = Cc['@mozilla.org/network/file-output-stream;1']
         .createInstance(Ci.nsIFileOutputStream);
-      ostream.init(file, 0x08| 0x02, 0, 0);  // 0x08: Create File, 0x02: Write only
+      ostream.init(file, 0x08 | 0x02, 0, 0);  // 0x08: Create File, 0x02: Write only
 
       let seekstream = ostream.QueryInterface(Ci.nsISeekableStream);
       seekstream.seek(0x00, offset); // 0x00: Offset is relative to the start of the stream.
@@ -376,7 +376,7 @@ exports.File = function (obj) { // {name, path, mime}
     },
     flush: function () {
       flushed = true;
-      return resolve(file.fileSize);
+      return resolve();
     },
     remove: function (forced) {
       if (flushed && !forced) {

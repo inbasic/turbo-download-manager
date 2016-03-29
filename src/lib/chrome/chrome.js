@@ -316,7 +316,7 @@ app.File = function (obj) { // {name, path, mime, length}
         }
         folder.getFile(name, {create: true, exclusive: true}, function () {
           fileEntry.moveTo(folder, name, () => d.resolve, (e) => d.reject(e));
-          d.resolve();
+          d.resolve(name);
         }, function () {
           copy(folder, (index || 0) + 1);
         });

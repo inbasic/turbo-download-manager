@@ -617,7 +617,13 @@ else {
           path: obj.folder,
           length: a.info.length
         });
-        internals.file.open().catch((e) => a.reject(e));
+        internals.file.open().then(function (name) {
+          // sync the names
+          if (name) {
+            internals.name = name;
+            a.event.emit('name', internals.name);
+          }
+        }).catch((e) => a.reject(e));
       }
 
       let start = e.offset + o.range.start;
@@ -664,7 +670,14 @@ else {
             internals.md5 = md5;
             a.event.emit('md5', md5);
             a.event.emit('add-log', `MD5 checksum is **${md5}**`);
-            return internals.file.flush().then(() => status);
+            return internals.file.flush().then(function (name) {
+              // sync the names
+              if (name) {
+                internals.name = name;
+                a.event.emit('name', internals.name);
+              }
+              return status;
+            });
           });
       }
       if (status === 'error' && internals.file) {

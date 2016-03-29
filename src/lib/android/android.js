@@ -458,7 +458,7 @@ app.File = function (obj) { // {name, path, mime, length}
                 '/storage/emulated/0/Download/' + name,
                 function () {
                   fileEntry.remove(function () {}, function () {});
-                  d.resolve();
+                  d.resolve(name);
                 },
                 (e) => d.reject(e),
                 false,

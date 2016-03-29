@@ -311,7 +311,7 @@ exports.File = function (obj) { // {name, path, mime, length}
               file = fd;
               return Promise.all(cache.map(o => tmp.write(o.offset, o.arr))).then(function () {
                 cache = [];
-                resolve();
+                resolve(path.parse(filePath).base);
               }, (e) => reject(e));
             }
           });
