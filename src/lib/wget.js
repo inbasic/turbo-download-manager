@@ -69,7 +69,7 @@ else {
       });
     }
     let options = {headers: obj.headers};
-    if (obj.referrer) {
+    if (obj.referrer && app.globals.referrer) {
       options.referrer = obj.referrer;
     }
     app.fetch(obj.urls[0], options).then(function (res) {
@@ -128,7 +128,7 @@ else {
     req.open(forced ? 'GET' : 'HEAD', obj.url, true);
     req.setRequestHeader('Cache-Control', 'max-age=0');
 
-    if (obj.referrer) {
+    if (obj.referrer && app.globals.referrer) {
       req.setRequestHeader('referer', obj.referrer);
     }
 
@@ -415,10 +415,10 @@ else {
         internals.locks = [];
       })(Math.floor(info.length / obj.threads));
       // do not download large files if multi-thread is not supported
-      if (!info['multi-thread'] && info.length > 200 * 1024 * 1024) {
+      /*if (!info['multi-thread'] && info.length > 200 * 1024 * 1024) {
         event.emit('add-log', 'Server does not support multi-threading; file-size is more than **200MB**', {type: 'error'});
         return done('error');
-      }
+      }*/
       if (!info['can-download']) {
         event.emit('add-log', 'Server does not support multi-threading; Either file-size is not defined or file is encoded', {type: 'error'});
         return done('error');

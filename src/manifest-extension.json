@@ -24,10 +24,10 @@
   },
   "background": {
     "scripts": [
-      "lib/chrome/md5.js",
+      "lib/opera/md5.js",
       "lib/config.js",
        "lib/utils.js",
-      "lib/chrome/chrome.js",
+      "lib/opera/opera.js",
        "lib/wget.js",
        "lib/icon.js",
        "lib/mwget.js"

@@ -36,7 +36,8 @@ var xhr = {
 };
 
 exports.globals = {
-  browser: 'firefox'
+  browser: 'firefox',
+  referrer: true
 };
 
 exports.Promise = function (callback) {

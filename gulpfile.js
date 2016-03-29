@@ -75,8 +75,6 @@ gulp.task('webapp-build', function () {
   .pipe(gulp.dest('builds/packed'));
 });
 
-
-
 /* electron build */
 gulp.task('electron-build', function () {
   gulp.src([
@@ -96,6 +94,9 @@ gulp.task('electron-build', function () {
       return false;
     }
     if (f.relative.indexOf('chrome') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('opera') !== -1) {
       return false;
     }
     if (f.relative.indexOf('safari') !== -1) {
@@ -154,6 +155,9 @@ gulp.task('chrome-build', function () {
       return false;
     }
     if (f.relative.indexOf('webapp') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('opera') !== -1) {
       return false;
     }
     if (f.relative.indexOf('android') !== -1) {
@@ -217,6 +221,9 @@ gulp.task('opera-build', function () {
     if (f.relative.indexOf('android') !== -1) {
       return false;
     }
+    if (f.relative.indexOf('chrome') !== -1) {
+      return false;
+    }
     if (f.relative.indexOf('electron') !== -1) {
       return false;
     }
@@ -237,12 +244,12 @@ gulp.task('opera-build', function () {
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
   }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="chrome/chrome.js"></script>\n    <script src="index.js"></script>');
+    return content.replace(/.*shadow_index\.js.*/, '    <script src="opera/opera.js"></script>\n    <script src="index.js"></script>');
   })))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') !== -1;
   }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="showdown.js"></script>\n    <script src="chrome/chrome.js"></script>\n    <script src="index.js"></script>');
+    return content.replace(/.*shadow_index\.js.*/, '    <script src="showdown.js"></script>\n    <script src="opera/opera.js"></script>\n    <script src="index.js"></script>');
   })))
   .pipe(gulp.dest('builds/unpacked/opera'))
   .pipe(zip('opera.zip'))
@@ -273,6 +280,9 @@ gulp.task('android-build', function () {
       return false;
     }
     if (f.relative.indexOf('chrome') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('opera') !== -1) {
       return false;
     }
     if (f.relative.indexOf('safari') !== -1) {
@@ -331,6 +341,9 @@ gulp.task('firefox-build', function () {
       return false;
     }
     if (f.relative.indexOf('webapp') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('opera') !== -1) {
       return false;
     }
     if (f.relative.indexOf('android') !== -1) {
