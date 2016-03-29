@@ -77,6 +77,7 @@ var mainWindow;
 
 exports.globals = {
   browser: 'electron',
+  referrer: true
 };
 
 exports.Promise = Promise;
@@ -92,6 +93,9 @@ exports.fetch = function (uri, props) {
       value: buffers.shift(),
       get done() { return done && buffers.length === 0; }
     };
+  }
+  if (props.referrer) {
+    props.headers.referer = props.referrer;
   }
   let req = request({
     uri,
