@@ -5,6 +5,8 @@ var listeners = {
   background: [],
   pagemod: []
 };
+var pointers = {};
+
 chrome.runtime.sendMessage = function (obj) {
   listeners.pagemod.forEach(function (c) {
     c(obj, {url: 'background.html'});
@@ -225,14 +227,7 @@ app.tab = {
 
 app.menu = function () {};
 
-app.notification = function (text) {
-  chrome.notifications.create(null, {
-    type: 'basic',
-    iconUrl: chrome.runtime.getURL('./') + 'data/icons/48.png',
-    title: 'Turbo Download Manager',
-    message: text
-  }, function () {});
-};
+app.notification = (text) => window.plugins.toast.showLongCenter(text);
 
 app.version = () => chrome[chrome.runtime && chrome.runtime.getManifest ? 'runtime' : 'extension'].getManifest().version;
 app.platform = function () {
@@ -325,100 +320,64 @@ app.about = (function () {
 
 app.File = function (obj) { // {name, path, mime, length}
   window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
-  let fileEntry, cache = [], postponed, length = 0;
+  let fileEntry, postponed, length = 0;
 
   let tmp = {
     open: function () {
       let d = Promise.defer();
-      function truncate (fe) {
-        return new Promise(function (resolve, reject) {
-          fe.createWriter(function (fileWriter) {
-            fileWriter.onwrite = function () {
-              if (this.length === obj.length) {
-                resolve();
-              }
-              else {
-                reject(new Error('cannot truncate the file'));
-              }
-            };
-            fileWriter.onerror = (e) => reject(e);
-            fileWriter.seek(0);
-            fileWriter.truncate(obj.length);
-          }, (e) => reject(e));
-        });
-      }
-      function fill (fe) {
-        return new Promise(function (resolve, reject) {
-          fe.createWriter(function (fileWriter) {
-            fileWriter.onwrite = function () {
-              if (this.length === obj.length) {
-                resolve();
-              }
-              else {
-                reject(new Error('cannot fill the file'));
-              }
-            };
-            fileWriter.onerror = (e) => reject(e);
-            fileWriter.seek(0);
-            fileWriter.write(new Array(obj.length + 1).join('.'));
-          }, (e) => reject(e));
-        });
-      }
-      window.webkitStorageInfo.requestQuota(window.TEMPORARY, obj.length, function (grantedBytes) {
-        if (grantedBytes === obj.length) {
-          window.requestFileSystem(
-            window.TEMPORARY, obj.length, function (fs) {
-              fs.root.getFile(
-                Math.floor(Math.random() * 16777215).toString(16),  // a unique name
-                {create: true, exclusive: false},
-                function (fe) {
-                  truncate(fe).catch(() => fill(fe)).then(function () {
-                    fileEntry = fe;
-                    Promise.all(cache.map(o => tmp.write(o.offset, o.arr))).then(function () {
-                      cache = [];
-                    }, (e) => d.reject(e));
+
+      window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory + 'Download', function (download) {
+        download.getFile(
+          Math.floor(Math.random() * 16777215).toString(16),  // a unique name
+          {create: true, exclusive: false},
+          function (fe) {
+            fileEntry = fe;
+            fe.createWriter(function (fileWriter) {
+              fileWriter.onwrite = function () {
+                fe.file(function (file) {
+                  console.error('initial file.size is', file.size);
+                  if (file.size === obj.length) {
                     d.resolve();
-                  }, (e) => d.reject(e));
-                },
-                (e) => d.reject(e)
-              );
-            },
-            (e) => d.reject(e)
-          );
-        }
-        else {
-          d.reject(new Error('cannot allocate space'));
-        }
+                  }
+                  else {
+                    d.reject(new Error(`Cannot truncate the file; requested ${obj.length} bytes but got ${file.size}`));
+                  }
+                }, (e) => d.reject(e));
+              };
+              fileWriter.onerror = (e) => d.reject(e);
+              let b = new pointers.manager.Blob([new Uint8Array(obj.length)], {type: 'application/octet-stream'});
+              fileWriter.seek(0);
+              fileWriter.write(b);
+              //fileWriter.write(new Array(obj.length + 1).join('.'));
+            }, (e) => d.reject(e));
+          },
+          (e) => d.reject(e)
+        );
       }, (e) => d.reject(e));
+
       return d.promise;
     },
     write: function (offset, arr) {
       let d = Promise.defer();
-      if (!fileEntry) {
-        cache.push({offset, arr});
-        d.resolve();
-      }
-      else {
-        fileEntry.createWriter(function (fileWriter) {
-          let blob = new Blob(arr, {type: 'application/octet-stream'});
-          arr = [];
-          fileWriter.onerror = (e) => d.reject(e);
-          fileWriter.onwrite = function (e) {
-            length += blob.size; // length += e.loaded
-            d.resolve();
-            if (postponed && length === obj.length) {
-              postponed.resolve(tmp.md5());
-            }
-            blob = '';
-          };
-          fileWriter.seek(offset);
-          let reader = new FileReader();
-          reader.onloadend = function () {
-            fileWriter.writeBinaryArray(reader.result);
-          };
-          reader.readAsBinaryString(blob);
-        }, (e) => d.reject(e));
-      }
+      fileEntry.createWriter(function (fileWriter) {
+        let blob = new pointers.manager.Blob(arr, {type: 'application/octet-stream'});
+        arr = [];
+        fileWriter.onerror = (e) => d.reject(e);
+        fileWriter.onwrite = function (e) {
+          length += blob.size; // length += e.loaded
+          d.resolve();
+          if (postponed && length === obj.length) {
+            postponed.resolve(tmp.md5());
+          }
+          blob = '';
+        };
+        fileWriter.seek(offset);
+        let reader = new FileReader();
+        reader.onloadend = function () {
+          fileWriter.writeBinaryArray(reader.result);
+        };
+        reader.readAsBinaryString(blob);
+      }, (e) => d.reject(e));
       return d.promise;
     },
     md5: function () {
@@ -449,21 +408,12 @@ app.File = function (obj) { // {name, path, mime, length}
         if (index) {
           name = name.replace(/((\.[^\.]{1,3}){0,1}\.[^\.]+)$/, '-' + index + '$1');
         }
-        window.resolveLocalFileSystemURL('file:///storage/emulated/0/Download/' + name,
+        window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory + 'Download/' + name,
           () => copy(file, (index || 0) + 1),
           function () {
-            let fileTransfer = new FileTransfer();
-            fileTransfer.download(
-                file.localURL,
-                '/storage/emulated/0/Download/' + name,
-                function () {
-                  fileEntry.remove(function () {}, function () {});
-                  d.resolve(name);
-                },
-                (e) => d.reject(e),
-                false,
-                {}
-            );
+            fileEntry.getParent(function (dir) {
+              fileEntry.moveTo(dir, name, () => d.resolve(name), e => d.reject(e))
+            }, e => d.reject(e));
           }
         );
       }

@@ -73,9 +73,12 @@ else {
       let index = instances.push(instance) - 1;
       instance.obj = obj;
       instance.promise.then(function (status) {
-        let md5 = status === 'done' ? instance['internals@b'].md5 : '';
+        let md5 = status === 'done' ? instance.internals.md5 : '';
         callbacks.done.forEach(d => d(index, status, md5));
-      }).catch((e) => instance.log.push(`Internal Error; ${e ? e.message || e : 'no error message'}`, {type: 'error'}));
+      }).catch((e) => {
+        instance.log.push(`Internal Error; ${e ? e.message || e.exception || e : 'no error message'}`, {type: 'error'});
+        callbacks.done.forEach(d => d(index, 'error', ''));
+      });
       instance.log.push(`Downloading ${obj.url}`);
       instance.event.on('progress', function (a, e) {
         let start = a.range.start;
@@ -159,8 +162,8 @@ else {
         throw Error('Cannot remove an instance while it is active. Try to pause the download first');
       }
       if (wget.status === 'pause' || wget.status === 'error') {
-        if (wget['internals@b'].file) {
-          wget['internals@b'].file.remove();
+        if (wget.internals.file) {
+          wget.internals.file.remove();
         }
       }
       delete instances[index];

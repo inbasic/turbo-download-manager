@@ -56,15 +56,44 @@ exports.URL = urls.URL;
 exports.mimes = require('../../data/assets/mime.json');
 
 exports.fetch = function (url, props) {
-  let d = defer(), req = new xhr.XMLHttpRequest(), buffers = [], done = false;
-  let ppp, sent = false;
+  let d = defer(), req = new xhr.XMLHttpRequest(), ppp, buffers = [];
 
-  function result() {
-    return {
-      value: buffers.shift(),
-      get done() { return done && buffers.length === 0; }
-    };
+  function send () {
+    if (ppp && buffers.length) {
+      ppp(buffers.shift());
+      ppp = null;
+    }
   }
+
+  let resolve = (function () {
+    let resolved = false;
+    return function () {
+      if (!resolved) {
+        d.resolve({
+          ok: req.status >= 200 && req.status < 300,
+          get status () {
+            return req.status;
+          },
+          body: {
+            getReader: function () {
+              return {
+                read: function () {
+                  let d = defer();
+                  ppp = d.resolve;
+                  send();
+                  return d.promise;
+                },
+                cancel: () => req.abort()
+              };
+            }
+          }
+        });
+      }
+      resolved = true;
+      send();
+    };
+  })();
+
   req.mozBackgroundRequest = true;  //No authentication
   req.open('GET', url);
   req.responseType = 'moz-chunked-arraybuffer';
@@ -79,38 +108,19 @@ exports.fetch = function (url, props) {
     req.setRequestHeader('referer', props.referrer);
   }
 
-  req.onprogress = function () {
-    buffers.push(req.response);
-    if (!sent) {
-      sent = true;
-      d.resolve({
-        ok: req.status >= 200 && req.status < 300,
-        status: req.status,
-        body: {
-          getReader: function () {
-            return {
-              read: function () {
-                let d = defer();
-                if (buffers.length) {
-                  ppp = null;
-                  d.resolve(result());
-                } else {
-                  ppp = d.resolve;
-                }
-                return d.promise;
-              },
-              cancel: () => req.abort()
-            };
-          }
-        }
+  req.onprogress = function (e) {
+    if (req.response.byteLength) {
+      buffers.push({
+        value: req.response,
+        done: e.loaded === e.total
       });
     }
-    if (ppp) {
-      ppp(result());
-    }
+    resolve();
+  };
+  req.onload = function () {
+    resolve();
   };
   req.ontimeout = req.onerror = (e) => d.reject(e);
-  req.onload = () => done = true;
   req.send();
   return d.promise;
 };

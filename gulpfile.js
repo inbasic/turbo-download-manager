@@ -324,6 +324,15 @@ gulp.task('android-build', function () {
   .pipe(zip('android.zip'))
   .pipe(gulp.dest('builds/packed'));
 });
+gulp.task('android-install', function () {
+  gulp.src('')
+  .pipe(wait(1000))
+  .pipe(shell([
+    'pwd & cca run android --device'
+  ], {
+    cwd: './android/TDM/'
+  }));
+});
 
 /* firefox build */
 gulp.task('firefox-build', function () {
@@ -398,7 +407,7 @@ gulp.task('webapp', function (callback) {
   runSequence('clean', 'webapp-build', callback);
 });
 gulp.task('android', function (callback) {
-  runSequence('clean', 'android-build', callback);
+  runSequence('clean', 'android-build', 'android-install', callback);
 });
 gulp.task('chrome', function (callback) {
   runSequence('clean', 'chrome-build', 'chrome-install', callback);

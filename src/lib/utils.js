@@ -78,7 +78,7 @@ utils.EventEmitter = (function () {
           f.apply(this, tobeSent);
         }
         catch (e) {
-          console.error(e);
+          console.error(e, new Error().stack);
         }
       });
     }

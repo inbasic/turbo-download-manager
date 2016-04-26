@@ -33,6 +33,7 @@ http://add0n.com/turbo-download-manager.html
   2. Preparing plugins:
     1. `cca plugin remove plugin-name`
     2. `cca plugin add path-to-plugin`
+    3.  `../../plugins/android/Toast-PhoneGap-Plugin-master/`, `cordova-plugin-admobpro`, `../../plugins/android/android/cordova-plugin-binaryfilewriter`, `https://github.com/VersoSolutions/CordovaClipboard`
   3. Creating a new project: `cca create TDM --link-to=path/to/manifest.json`
   4. Installing to a device: `cca run android --device` or `cca run android --emulator`
   5. Android submission:

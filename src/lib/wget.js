@@ -22,6 +22,7 @@ else {
 // @param  {[type]} obj.maxByteSize   [maximum thread size; 50 MBytes]
 // @param  {[type]} obj.pause         [delay in between multiple schedule calls; 100 mSecs]
 // @param  {[type]} obj.use-native    [use native method to find the actual downloadable url]
+// @param  {[type]} obj.writer        request writing to disk
 
 (function () {
   // helpers; Custom Error
@@ -45,7 +46,7 @@ else {
     );
   }
 
-  function xhr (obj) {
+  function xhr (obj, range) {
     let d = app.Promise.defer(), loaded = 0, dead = false;
     let id = app.timer.setTimeout(() => d.reject(new CError('timeout', 3, {url: obj.urls[0]})), obj.timeout);
     let reader = {
@@ -60,13 +61,21 @@ else {
         app.timer.clearTimeout(id);
         id = app.timer.setTimeout(() => d.reject(new CError('timeout', 3, {url: obj.urls[0]})), obj.timeout);
 
-        let chunk = result.value;
-        if (chunk) {
-          loaded += chunk.byteLength;
-          obj.event.emit('progress@xhr', {loaded, chunk, length: chunk.byteLength});
+        let buffer = result.value;
+        if (buffer && buffer.byteLength) {
+          let offset = loaded;
+          let length = buffer.byteLength;
+          loaded += length;
+          obj.event.emit('progress', {offset, length}, result.done);
+          return obj.writer(range, {offset, buffer}).then(function () {
+            return result.done ? d.resolve('done') : process();
+          });
         }
-        return result.done ? d.resolve('done') : process();
-      });
+        else {
+          return result.done ? d.resolve('done') : process();
+        }
+
+      }).catch(e => d.reject(e));
     }
     let options = {headers: obj.headers};
     if (obj.referrer && app.globals.referrer) {
@@ -94,25 +103,16 @@ else {
       reader.cancel();
     });
   }
-  function chunk (obj, range, event, report) {
+  function chunk (obj, range, event, report, writer) {
     obj = Object.assign({ // clone
       headers: {},
-      event: event
+      event,
+      writer
     }, obj);
     if (report) { // if download does not support multi-threading do not send range info
       obj.headers.Range = `bytes=${range.start}-${range.end}`;
     }
-    event.on('progress@xhr', function (e) {
-      if (e.chunk.byteLength) {
-        let tmp = {
-          offset: e.loaded - e.length,
-          length: e.chunk.byteLength
-        };
-        event.emit('progress-with-buffer', Object.assign({buffer: e.chunk}, tmp));
-        event.emit('progress', tmp);
-      }
-    });
-    return xhr(obj);
+    return xhr(obj, range);
   }
   /**
    * Get information from a URL
@@ -178,6 +178,33 @@ else {
 
     let event = new app.EventEmitter(), d = app.Promise.defer(), info, segments = [], lastCount = 0;
     let internals = {};
+    let buffers = [];
+
+    function writer (range, e) {
+      let start = e.offset + range.start;
+      let end = start + e.buffer.byteLength;
+      let match = buffers.filter(o => o.end === start);
+
+      if (match.length) {
+        let index = buffers.indexOf(match[0]);
+        buffers[index].end = end;
+        buffers[index].segments.push(e.buffer);
+        if (end - buffers[index].start > obj['write-size']) {
+          let buffer = buffers[index];
+          buffers.splice(index, 1);
+          return internals.file.write(buffer.start, buffer.segments);
+        }
+      }
+      else {
+        buffers.push({
+          start: start,
+          end: end,
+          segments: [e.buffer]
+        });
+      }
+      return app.Promise.resolve();
+    }
+
     utils.assign(internals, 'status', event)
          .assign(internals, 'retries', event, 0)
          .assign(internals, 'available', event, true);
@@ -195,6 +222,9 @@ else {
       internals.status = s || internals.status;
       event.emit('count', 0);
       if (s === 'error') {
+        if (internals.file) {
+          internals.file.remove();
+        }
         segments.forEach(s => s.event.emit('abort'));
         d.reject();
       }
@@ -214,7 +244,8 @@ else {
         .filter(a => internals.locks.indexOf(a) === -1)
         .sort((a, b) => a.start - b.start);
 
-      if (ranges.length) {
+      let c = count();
+      if (ranges.length && c < obj.threads) {
         add(obj, ranges[0]);
         internals.locks.push(ranges[0]);
       }
@@ -222,7 +253,6 @@ else {
         return;
       }
       //
-      let c = count();
       if (c < obj.threads) {
         app.timer.setTimeout(schedule, obj.pause || 100);
       }
@@ -286,7 +316,6 @@ else {
           progress = obj;
         };
       })());
-      e.on('progress-with-buffer', (e) => event.emit('progress-with-buffer', tmp, e));
 
       function after () {
         // clean up
@@ -303,8 +332,7 @@ else {
           event.emit('add-log', `${url} is removed from url list due to a fetch error`, {type: 'warning'});
         }
       }
-
-      chunk(obj, range, e, range.start !== 0 || range.end !== info.length - 1).then(
+      chunk(obj, range, e, range.start !== 0 || range.end !== info.length - 1, writer).then(
         function (status) {
           tmp.status = status;
           after();
@@ -371,197 +399,6 @@ else {
         }
       );
     }
-    //
-    function validateMirrors () {
-      return Promise.all(obj.alternatives.map(url => head({url, referrer: obj.referrer}).catch(() => null)))
-      .then(arr => arr.filter(a => a))
-      .then(arr => arr.filter(i => {
-        if (i.length === info.length) {
-          event.emit('add-log', `${i.url} is added as a mirror`);
-        }
-        else {
-          event.emit('add-log', `Cannot use ${i.url} as a mirror. Server returns **${i.length}** bytes for file-size`, {type: 'warning'});
-        }
-        return i.length === info.length;
-      }))
-      .then(arr => arr.map(i => i.url))
-      .then(urls => {
-        obj.urls = obj.urls.concat(urls);
-      });
-    }
-    event.on('info', function () {
-      if (info.length === 0) {
-        event.emit('add-log', 'Internal Error: \`info.length\` is equal to zero', {type: 'error'});
-        return done('error');
-      }
-      if (info.encoding) {
-        event.emit('add-log', 'Internal Error: \`info.encoding\` is not null', {type: 'error'});
-        return done('error');
-      }
-      (function (len) {
-        len = Math.max(len, obj.minByteSize ||  50 * 1024);
-        len = Math.min(len, obj.maxByteSize || 20 * 1024 * 1024);
-        len = Math.min(info.length, len);
-
-        let threads = Math.floor(info.length / len);
-        if (!info['multi-thread']) {
-          threads = 1;
-        }
-        let arr = Array.from(new Array(threads), (x, i) => i);
-        internals.ranges = arr.map((a, i, l) => ({
-          start: a * len,
-          end: l.length === i + 1 ? info.length - 1 : (a + 1) * len - 1
-        }));
-        internals.locks = [];
-      })(Math.floor(info.length / obj.threads));
-      // do not download large files if multi-thread is not supported
-      /*if (!info['multi-thread'] && info.length > 200 * 1024 * 1024) {
-        event.emit('add-log', 'Server does not support multi-threading; file-size is more than **200MB**', {type: 'error'});
-        return done('error');
-      }*/
-      if (!info['can-download']) {
-        event.emit('add-log', 'Server does not support multi-threading; Either file-size is not defined or file is encoded', {type: 'error'});
-        return done('error');
-      }
-      internals.status = 'download';
-      if (obj['auto-pause']) {
-        event.emit('pause');
-        if (internals.ranges.length > 1) {
-          validateMirrors();
-        }
-        if (internals.ranges.length === 1 && obj.alternatives.length) {
-          event.emit('add-log', 'I am not going to validate mirrors as this download is single threaded', {type: 'warning'});
-        }
-      }
-      else {
-        if (internals.ranges.length === 1 || !obj.alternatives.length) {
-          schedule();
-          if (obj.alternatives.length) {
-            event.emit('add-log', 'I am not going to validate mirrors as this download is single threaded', {type: 'warning'});
-          }
-        }
-        else {
-          let tmp = obj.threads;
-          obj.threads = 1;
-          schedule();
-          validateMirrors().then(function () {
-            obj.threads = tmp;
-            schedule();
-          });
-        }
-      }
-    });
-    // pause
-    event.on('pause', function () {
-      // do not let triggers to resume the download when it goes to the pause mode
-      internals.available = false;
-      app.timer.setTimeout(() => internals.available = true, 10 * 1000);
-      internals.status = 'pause';
-      segments.forEach(s => s.event.emit('abort'));
-      count();
-    });
-    event.on('resume', function () {
-      if (internals.status === 'pause') {
-        internals.retries = 0;
-        if (internals.locks.length) {
-          internals.locks = [];
-        }
-        internals.status = 'download';
-        schedule();
-      }
-    });
-    // cancel
-    event.on('cancel', () => done('error'));
-    // error
-    event.on('error', function () {
-      if (internals.status !== 'error') {
-        done('error');
-      }
-    });
-    event.on('name', function (name) {  // used after successful rename of the file
-      obj.name = name || obj.name;
-    });
-    // getting header
-    // if use-native is true, app.sandbox finds the actual downloadable url
-    (function () {
-      return new app.Promise(function (resolve) {
-        if (obj['use-native']) {
-          event.emit('add-log', 'waiting for native-method to catch download link ...');
-          return app.sandbox(obj.url, {
-            'no-response': 40 * 1000
-          }).then(function (url) {
-            event.emit('add-log', `native-method returned ${url}`);
-            obj.url = url;
-            resolve();
-          }).catch (function () {
-            event.emit('add-log', `native-method is not responding; timeout`, {type: 'warning'});
-            resolve();
-          });
-        }
-        else {
-          resolve();
-        }
-      });
-    })()
-    .then(() => app.Promise.race([obj.url, obj.url, obj.url].map(url => head({url, referrer: obj.referrer}))))
-    .then(
-      function (i) {
-        info = i;
-        obj.urls = [info && info.url ? info.url : obj.url]; // bypass redirects
-        event.emit('info', info);
-        event.emit('add-log', `File mime tpye is **${info.mime}**`);
-        event.emit('add-log', `File encoding is **${info.encoding}**`);
-        event.emit('add-log', `Server multi-threading support status is **${info['multi-thread']}**`);
-        event.emit('add-log', `File length in bytes is **${info.length}**`);
-        event.emit('add-log', `Actual downloadable URL is ${obj.urls[0]}`);
-      },
-      (e) => {
-        event.emit('add-log', `Cannot get file information form server; ${e.message}`, {type: 'error'});
-        done('error');
-      }
-    );
-    return {
-      event: event,
-      promise: d.promise,
-      resolve: d.resolve,
-      reject: d.reject,
-      get threads () {return lastCount;},
-      get status () {return internals.status;},
-      get retries () {return internals.retries;},
-      get info () {return info;},
-      get internals () {return internals;},
-      modify: function (uo) {
-        obj.threads = uo.threads || obj.threads;
-        obj.timeout = uo.timeout || obj.timeout;
-        if (uo.name !== obj.name) {
-          event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-')); // removing exceptions
-        }
-        if (uo.url && obj.urls.indexOf(uo.url) === -1) {
-          app.Promise.race([uo.url, uo.url, uo.url].map(url => head({url, referrer: obj.referrer}))).then(
-            function (i) {
-              if (info.length === i.length) {
-                if (obj.urls.indexOf(i.url) === -1) {
-                  obj.urls = obj.urls.concat(i.url);
-                  event.emit('add-log', `[${i.url}](${i.url}) is appeded as a mirror. Total number of downloadable links is **${obj.urls.length}**`);
-                }
-                else {
-                  event.emit('add-log', `[${i.url}](${i.url}) is already in the list`, {type: 'warning'});
-                }
-              }
-              else {
-                event.emit('add-log', `Applying the new URL failed. ${uo.url} returns **${i.length}** bytes for file-size`, {type: 'warning'});
-              }
-            },
-            (e) => event.emit('add-log', `Cannot change URL; Cannot access server; ${e.message}.`, {type: 'warning'})
-          );
-        }
-      }
-    };
-  }
-  /* handling IO */
-  function bget (obj) {
-    let internals = {}, buffers = [];
-
     function guess (obj) {
       let url = obj.urls[0], name = obj.name, mime = obj.mime, disposition = obj.disposition;
       if (!name && disposition) {
@@ -604,54 +441,138 @@ else {
         return name;
       }
     }
-    let a = aget(obj);
-    a.event.once('info', function (info) {
-      internals.name = guess(Object.assign({mime: info.mime, disposition: info.disposition}, obj));
-      a.event.emit('name', internals.name);
-    });
-    a.event.on('progress-with-buffer', function (o, e) {
-      if (!internals.file) {
-        internals.file = new app.File({
-          name: internals.name,
-          mime: a.info.mime,
-          path: obj.folder,
-          length: a.info.length
-        });
-        internals.file.open().then(function (name) {
-          // sync the names
-          if (name) {
-            internals.name = name;
-            a.event.emit('name', internals.name);
-          }
-        }).catch((e) => a.reject(e));
+    //
+    event.on('info', function () {
+      if (info.length === 0) {
+        event.emit('add-log', 'Internal Error: \`info.length\` is equal to zero', {type: 'error'});
+        return done('error');
       }
+      if (info.encoding) {
+        event.emit('add-log', 'Internal Error: \`info.encoding\` is not null', {type: 'error'});
+        return done('error');
+      }
+      (function (len) {
+        len = Math.max(len, obj.minByteSize ||  50 * 1024);
+        len = Math.min(len, obj.maxByteSize || 20 * 1024 * 1024);
+        len = Math.min(info.length, len);
 
-      let start = e.offset + o.range.start;
-      let end = start + e.buffer.byteLength;
-
-      let match = buffers.filter(o => o.end === start);
-      if (match.length) {
-        let index = buffers.indexOf(match[0]);
-        buffers[index].end = end;
-        buffers[index].segments.push(e.buffer);
-        if (end - buffers[index].start > obj['write-size'] || 200 * 1024) {
-          internals.file.write(buffers[index].start, buffers[index].segments).catch((e) => a.reject(e));
-          buffers.splice(index, 1);
+        let threads = Math.floor(info.length / len);
+        if (!info['multi-thread']) {
+          threads = 1;
         }
+        let arr = Array.from(new Array(threads), (x, i) => i);
+        internals.ranges = arr.map((a, i, l) => ({
+          start: a * len,
+          end: l.length === i + 1 ? info.length - 1 : (a + 1) * len - 1
+        }));
+        internals.locks = [];
+      })(Math.floor(info.length / obj.threads));
+      // do not download large files if multi-thread is not supported
+      /*if (!info['multi-thread'] && info.length > 200 * 1024 * 1024) {
+        event.emit('add-log', 'Server does not support multi-threading; file-size is more than **200MB**', {type: 'error'});
+        return done('error');
+      }*/
+      if (!info['can-download']) {
+        event.emit('add-log', 'Server does not support multi-threading; Either file-size is not defined or file is encoded', {type: 'error'});
+        return done('error');
       }
-      else {
-        buffers.push({
-          start: start,
-          end: end,
-          segments: [e.buffer]
-        });
+      internals.status = 'download';
+
+      internals.name = guess(Object.assign({
+        mime: info.mime,
+        disposition: info.disposition
+      }, obj));
+      event.emit('name', internals.name);
+      internals.file = new app.File({
+        name: internals.name,
+        mime: info.mime,
+        path: obj.folder,
+        length: info.length
+      });
+      internals.file.open().then(function (name) {
+        // sync the names
+        if (name) {
+          internals.name = name;
+          event.emit('name', internals.name);
+        }
+
+        function validateMirrors () {
+          return Promise.all(obj.alternatives.map(url => head({url, referrer: obj.referrer}).catch(() => null)))
+          .then(arr => arr.filter(a => a))
+          .then(arr => arr.filter(i => {
+            if (i.length === info.length) {
+              event.emit('add-log', `${i.url} is added as a mirror`);
+            }
+            else {
+              event.emit('add-log', `Cannot use ${i.url} as a mirror. Server returns **${i.length}** bytes for file-size`, {type: 'warning'});
+            }
+            return i.length === info.length;
+          }))
+          .then(arr => arr.map(i => i.url))
+          .then(urls => {
+            obj.urls = obj.urls.concat(urls);
+          });
+        }
+        if (obj['auto-pause']) {
+          event.emit('pause');
+          if (internals.ranges.length > 1) {
+            validateMirrors();
+          }
+          if (internals.ranges.length === 1 && obj.alternatives.length) {
+            event.emit('add-log', 'I am not going to validate mirrors as this download is single threaded', {type: 'warning'});
+          }
+        }
+        else {
+          if (internals.ranges.length === 1 || !obj.alternatives.length) {
+            schedule();
+            if (obj.alternatives.length) {
+              event.emit('add-log', 'I am not going to validate mirrors as this download is single threaded', {type: 'warning'});
+            }
+          }
+          else {
+            let tmp = obj.threads;
+            obj.threads = 1;
+            schedule();
+            validateMirrors().then(function () {
+              obj.threads = tmp;
+              schedule();
+            });
+          }
+        }
+      }).catch((e) => d.reject(e));
+    });
+    // pause
+    event.on('pause', function () {
+      // do not let triggers to resume the download when it goes to the pause mode
+      internals.available = false;
+      app.timer.setTimeout(() => internals.available = true, 10 * 1000);
+      internals.status = 'pause';
+      segments.forEach(s => s.event.emit('abort'));
+      count();
+    });
+    event.on('resume', function () {
+      if (internals.status === 'pause') {
+        internals.retries = 0;
+        if (internals.locks.length) {
+          internals.locks = [];
+        }
+        internals.status = 'download';
+        schedule();
       }
     });
-    a.event.on('rename', function (name) {
+    // cancel
+    event.on('cancel', () => done('error'));
+    // error
+    event.on('error', function () {
+      if (internals.status !== 'error') {
+        done('error');
+      }
+    });
+    event.on('rename', function (name) {
       function okay () {
         internals.name = name || internals.name;
-        a.event.emit('name', internals.name);
-        a.event.emit('log', `File-name is changed to ${internals.name}`);
+        obj.name = name || obj.name;
+        event.emit('log', `File-name is changed to ${internals.name}`);
       }
       if (internals.file) {
         internals.file.rename(name).then(okay, (e) => a.event.emit('add-log', `**Unsuccesful** renaming; ${e.message}`, {type: 'warning'}));
@@ -660,32 +581,106 @@ else {
         okay();
       }
     });
-    Object.defineProperty(a, 'internals@b', {get: function () {return internals;}});
-    a.promise = a.promise.then(function (status) {
-      if (status === 'done') {
-        return app.Promise.all(buffers.map(b => internals.file.write(b.start, b.segments)))
-          .then(() => buffers = [])
-          .then(internals.file.md5)
-          .then(function (md5) {
-            internals.md5 = md5;
-            a.event.emit('md5', md5);
-            a.event.emit('add-log', `MD5 checksum is **${md5}**`);
-            return internals.file.flush().then(function (name) {
-              // sync the names
-              if (name) {
-                internals.name = name;
-                a.event.emit('name', internals.name);
-              }
-              return status;
-            });
+
+    // getting header
+    // if use-native is true, app.sandbox finds the actual downloadable url
+    (function () {
+      return new app.Promise(function (resolve) {
+        if (obj['use-native']) {
+          event.emit('add-log', 'waiting for native-method to catch download link ...');
+          return app.sandbox(obj.url, {
+            'no-response': 40 * 1000
+          }).then(function (url) {
+            event.emit('add-log', `native-method returned ${url}`);
+            obj.url = url;
+            resolve();
+          }).catch (function () {
+            event.emit('add-log', `native-method is not responding; timeout`, {type: 'warning'});
+            resolve();
           });
+        }
+        else {
+          resolve();
+        }
+      });
+    })()
+    .then(() => app.Promise.race([obj.url, obj.url, obj.url].map(url => head({url, referrer: obj.referrer}))))
+    .then(
+      function (i) {
+        info = i;
+        obj.urls = [info && info.url ? info.url : obj.url]; // bypass redirects
+        event.emit('info', info);
+        event.emit('add-log', `File mime tpye is **${info.mime}**`);
+        event.emit('add-log', `File encoding is **${info.encoding}**`);
+        event.emit('add-log', `Server multi-threading support status is **${info['multi-thread']}**`);
+        event.emit('add-log', `File length in bytes is **${info.length}**`);
+        event.emit('add-log', `Actual downloadable URL is ${obj.urls[0]}`);
+      },
+      (e) => {
+        event.emit('add-log', `Cannot get file information form server; ${e.message}`, {type: 'error'});
+        done('error');
       }
-      if (status === 'error' && internals.file) {
-        return internals.file.remove();
-      }
-      return status;
+    );
+    let promise;
+    promise = spy(d.promise, function () {
+      return app.Promise.all(buffers.map(b => internals.file.write(b.start, b.segments)))
+        .then(() => buffers = [])
+        .then(internals.file.md5)
+        .then(function (md5) {
+          internals.md5 = md5;
+          event.emit('md5', md5);
+          event.emit('add-log', `MD5 checksum is **${md5}**`);
+          return internals.file.flush().then(function (name) {
+            // sync the names
+            if (name) {
+              internals.name = name;
+              event.emit('name', internals.name);
+            }
+            return internals.status;
+          });
+        });
     });
-    return a;
+    return {
+      event,
+      promise,
+      resolve: d.resolve,
+      reject: d.reject,
+      get threads () {return lastCount;},
+      get status () {return internals.status;},
+      get retries () {return internals.retries;},
+      get info () {return info;},
+      get internals () {return internals;},
+      modify: function (uo) {
+        obj.threads = uo.threads || obj.threads;
+        obj.timeout = uo.timeout || obj.timeout;
+        if (uo.name !== obj.name) {
+          event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-')); // removing exceptions
+        }
+        if (uo.url && obj.urls.indexOf(uo.url) === -1) {
+          app.Promise.race([uo.url, uo.url, uo.url].map(url => head({url, referrer: obj.referrer}))).then(
+            function (i) {
+              if (info.length === i.length) {
+                if (obj.urls.indexOf(i.url) === -1) {
+                  obj.urls = obj.urls.concat(i.url);
+                  event.emit('add-log', `[${i.url}](${i.url}) is appeded as a mirror. Total number of downloadable links is **${obj.urls.length}**`);
+                }
+                else {
+                  event.emit('add-log', `[${i.url}](${i.url}) is already in the list`, {type: 'warning'});
+                }
+              }
+              else {
+                event.emit('add-log', `Applying the new URL failed. ${uo.url} returns **${i.length}** bytes for file-size`, {type: 'warning'});
+              }
+            },
+            (e) => event.emit('add-log', `Cannot change URL; Cannot access server; ${e.message}.`, {type: 'warning'})
+          );
+        }
+      }
+    };
+  }
+  /* handling IO */
+  function bget (obj) {
+    return aget(obj);
   }
   /* handling speed measurement */
   function cget (obj) {

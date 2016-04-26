@@ -154,7 +154,7 @@ app.manager.receive('init', function () {
   instances.forEach(function (instance, id) {
     app.manager.send('add', {
       'id': id,
-      'name': instance['internals@b'].name,
+      'name': instance.internals.name,
       'size': instance.info ? instance.info.length : 0,
       'percent': instance.info ? (instance.info.length - instance.remained) / instance.info.length * 100 : 0,
       'chunkable': instance.info ? instance.info['multi-thread'] : false,
@@ -190,7 +190,7 @@ app.manager.receive('cmd', function (obj) {
     let instance = mwget.get(obj.id);
     app.download({
       url: instance.info ? instance.info.url : instance.obj.url,
-      name: instance['internals@b'].name,
+      name: instance.internals.name,
       path: instance.obj.folder
     });
   }
@@ -271,10 +271,10 @@ app.info.receive('init', function (id) {
 });
 app.info.receive('cmd', function (obj) {
   if (obj.cmd === 'folder') {
-    mwget.get(obj.id)['internals@b'].file.reveal();
+    mwget.get(obj.id).internals.file.reveal();
   }
   if (obj.cmd === 'file') {
-    mwget.get(obj.id)['internals@b'].file.launch();
+    mwget.get(obj.id).internals.file.launch();
   }
   if (obj.cmd === 'remove') {
     mwget.remove(obj.id);
@@ -288,7 +288,7 @@ app.modify.receive('init', function (id) {
   if (instance) {
     app.modify.send('init', {
       url: instance.info ? instance.info.url : instance.obj.url,
-      name: instance['internals@b'].name,
+      name: instance.internals.name,
       threads: instance.threads,
       timeout: instance.timeout / 1000
     });

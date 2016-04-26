@@ -41,3 +41,7 @@ var background = { // jshint ignore:line
     }
   })
 };
+// access manager window from background
+chrome.runtime.getBackgroundPage(function (b) {
+  b.pointers.manager = window;
+});

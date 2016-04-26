@@ -4,13 +4,15 @@ var http = require('http');
 var path = require('path');
 var send = require('send');
 var url = require('url');
+var os = require('os');
+var ifaces = os.networkInterfaces();
 
 function getUserHome() {
   return process.env[(process.platform === 'win32') ? 'USERPROFILE' : 'HOME'];
 }
 
 var root = path.join(getUserHome(), 'Desktop');
-console.error('Mirroring %s to http://127.0.0.1:3000', root);
+console.error(`Mirroring ${root} to ${ifaces.en0.map(o => `http://${o.address}:3000`).join(', ')}`);
 
 http.createServer(function (req, res) {
   // your custom error-handling logic:

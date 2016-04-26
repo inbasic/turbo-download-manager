@@ -223,7 +223,7 @@ app.about = (function () {
 
 app.File = function (obj) { // {name, path, mime, length}
   window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
-  let fileEntry, cache = [], postponed, length = 0;
+  let fileEntry, postponed, length = 0;
 
   let tmp = {
     open: function () {
@@ -239,9 +239,6 @@ app.File = function (obj) { // {name, path, mime, length}
                   fe.createWriter(function (fileWriter) {
                     fileWriter.onwrite = function () {
                       fileEntry = fe;
-                      Promise.all(cache.map(o => tmp.write(o.offset, o.arr))).then(function () {
-                        cache = [];
-                      }, (e) => d.reject(e));
                       d.resolve();
                     };
                     fileWriter.onerror = (e) => d.reject(e);
@@ -262,27 +259,21 @@ app.File = function (obj) { // {name, path, mime, length}
     },
     write: function (offset, arr) {
       let d = Promise.defer();
-      if (!fileEntry) {
-        cache.push({offset, arr});
-        d.resolve();
-      }
-      else {
-        fileEntry.createWriter(function (fileWriter) {
-          let blob = new Blob(arr, {type: 'application/octet-stream'});
-          arr = [];
-          fileWriter.onerror = (e) => d.reject(e);
-          fileWriter.onwrite = function (e) {
-            length += blob.size; //length += e.loaded; bug #17
-            d.resolve();
-            if (postponed && length === obj.length) {
-              postponed.resolve(tmp.md5());
-            }
-            blob = '';
-          };
-          fileWriter.seek(offset);
-          fileWriter.write(blob);
-        }, (e) => d.reject(e));
-      }
+      fileEntry.createWriter(function (fileWriter) {
+        let blob = new Blob(arr, {type: 'application/octet-stream'});
+        arr = [];
+        fileWriter.onerror = (e) => d.reject(e);
+        fileWriter.onwrite = function (e) {
+          length += blob.size; //length += e.loaded; bug #17
+          d.resolve();
+          if (postponed && length === obj.length) {
+            postponed.resolve(tmp.md5());
+          }
+          blob = '';
+        };
+        fileWriter.seek(offset);
+        fileWriter.write(blob);
+      }, (e) => d.reject(e));
       return d.promise;
     },
     md5: function () {
