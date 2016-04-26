@@ -638,7 +638,7 @@ else {
             }
             return internals.status;
           });
-        });
+        }).catch (console.error);
     });
     return {
       event,

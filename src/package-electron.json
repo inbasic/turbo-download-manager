@@ -25,7 +25,6 @@
   "homepage": "http://add0n.com/turbo-download-manager.html",
   "dependencies": {
     "node-storage": "",
-    "md5": "",
     "request": ""
   },
   "devDependencies": {

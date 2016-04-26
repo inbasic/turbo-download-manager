@@ -9,9 +9,9 @@ var shell = require('electron').shell;
 // node
 var path = require('path');
 var fs = require('fs');
+var crypt = require('crypto');
 // libs
 var Storage = require('node-storage');
-var md5 = require('md5');
 var request = require('request');
 
 if (typeof require !== 'undefined') {
@@ -84,16 +84,11 @@ exports.Promise = Promise;
 exports.XMLHttpRequest = XMLHttpRequest;
 
 exports.fetch = function (uri, props) {
-  let d = Promise.defer(), buffers = [], done = false;
-  let ppp, sent = false;
+  let d = Promise.defer();
+  let ppp, buffers = [];
   let status;
+  let loaded = 0, total = 0;
 
-  function result() {
-    return {
-      value: buffers.shift(),
-      get done() { return done && buffers.length === 0; }
-    };
-  }
   if (props.referrer) {
     props.headers.referer = props.referrer;
   }
@@ -102,43 +97,59 @@ exports.fetch = function (uri, props) {
     method: 'GET',
     headers: props.headers
   });
+
+  function send () {
+    if (ppp && buffers.length) {
+      ppp(buffers.shift());
+      ppp = null;
+    }
+  }
+
+  let resolve = (function () {
+    let resolved = false;
+    return function () {
+      if (!resolved) {
+        d.resolve({
+          ok: status >= 200 && status < 300,
+          get status () {
+            return status;
+          },
+          body: {
+            getReader: function () {
+              return {
+                read: function () {
+                  let d = Promise.defer();
+                  ppp = d.resolve;
+                  send();
+                  return d.promise;
+                },
+                cancel: () => req.abort()
+              };
+            }
+          }
+        });
+      }
+      resolved = true;
+      send();
+    };
+  })();
+
   req.on('error', (e) => d.reject(e));
   req.on('response', function (response) {
     status = response.statusCode;
+    total = +response.headers['content-length'];
   });
   req.on('data', function (chunk) {
-    buffers.push(chunk);
-    if (!sent) {
-      sent = true;
-      d.resolve({
-        ok: true,
-        get status () {
-          return status;
-        },
-        body: {
-          getReader: function () {
-            return {
-              read: function () {
-                let d = Promise.defer();
-                if (buffers.length) {
-                  ppp = null;
-                  d.resolve(result());
-                } else {
-                  ppp = d.resolve;
-                }
-                return d.promise;
-              },
-              cancel: () => req.abort()
-            };
-          }
-        }
+    if (chunk.byteLength) {
+      loaded += chunk.byteLength;
+      buffers.push({
+        value: chunk,
+        done: loaded === total
       });
     }
-    if (ppp) {
-      ppp(result());
-    }
+    resolve();
   });
-  req.on('end', () => done = true);
+  req.on('end', () => resolve());
   req.end();
 
   return d.promise;
@@ -284,7 +295,7 @@ exports.about = {
 };
 
 exports.File = function (obj) { // {name, path, mime, length}
-  let file, filePath;
+  let file;
   let cache = [];
   let tmp = {
     open: function () {
@@ -306,8 +317,8 @@ exports.File = function (obj) { // {name, path, mime, length}
       }
       return new Promise(function (resolve, reject) {
         check(function (p) {
-          filePath = p;
-          fs.open(p, 'w', function (err, fd) {
+          let filePath = p;
+          fs.open(p, 'w+', function (err, fd) {
             if (err) {
               reject(err);
             }
@@ -350,12 +361,14 @@ exports.File = function (obj) { // {name, path, mime, length}
     },
     md5: function () {
       return new Promise(function (resolve, reject) {
-        fs.readFile(filePath, function (err, buf) {
+        fs.readFile(file, function (err, buf) {
           if (err) {
             reject(err);
           }
           else {
-            resolve(md5(buf));
+            let hash = crypt.createHash('md5');
+            hash.update(buf);
+            resolve(hash.digest('hex'));
           }
         });
       });
