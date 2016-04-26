@@ -489,6 +489,7 @@ else {
         path: obj.folder,
         length: info.length
       });
+      event.emit('add-log', 'Allocating space ...');
       internals.file.open().then(function (name) {
         // sync the names
         if (name) {
@@ -638,7 +639,7 @@ else {
             }
             return internals.status;
           });
-        }).catch (console.error);
+        });
     });
     return {
       event,

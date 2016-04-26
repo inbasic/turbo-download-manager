@@ -15,7 +15,6 @@
   "app": {
     "background": {
       "scripts": [
-        "lib/android/md5.js",
         "lib/utils.js",
         "lib/config.js",
         "lib/android/android.js",

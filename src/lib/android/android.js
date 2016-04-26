@@ -326,30 +326,48 @@ app.File = function (obj) { // {name, path, mime, length}
     open: function () {
       let d = Promise.defer();
 
+      function allocate (fileEntry, start, length, success, fail) {
+        fileEntry.createWriter(function (fileWriter) {
+          fileWriter.onwrite = function () {
+            fileEntry.file(function (file) {
+              if (file.size === length + start) {
+                success();
+              }
+              else {
+                fail('Cannot allocate');
+              }
+            }, (e) => fail(e));
+          };
+          fileWriter.onerror = (e) => fail(e);
+          let b = new pointers.manager.Blob([new Uint8Array(length)], {type: 'application/octet-stream'});
+          fileWriter.seek(start);
+          fileWriter.write(b);
+        }, (e) => fail(e));
+      }
+
       window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory + 'Download', function (download) {
         download.getFile(
           Math.floor(Math.random() * 16777215).toString(16),  // a unique name
           {create: true, exclusive: false},
           function (fe) {
             fileEntry = fe;
-            fe.createWriter(function (fileWriter) {
-              fileWriter.onwrite = function () {
-                fe.file(function (file) {
-                  console.error('initial file.size is', file.size);
-                  if (file.size === obj.length) {
-                    d.resolve();
-                  }
-                  else {
-                    d.reject(new Error(`Cannot truncate the file; requested ${obj.length} bytes but got ${file.size}`));
-                  }
+
+            let start = 0;
+            let size = 5 * 1024 * 1024;
+            // Since there is no truncate function for fileWriter, we are allocating space with 5Mbyte write requests
+            function doOne () {
+              let a = Math.min(obj.length - start, size);
+              if (a) {
+                allocate(fe, start, a, function () {
+                  start += a;
+                  doOne();
                 }, (e) => d.reject(e));
-              };
-              fileWriter.onerror = (e) => d.reject(e);
-              let b = new pointers.manager.Blob([new Uint8Array(obj.length)], {type: 'application/octet-stream'});
-              fileWriter.seek(0);
-              fileWriter.write(b);
-              //fileWriter.write(new Array(obj.length + 1).join('.'));
-            }, (e) => d.reject(e));
+              }
+              else {
+                d.resolve();
+              }
+            }
+            doOne();
           },
           (e) => d.reject(e)
         );
@@ -367,7 +385,7 @@ app.File = function (obj) { // {name, path, mime, length}
           length += blob.size; // length += e.loaded
           d.resolve();
           if (postponed && length === obj.length) {
-            postponed.resolve(tmp.md5());
+            postponed.resolve();
           }
           blob = '';
         };
@@ -382,23 +400,7 @@ app.File = function (obj) { // {name, path, mime, length}
     },
     md5: function () {
       let d = Promise.defer();
-      if (fileEntry && length === obj.length) {
-        if (obj.length > 50 * 1024 * 1024) {
-          d.resolve('MD5 calculation is skipped');
-        }
-        else {
-          fileEntry.file(function (file) {
-            let reader = new FileReader();
-            reader.onloadend = function () {
-              d.resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(this.result)).toString());
-            };
-            reader.readAsBinaryString(file);
-          }, (e) => d.reject(e));
-        }
-      }
-      else {
-        postponed = d;
-      }
+      window.md5chksum.file(fileEntry, d.resolve, d.reject);
       return d.promise;
     },
     flush: function () {
