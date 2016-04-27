@@ -3,7 +3,7 @@
   "packageId": "com.add0n.tdm",
   "description": "a download manager with multi-threading support",
   "author": "Inbasic",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "manifest_version": 2,
   "permissions": [
     "storage",

@@ -75,9 +75,11 @@ else {
       instance.promise.then(function (status) {
         let md5 = status === 'done' ? instance.internals.md5 : '';
         callbacks.done.forEach(d => d(index, status, md5));
+        instance.stats = {};
       }).catch((e) => {
         instance.log.push(`Internal Error; ${e ? e.message || e.exception || e : 'no error message'}`, {type: 'error'});
         callbacks.done.forEach(d => d(index, 'error', ''));
+        instance.stats = {};
       });
       instance.log.push(`Downloading ${obj.url}`);
       instance.event.on('progress', function (a, e) {

@@ -153,6 +153,10 @@ var get = function (id) {
       item.style.width = percent + '%';
       item.style.backgroundColor = color;
     },
+    clear: function () {
+      let holder = parent.querySelector('[data-type=partial]');
+      holder.innerHTML = '';
+    },
     set status (val) { // jshint ignore: line
       parent.dataset.type = val;
     },
@@ -270,6 +274,9 @@ background.receive('status', function (obj) {
   let item = get(obj.id);
   if (item) {
     item.status = obj.status;
+    if (obj.status === 'done' || obj.status === 'error') {
+      item.clear();
+    }
   }
 });
 background.receive('count', function (obj) {

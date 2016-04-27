@@ -39,6 +39,7 @@ http://add0n.com/turbo-download-manager.html
   5. Android submission:
     1. `cca build android --release --webview=crosswalk`
     2. `cca build android --release --webview=system --android-minSdkVersion=21`
+    3. In case of errors run `cca platform remove android` followed by `cca platform add android`
 5. Electron:
   1. Mac:
     1. `electron-packager . "Turbo Download Manager" --platform=darwin --arch=x64 --version=0.36.7 --icon ../512.icns --overwrite`

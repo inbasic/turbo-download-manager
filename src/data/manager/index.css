@@ -225,16 +225,6 @@ body:not([data-browser=electron]) #menu li[data-role=console] {
 .item[data-type=error] div[data-type=overal] {
   background-color: red;
 }
-.item[data-type=done] div[data-type=overal]>div,
-.item[data-type=done] div[data-type=partial]>div,
-.item[data-type=new] div[data-type=overal]>div,
-.item[data-type=new] div[data-type=partial]>div,
-.item[data-type=head] div[data-type=overal]>div,
-.item[data-type=head] div[data-type=partial]>div,
-.item[data-type=error] div[data-type=overal]>div,
-.item[data-type=error] div[data-type=partial]>div {
-  display: none;
-}
 
 .item:not([data-type=pause]) i[data-cmd=modify],
 .item:not([data-type=pause]) i[data-cmd=cancel],
