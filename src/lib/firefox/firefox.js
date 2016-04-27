@@ -324,7 +324,7 @@ exports.File = function (obj) { // {name, path, mime}
     open: function () {
       return new Promise(function (resolve) {
         file = obj.path ? FileUtils.File(obj.path) : dnldMgr.userDownloadsDirectory;
-        file.append(obj.name);
+        file.append(obj.name || 'unknown');
         file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
         resolve(file.leafName);
       });
@@ -608,7 +608,6 @@ exports.OS = (function () {
 
 // native downloader
 exports.download = function (obj) {
-  console.error(obj);
   let file = new exports.File(obj);
   return file.open().then(function () {
     return Downloads.getList(Downloads.ALL).then(function (list) {
