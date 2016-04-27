@@ -27,5 +27,5 @@ var manifest = { // jshint ignore:line
   folder: false,
   support: false,
   sandbox: true,
-  referrer: true
+  referrer: false
 };

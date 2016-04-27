@@ -34,7 +34,8 @@ Promise.defer = Promise.defer || function () {
 var app = new utils.EventEmitter();
 
 app.globals = {
-  browser: 'android'
+  browser: 'android',
+  referrer: false
 };
 
 app.Promise = Promise;

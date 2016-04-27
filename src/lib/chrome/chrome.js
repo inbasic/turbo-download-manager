@@ -223,38 +223,71 @@ app.about = (function () {
 
 app.File = function (obj) { // {name, path, mime, length}
   window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
-  let fileEntry, postponed, length = 0;
+  let rootEntry, fileEntry, postponed, length = 0;
+  let access = false;
 
-  let tmp = {
+  return {
     open: function () {
       let d = Promise.defer();
-      navigator.webkitTemporaryStorage.requestQuota(obj.length, function (grantedBytes) {
-        if (grantedBytes === obj.length) {
-          window.requestFileSystem(
-            window.TEMPORARY, obj.length, function (fs) {
-              fs.root.getFile(
-                Math.floor(Math.random() * 16777215).toString(16),  // a unique name
-                {create: true, exclusive: false},
-                function (fe) {
-                  fe.createWriter(function (fileWriter) {
-                    fileWriter.onwrite = function () {
-                      fileEntry = fe;
-                      d.resolve();
-                    };
-                    fileWriter.onerror = (e) => d.reject(e);
-                    fileWriter.truncate(obj.length);
-                  });
-                },
-                (e) => d.reject(e)
-              );
-            },
-            (e) => d.reject(e)
-          );
+
+      function final () {
+        rootEntry.getFile(
+          Math.floor(Math.random() * 16777215).toString(16),  // a unique name
+          {create: true, exclusive: false},
+          function (fe) {
+            fe.createWriter(function (fileWriter) {
+              fileWriter.onwrite = function () {
+                fileEntry = fe;
+                d.resolve();
+              };
+              fileWriter.onerror = (e) => d.reject(e);
+              fileWriter.truncate(obj.length);
+            });
+          },
+          (e) => d.reject(e)
+        );
+      }
+
+      function alternative () {
+        navigator.webkitTemporaryStorage.requestQuota(obj.length, function (grantedBytes) {
+          if (grantedBytes === obj.length) {
+            window.requestFileSystem(
+              window.TEMPORARY, obj.length, function (fs) {
+                rootEntry = fs.root;
+                final();
+              },
+              (e) => d.reject(e)
+            );
+          }
+          else {
+            d.reject(new Error('cannot allocate space'));
+          }
+        });
+      }
+
+      chrome.storage.local.get(null, function (storage) {
+        if (storage.folder && storage['add-directory']) {
+          try {
+            chrome.fileSystem.restoreEntry(storage.folder, function (root) {
+              if (root) {
+                access = true;
+                rootEntry = root;
+                final();
+              }
+              else {
+                alternative();
+              }
+            });
+          }
+          catch (e) {
+            alternative();
+          }
         }
         else {
-          d.reject(new Error('cannot allocate space'));
+          alternative();
         }
       });
+
       return d.promise;
     },
     write: function (offset, arr) {
@@ -267,7 +300,7 @@ app.File = function (obj) { // {name, path, mime, length}
           length += blob.size; //length += e.loaded; bug #17
           d.resolve();
           if (postponed && length === obj.length) {
-            postponed.resolve(tmp.md5());
+            postponed.resolve();
           }
           blob = '';
         };
@@ -300,16 +333,16 @@ app.File = function (obj) { // {name, path, mime, length}
     flush: function () {
       let d = Promise.defer();
 
-      function copy (folder, index) {
+      function copy (index) {
         let name = obj.name;
         if (index) {
           name = name.replace(/((\.[^\.]{1,3}){0,1}\.[^\.]+)$/, '-' + index + '$1');
         }
-        folder.getFile(name, {create: true, exclusive: true}, function () {
-          fileEntry.moveTo(folder, name, () => d.resolve, (e) => d.reject(e));
+        rootEntry.getFile(name, {create: true, exclusive: true}, function () {
+          fileEntry.moveTo(rootEntry, name, () => d.resolve, (e) => d.reject(e));
           d.resolve(name);
         }, function () {
-          copy(folder, (index || 0) + 1);
+          copy((index || 0) + 1);
         });
       }
 
@@ -325,27 +358,12 @@ app.File = function (obj) { // {name, path, mime, length}
           }, 5000);
         }, (e) => d.reject(e));
       }
-
-      chrome.storage.local.get(null, function (storage) {
-        if (storage.folder && storage['add-directory']) {
-          try {
-            chrome.fileSystem.restoreEntry(storage.folder, function (folder) {
-              if (folder) {
-                copy(folder);
-              }
-              else {
-                alternative();
-              }
-            });
-          }
-          catch (e) {
-            alternative();
-          }
-        }
-        else {
-          alternative();
-        }
-      });
+      if (access) {
+        copy();
+      }
+      else {
+        alternative();
+      }
       return d.promise;
     },
     remove: function () {
@@ -370,7 +388,6 @@ app.File = function (obj) { // {name, path, mime, length}
       }
     }
   };
-  return tmp;
 };
 
 app.disk = {
