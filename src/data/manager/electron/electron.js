@@ -47,3 +47,5 @@ ipcRenderer.on('_sandbox', (event, obj) => {
   webview.addEventListener('crashed', () => destroy(null, 2));
   webview.src = obj.url;
 });
+
+var manifest = {}; // jshint ignore:line

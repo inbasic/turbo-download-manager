@@ -14,3 +14,5 @@ var background = {
     }, false);
   }
 };
+
+var manifest = {}; // jshint ignore:line

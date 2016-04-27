@@ -12,3 +12,5 @@ var background = { // jshint ignore:line
     }
   })
 };
+
+var manifest = {}; // jshint ignore:line

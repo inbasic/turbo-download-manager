@@ -1,4 +1,4 @@
-/* globals background */
+/* globals background, manifest */
 'use strict';
 
 function bytesToSize(bytes) {
@@ -209,9 +209,6 @@ var get = function (id) {
 function add (id) {
   toolbar.search = '';
   let parent = document.querySelector('.item[data-id="-1"]').cloneNode(true);
-  parent.addEventListener('click', function () {
-    console.error(parent.dataset.id);
-  });
   let refrence = document.querySelector('.item');
   parent.dataset.id = id;
   document.body.insertBefore(parent, refrence);
@@ -334,3 +331,5 @@ document.addEventListener('click', function (e) {
     });
   }
 });
+// manifest
+document.body.dataset.open = manifest.open;

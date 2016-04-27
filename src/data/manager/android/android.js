@@ -45,3 +45,5 @@ var background = { // jshint ignore:line
 chrome.runtime.getBackgroundPage(function (b) {
   b.pointers.manager = window;
 });
+
+var manifest = {}; // jshint ignore:line

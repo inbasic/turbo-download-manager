@@ -200,6 +200,9 @@ app.manager.receive('cmd', function (obj) {
       'use-native': true
     }));
   }
+  if (obj.cmd === 'open') {
+    mwget.get(obj.id).internals.file.launch();
+  }
 });
 app.manager.receive('open', function (cmd) {
   if (cmd === 'bug') {
