@@ -608,6 +608,7 @@ exports.OS = (function () {
 
 // native downloader
 exports.download = function (obj) {
+  console.error(obj);
   let file = new exports.File(obj);
   return file.open().then(function () {
     return Downloads.getList(Downloads.ALL).then(function (list) {
