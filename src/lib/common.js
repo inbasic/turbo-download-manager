@@ -1,11 +1,9 @@
 'use strict';
 
-if (typeof require !== 'undefined') {
-  var app = require('./firefox/firefox');
-  var config = require('./config');
-  var mwget = require('./mwget');
-  var utils = require('./utils');
-}
+var app = app || require('./firefox/firefox');
+var config = config || require('./config');
+var mwget = mwget || require('./mwget');
+var utils = utils || require('./utils');
 
 /* welcome page */
 app.startup(function () {
@@ -13,7 +11,7 @@ app.startup(function () {
   if (app.version() !== version) {
     app.timer.setTimeout(function () {
       app.tab.open(
-        'http://add0n.com/turbo-download-manager.html?v=' + app.version() +
+        config.url.faq + '?v=' + app.version() +
         (version ? '&p=' + version + '&type=upgrade' : '&type=install')
       );
       config.welcome.version = app.version();
@@ -21,7 +19,7 @@ app.startup(function () {
   }
 });
 
-/* manager */
+/* button */
 app.button.onCommand(function () {
   app.tab.list().then(function (tabs) {
     tabs = tabs.filter(t => t && t.url.indexOf(app.getURL('manager/index.html')) === 0);
@@ -34,37 +32,55 @@ app.button.onCommand(function () {
   });
 });
 
-/* main.js */
-function download (obj) {
-  obj.threads = obj.threads || config.wget.threads;
-  obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
-  obj.update = obj.update * 1000 || config.wget.update * 1000;
-  obj.pause = obj.pause || config.wget.pause;
-  obj['use-native'] = obj['use-native'] || false;
-  obj['write-size'] = obj['write-size'] || config.wget['write-size'];
-  obj.retries = obj.retries || config.wget.retrie;
-  obj.folder = obj.folder || app.storage.read('add-directory');
-  // pause trigger
-  obj['auto-pause'] = obj['auto-pause'] ||
-    (config.triggers.pause.enabled && mwget.count() >= config.triggers.pause.value);
+/* - */
+var actions = {
+  download: function download (obj) {
+    obj.threads = obj.threads || config.wget.threads;
+    obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
+    obj.update = obj.update * 1000 || config.wget.update * 1000;
+    obj.pause = obj.pause || config.wget.pause;
+    obj['use-native'] = obj['use-native'] || false;
+    obj['write-size'] = obj['write-size'] || config.wget['write-size'];
+    obj.retries = obj.retries || config.wget.retrie;
+    obj.folder = obj.folder || app.storage.read('add-directory');
+    // pause trigger
+    obj['auto-pause'] = obj['auto-pause'] ||
+      (config.triggers.pause.enabled && mwget.count() >= config.triggers.pause.value);
 
-  // on Android and Opera, there is no directory selection
-  if (!obj.folder && !app.storage.read('notice-download') && ['android', 'opera'].indexOf(app.globals.browser) === -1) {
-    app.notification('Saving in the default download directory. Add a new job from manager to change the directory.');
-    app.storage.write('notice-download', 'shown');
+    // on Android and Opera, there is no directory selection
+    if (!obj.folder && !app.storage.read('notice-download') && ['android', 'opera'].indexOf(app.globals.browser) === -1) {
+      app.notification('Saving in the default download directory. Add a new job from manager to change the directory.');
+      app.storage.write('notice-download', 'shown');
+    }
+    mwget.download(obj);
+  },
+  open: {
+    bug: () => app.tab.open(config.urls.bug),
+    faq: () => app.tab.open(config.urls.faq),
+    helper: () => app.tab.open(config.urls.helper),
+    sourceforge: () => app.tab.open(config.urls.sourceforge),
+    developer: () => app.developer.console(),
+    triggers: () => app.manager.send('triggers'),
+    about: () => app.manager.send('about')
   }
-  mwget.download(obj);
-}
+};
+app.on('open', function (cmd) {
+  if (cmd in actions.open) {
+    actions.open[cmd]();
+  }
+});
 /* connect */
-app.on('download', download);
+app.on('download', actions.download);
+
+
 /* context menu */
 (function (arr) {
   if (app.globals.browser !== 'opera') {
     arr.push(
-      ['Bypass page redirection then download', (obj) => download(Object.assign(obj, {
+      ['Bypass page redirection then download', (obj) => actions.download(Object.assign(obj, {
         'use-native': true
       }))],
-      ['Bypass page redirection then pause', (obj) => download(Object.assign(obj, {
+      ['Bypass page redirection then pause', (obj) => actions.download(Object.assign(obj, {
         'use-native': true,
         'auto-pause': true
       }))]
@@ -72,8 +88,8 @@ app.on('download', download);
   }
   app.menu.bind(app, 'Turbo Download Manager').apply(app, arr);
 })([
-  ['Download now', download],
-  ['Download later', (obj) => download(Object.assign(obj, {
+  ['Download now', actions.download],
+  ['Download later', (obj) => actions.download(Object.assign(obj, {
     'auto-pause': true
   }))]
 ]);
@@ -196,7 +212,7 @@ app.manager.receive('cmd', function (obj) {
   }
   if (obj.cmd === 'use-native') {
     let instance = mwget.get(obj.id);
-    download(Object.assign(instance.obj, {
+    actions.download(Object.assign(instance.obj, {
       'use-native': true
     }));
   }
@@ -204,26 +220,7 @@ app.manager.receive('cmd', function (obj) {
     mwget.get(obj.id).internals.file.launch();
   }
 });
-app.manager.receive('open', function (cmd) {
-  if (cmd === 'bug') {
-    app.tab.open('https://github.com/inbasic/turbo-download-manager/');
-  }
-  if (cmd === 'faqs') {
-    app.tab.open('http://add0n.com/turbo-download-manager.html');
-  }
-  if (cmd === 'helper') {
-    app.tab.open('https://chrome.google.com/webstore/detail/turbo-download-manager-he/gnaepfhefefonbijmhcmnfjnchlcbnfc');
-  }
-  if (cmd === 'console') {
-    app.developer.console();
-  }
-  if (cmd === 'triggers') {
-    app.manager.send('triggers');
-  }
-  if (cmd === 'about') {
-    app.manager.send('about');
-  }
-});
+app.manager.receive('open', app.emit.bind(app, 'open'));
 /* add ui */
 app.add.receive('download', function (obj) {
   app.manager.send('hide');
@@ -233,7 +230,7 @@ app.add.receive('download', function (obj) {
   if (obj.timeout) {
     app.storage.write('add-timeout', obj.timeout);
   }
-  download(obj);
+  actions.download(obj);
 });
 app.add.receive('cmd', function (obj) {
   if (obj.cmd === 'browse') {

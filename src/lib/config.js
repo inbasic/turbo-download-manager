@@ -1,12 +1,14 @@
 'use strict';
 
-if (typeof require !== 'undefined') {
-  var app = require('./firefox/firefox');
-  var config = exports;
-}
-else {
-  var config = {};
-}
+var app = app || require('./firefox/firefox');
+var config = typeof exports === 'undefined' ? {} : exports;
+
+config.urls = {
+  bug: 'https://github.com/inbasic/turbo-download-manager/',
+  faq: 'http://add0n.com/turbo-download-manager.html',
+  helper: 'https://chrome.google.com/webstore/detail/turbo-download-manager-he/gnaepfhefefonbijmhcmnfjnchlcbnfc',
+  sourceforge: 'https://sourceforge.net/projects/turbo-download-manager/files/?source=navbar'
+};
 
 config.mwget = {
   percent: {

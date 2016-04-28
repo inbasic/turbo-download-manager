@@ -1,16 +1,11 @@
 'use strict';
 
-if (typeof require !== 'undefined') {
-  var app = require('./firefox/firefox');
-  var wget = require('./wget');
-  var config = require('./config');
-  var utils = require('./utils');
-  var icon = require('./icon');
-  var mwget = exports;
-}
-else {
-  var mwget = {};
-}
+var app = app || require('./firefox/firefox');
+var wget = wget || require('./wget');
+var config = config || require('./config');
+var utils = utils || require('./utils');
+var icon = icon || require('./icon');
+var mwget = typeof exports === 'undefined' ? {} : exports;
 
 (function () {
   let instances = [];

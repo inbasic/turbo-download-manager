@@ -330,7 +330,7 @@ gulp.task('android-install', function () {
   .pipe(shell([
     'pwd & cca run android --device'
   ], {
-    cwd: './android/TDM/'
+    cwd: 'trash/android/TDM/'
   }));
 });
 

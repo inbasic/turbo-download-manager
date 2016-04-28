@@ -1,13 +1,8 @@
 'use strict';
 
-if (typeof require !== 'undefined') {
-  var utils = require('./utils');
-  var app = require('./firefox/firefox');
-  var wget = exports;
-}
-else {
-  var wget = {};
-}
+var utils = utils || require('./utils');
+var app = app || require('./firefox/firefox');
+var wget = typeof exports === 'undefined' ? {} : exports;
 
 // @param  {[type]} obj.url           [url]
 // @param  {[type]} obj.referrer      [referrer]

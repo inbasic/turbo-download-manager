@@ -1,13 +1,8 @@
 'use strict';
 
-if (typeof require !== 'undefined') {
-  var app = require('./firefox/firefox');
-  var config = require('./config');
-  var icon = exports;
-}
-else {
-  var icon = {};
-}
+var app = app || require('./firefox/firefox');
+var config = config || require('./config');
+var icon = typeof exports === 'undefined' ? {} : exports;
 
 (function () {
   var canvas = app.canvas();

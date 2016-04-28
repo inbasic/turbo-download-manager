@@ -1,6 +1,6 @@
 {
   "name": "Turbo Download Manager",
-  "packageId": "com.add0n.tdm",
+  "packageId": "com.add0n.downloader",
   "description": "a download manager with multi-threading support",
   "author": "Inbasic",
   "version": "0.2.5",

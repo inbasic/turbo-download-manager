@@ -33,7 +33,7 @@ http://add0n.com/turbo-download-manager.html
   2. Preparing plugins:
     1. `cca plugin remove plugin-name`
     2. `cca plugin add path-to-plugin`
-    3.  `../../plugins/android/Toast-PhoneGap-Plugin-master/`, `cordova-plugin-admobpro`, `../../plugins/android/android/cordova-plugin-binaryfilewriter`, `https://github.com/VersoSolutions/CordovaClipboard`, `https://github.com/fastrde/phonegap-md5.git`
+    3.  `../../plugins/android/Toast-PhoneGap-Plugin-master/`, `cordova-plugin-admobpro`, `../../plugins/android/cordova-plugin-binaryfilewriter`, `https://github.com/VersoSolutions/CordovaClipboard`, `https://github.com/fastrde/phonegap-md5.git`
   3. Creating a new project: `cca create TDM --link-to=path/to/manifest.json`
   4. Installing to a device: `cca run android --device` or `cca run android --emulator`
   5. Android submission:
@@ -42,10 +42,10 @@ http://add0n.com/turbo-download-manager.html
     3. In case of errors run `cca platform remove android` followed by `cca platform add android`
 5. Electron:
   1. Mac:
-    1. `electron-packager . "Turbo Download Manager" --platform=darwin --arch=x64 --version=0.36.7 --icon ../512.icns --overwrite`
+    1. `electron-packager . "Turbo Download Manager" --platform=darwin --arch=x64 --version=0.37.7 --icon mac.icns --overwrite`
     2. `electron-builder "Turbo Download Manager.app" --platform=osx --out="dist" --config=config.json`
-  2. Windows: `electron-packager . "Turbo Download Manager" --platform=win32 --arch=x64 --version=0.36.7 --icon ../512.ico --overwrite`
-  2. Linux: `electron-packager . "Turbo Download Manager" --platform=linux --arch=all --version=0.36.7 --overwrite`
+  2. Windows: `electron-packager . "Turbo Download Manager" --platform=win32 --arch=x64 --version=0.37.7 --icon ../512.ico --overwrite`
+  2. Linux: `electron-packager . "Turbo Download Manager" --platform=linux --arch=all --version=0.37.7 --overwrite`
 
 ### Technical notes:
 

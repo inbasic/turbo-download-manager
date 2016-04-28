@@ -1,12 +1,7 @@
 'use strict';
 
-if (typeof require !== 'undefined') {
-  var app = require('./firefox/firefox');
-  var utils = exports;
-}
-else {
-  var utils = {};
-}
+var app = app || require('./firefox/firefox');
+var utils = typeof exports === 'undefined' ? {} : exports;
 
 (function () {
   // debounce

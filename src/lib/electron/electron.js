@@ -1,6 +1,7 @@
 'use strict';
 // electron
 var electron = require('electron');
+var Menu = require('menu');
 var BrowserWindow = electron.BrowserWindow;
 var ipcMain = require('electron').ipcMain;
 var dialog = require('electron').dialog;
@@ -457,6 +458,45 @@ function createWindow () {
 }
 
 electron.app.on('ready', createWindow);
+
+function createMenu () {
+  Menu.setApplicationMenu(Menu.buildFromTemplate([
+    {
+      label: 'Turbo Download Manager',
+      submenu: [
+        {label: 'About Application', click: exports.emit.bind(exports, 'open', 'about')},
+        {label: 'Check for Updates...', click: exports.emit.bind(exports, 'open', 'sourceforge')},
+        {type: 'separator'},
+        {label: 'Adjust Triggers', click: exports.emit.bind(exports, 'open', 'triggers')},
+        {type: 'separator'},
+        {label: 'Quit', accelerator: 'Command+Q', click: function () {
+          electron.app.quit();
+        }}
+      ]
+    },
+    {
+      label: 'Edit',
+      submenu: [
+        {label: 'Undo', accelerator: 'CmdOrCtrl+Z', selector: 'undo:'},
+        {label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', selector: 'redo:'},
+        {type: 'separator'},
+        {label: 'Cut', accelerator: 'CmdOrCtrl+X', selector: 'cut:'},
+        {label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:'},
+        {label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:'},
+        {label: 'Select All', accelerator: 'CmdOrCtrl+A', selector: 'selectAll:'}
+      ]
+    },
+    {
+      label: 'Help',
+      submenu: [
+        {label: 'Open FAQs Page', click: exports.emit.bind(exports, 'open', 'faq')},
+        {label: 'Open Bug Reporter', click: exports.emit.bind(exports, 'open', 'bug')}
+      ]
+    }
+  ]));
+}
+
+electron.app.on('ready', createMenu);
 
 electron.app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') {
