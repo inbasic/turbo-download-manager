@@ -17,6 +17,7 @@
   "app": {
     "background": {
       "scripts": [
+        "lib/chrome/definitions.js",
         "lib/chrome/md5.js",
         "lib/utils.js",
         "lib/config.js",

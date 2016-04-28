@@ -3,7 +3,7 @@
   "packageId": "com.add0n.downloader",
   "description": "a download manager with multi-threading support",
   "author": "Inbasic",
-  "version": "0.2.5",
+  "version": "0.2.5.1",
   "manifest_version": 2,
   "permissions": [
     "storage",
@@ -15,6 +15,7 @@
   "app": {
     "background": {
       "scripts": [
+        "lib/android/definitions.js",
         "lib/utils.js",
         "lib/config.js",
         "lib/android/android.js",

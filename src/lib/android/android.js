@@ -459,25 +459,23 @@ app.download = function (obj) {
   return Promise.resolve();
 };
 
-/*(function () {
+(function () {
   var admobid = {};
   if (/(android)/i.test(navigator.userAgent)) {
     admobid = {
-      banner: 'ca-app-pub-8474379789882900/2597644121'
+      banner: 'ca-app-pub-8474379789882900/4565165323'
     };
   }
   if ('AdMob' in window) {
-    AdMob.createBanner({
+    window.AdMob.createBanner({
       adId: admobid.banner,
-      position: AdMob.AD_POSITION.TOP_CENTER,
+      position: window.AdMob.AD_POSITION.TOP_CENTER,
       autoShow: true,
-      success: function () {},
-      error: function () {
-        console.error('failed to create banner');
-      }
+      success:function () {},
+      error: function () {}
     });
   }
-})();*/
+})();
 
 app.startup = function () {};
 
