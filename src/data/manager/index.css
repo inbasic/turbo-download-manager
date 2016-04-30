@@ -190,6 +190,7 @@ body:not([data-browser=electron]) #menu li[data-role=console] {
   width: 0%;
   background-color: green;
 }
+
 .item div[data-type=partial] {
   height: 4px;
   margin-bottom: 3px;
@@ -224,6 +225,9 @@ body:not([data-browser=electron]) #menu li[data-role=console] {
 }
 .item[data-type=error] div[data-type=overal] {
   background-color: red;
+}
+.item[data-type=error] div[data-type=overal]>div {
+  background-color: transparent;
 }
 
 .item:not([data-type=pause]) i[data-cmd=modify],

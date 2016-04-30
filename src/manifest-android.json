@@ -3,7 +3,7 @@
   "packageId": "com.add0n.downloader",
   "description": "a download manager with multi-threading support",
   "author": "Inbasic",
-  "version": "0.2.5.1",
+  "version": "0.2.6",
   "manifest_version": 2,
   "permissions": [
     "storage",

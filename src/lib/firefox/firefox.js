@@ -393,7 +393,8 @@ exports.File = function (obj) { // {name, path, mime}
         return;
       }
       try {
-        file.remove(true);
+        file.remove(false);
+        file = null;
       }
       catch (e) {}
     },
