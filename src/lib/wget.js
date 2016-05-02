@@ -606,7 +606,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         info = i;
         obj.urls = [info && info.url ? info.url : obj.url]; // bypass redirects
         event.emit('info', info);
-        event.emit('add-log', `File mime tpye is **${info.mime}**`);
+        event.emit('add-log', `File mime type is **${info.mime}**`);
         event.emit('add-log', `File encoding is **${info.encoding}**`);
         event.emit('add-log', `Server multi-threading support status is **${info['multi-thread']}**`);
         event.emit('add-log', `File length in bytes is **${info.length}**`);
