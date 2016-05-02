@@ -221,7 +221,7 @@ gulp.task('opera-build', function () {
     if (f.relative.indexOf('android') !== -1) {
       return false;
     }
-    if (f.relative.indexOf('chrome') !== -1) {
+    if (f.relative.indexOf('chrome') !== -1 && f.relative.indexOf('chrome-cm.js') === -1 && f.relative.indexOf('chrome-br.js') === -1) {
       return false;
     }
     if (f.relative.indexOf('electron') !== -1) {
@@ -279,7 +279,7 @@ gulp.task('android-build', function () {
     if (f.relative.indexOf('webapp') !== -1) {
       return false;
     }
-    if (f.relative.indexOf('chrome') !== -1) {
+    if (f.relative.indexOf('chrome') !== -1 && f.relative.indexOf('chrome-cm.js') === -1) {
       return false;
     }
     if (f.relative.indexOf('opera') !== -1) {
@@ -413,7 +413,7 @@ gulp.task('chrome', function (callback) {
   runSequence('clean', 'chrome-build', 'chrome-install', callback);
 });
 gulp.task('opera', function (callback) {
-  runSequence('clean', 'opera-build', 'opera-install', callback);
+  runSequence('clean', 'opera-build', callback);
 });
 gulp.task('firefox', function (callback) {
   runSequence('clean', 'firefox-build', 'firefox-pack', callback);

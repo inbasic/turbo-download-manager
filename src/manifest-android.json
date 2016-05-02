@@ -18,6 +18,7 @@
         "lib/android/definitions.js",
         "lib/utils.js",
         "lib/config.js",
+        "lib/android/chrome-cm.js",
         "lib/android/android.js",
         "lib/wget.js",
         "lib/icon.js",

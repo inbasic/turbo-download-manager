@@ -28,6 +28,8 @@
       "lib/opera/md5.js",
       "lib/config.js",
        "lib/utils.js",
+      "lib/opera/chrome-cm.js",
+      "lib/opera/chrome-br.js",
       "lib/opera/opera.js",
        "lib/wget.js",
        "lib/icon.js",

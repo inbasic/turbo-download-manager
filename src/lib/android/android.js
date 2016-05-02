@@ -1,4 +1,4 @@
-/* globals utils, cordova */
+/* globals app, utils, cordova */
 'use strict';
 
 var listeners = {
@@ -129,112 +129,19 @@ if (!Array.from) {
   }());
 }
 
-Promise.defer = Promise.defer || function () {
-  let deferred = {};
-  let promise = new Promise(function (resolve, reject) {
-    deferred.resolve = resolve;
-    deferred.reject  = reject;
-  });
-  deferred.promise = promise;
-  return deferred;
-};
-
-var app = new utils.EventEmitter();
-
-app.globals = {
-  browser: 'android',
-  referrer: false
-};
-
-app.Promise = Promise;
-app.XMLHttpRequest = window.XMLHttpRequest;
-app.EventEmitter = utils.EventEmitter;
-app.timer = window;
-app.URL = window.URL;
-app.fetch = function (url, props) {
-  return fetch(url, props);
-};
-
-app.storage = (function () {
-  var objs = {};
-  chrome.storage.local.get(null, function (o) {
-    objs = o;
-    app.emit('load');
-  });
-  return {
-    read: function (id) {
-      return (objs[id] || !isNaN(objs[id])) ? objs[id] + '' : objs[id];
-    },
-    write: function (id, data) {
-      objs[id] = data;
-      var tmp = {};
-      tmp[id] = data;
-      chrome.storage.local.set(tmp, function () {});
-    },
-    on: function (name, callback) {
-      chrome.storage.onChanged.addListener(function (obj) {
-        if (name in obj) {
-          callback();
-        }
-      });
-    }
-  };
-})();
-
-(function (cache) {
-  let req = new XMLHttpRequest();
-  req.open('GET', '../../data/assets/mime.json');
-  req.responseType = 'json';
-  req.onloadend = function () {
-    cache = req.response || cache;
-  };
-  req.send();
-  Object.defineProperty(app, 'mimes', {
-    get: function () {
-      return cache;
-    }
-  });
-})({});
-
-app.canvas = () => null;
-
-app.button = {
-  onCommand: function () {},
-  set icon (path) {}, // jshint ignore: line
-  set label (title) {}, // jshint ignore: line
-  set badge (val) {} // jshint ignore: line
-};
-
-app.getURL = function (path) {
-  return chrome.runtime.getURL('/data/' + path);
-};
-
-app.tab = {
-  open: function (url) {
-    window.open(url, '_system');
-  },
-  list: function () {
-    return Promise.resolve([]);
-  },
-  reload: function () {
-    return Promise.resolve();
-  },
-  activate: function () {
-    return Promise.resolve();
-  }
-};
-
-app.menu = function () {};
-
+/* app.globals */
+app.globals.browser = 'android';
+app.globals.referrer = false;
+/* app.tab */
+app.tab.open = (url) => window.open(url, '_system');
+/* app.notification */
 app.notification = (text) => window.plugins.toast.showLongCenter(text);
-
-app.version = () => chrome[chrome.runtime && chrome.runtime.getManifest ? 'runtime' : 'extension'].getManifest().version;
+/* app.platform */
 app.platform = function () {
   let v1 = /Chrome\/[\d\.]*/.exec(navigator.userAgent);
-  let v2 = /OPR\/[\d\.]*/.exec(navigator.userAgent);
-  return (v2 ? v2[0].replace('OPR/', 'OPR ') : v1[0].replace('Chrome/', 'Chrome ') + ` & Cordova ${cordova.version}`);
+  return v1[0].replace('Chrome/', 'Chrome ') + ` & Cordova ${cordova.version}`;
 };
-
+/* app.OS */
 app.OS = {
   clipboard: {
     get: function () {
@@ -244,79 +151,7 @@ app.OS = {
     }
   }
 };
-
-// manager
-app.manager = (function () {
-  return {
-    send: (id, data) => chrome.runtime.sendMessage({method: id + '@ui', data}),
-    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
-      if (id + '@ui' === message.method && sender.url !== document.location.href) {
-        callback.call(sender.tab, message.data);
-      }
-    })
-  };
-})();
-
-// add
-app.add = (function () {
-  return {
-    send: (id, data) => chrome.runtime.sendMessage({method: id + '@ad', data}),
-    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
-      if (id + '@ad' === message.method && sender.url !== document.location.href) {
-        callback.call(sender.tab, message.data);
-      }
-    })
-  };
-})();
-
-// info
-app.info = (function () {
-  return {
-    send: (id, data) => chrome.runtime.sendMessage({method: id + '@if', data}),
-    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
-      if (id + '@if' === message.method && sender.url !== document.location.href) {
-        callback.call(sender.tab, message.data);
-      }
-    })
-  };
-})();
-
-// modify
-app.modify = (function () {
-  return {
-    send: (id, data) => chrome.runtime.sendMessage({method: id + '@md', data}),
-    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
-      if (id + '@md' === message.method && sender.url !== document.location.href) {
-        callback.call(sender.tab, message.data);
-      }
-    })
-  };
-})();
-
-// triggers
-app.triggers = (function () {
-  return {
-    send: (id, data) => chrome.runtime.sendMessage({method: id + '@tr', data}),
-    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
-      if (id + '@tr' === message.method && sender.url !== document.location.href) {
-        callback.call(sender.tab, message.data);
-      }
-    })
-  };
-})();
-
-// about
-app.about = (function () {
-  return {
-    send: (id, data) => chrome.runtime.sendMessage({method: id + '@ab', data}),
-    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
-      if (id + '@ab' === message.method && sender.url !== document.location.href) {
-        callback.call(sender.tab, message.data);
-      }
-    })
-  };
-})();
-
+/* app.File */
 app.File = function (obj) { // {name, path, mime, length}
   window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
   let fileEntry, postponed, length = 0;
@@ -413,7 +248,7 @@ app.File = function (obj) { // {name, path, mime, length}
           () => copy(file, (index || 0) + 1),
           function () {
             fileEntry.getParent(function (dir) {
-              fileEntry.moveTo(dir, name, () => d.resolve(name), e => d.reject(e))
+              fileEntry.moveTo(dir, name, () => d.resolve(name), e => d.reject(e));
             }, e => d.reject(e));
           }
         );
@@ -445,45 +280,14 @@ app.File = function (obj) { // {name, path, mime, length}
   };
   return tmp;
 };
-
-// webapp
-chrome.app.runtime.onLaunched.addListener(function () {
-  chrome.app.window.create('data/manager/index.html', {
-    id: 'tdm-manager',
-  });
-});
-
-// native downloader
+/* app.download */
 app.download = function (obj) {
   window.open(obj.url, '_system');
   return Promise.resolve();
 };
-
-(function () {
-  var admobid = {};
-  if (/(android)/i.test(navigator.userAgent)) {
-    admobid = {
-      banner: 'ca-app-pub-8474379789882900/4565165323'
-    };
-  }
-  if ('AdMob' in window) {
-    window.AdMob.createBanner({
-      adId: admobid.banner,
-      position: window.AdMob.AD_POSITION.TOP_CENTER,
-      autoShow: true,
-      success:function () {},
-      error: function () {}
-    });
-  }
-})();
-
+/* app.startup */
 app.startup = function () {};
-
-app.play = (src) => {
-  let audio = new Audio(chrome.runtime.getURL('/data/' + src));
-  audio.play();
-};
-
+/* app.sandbox */
 app.sandbox = function (url, options) {
   let d = Promise.defer(), id;
   let webview = cordova.InAppBrowser.open(url, '_blank', 'hidden=true');
@@ -502,3 +306,27 @@ app.sandbox = function (url, options) {
   });
   return d.promise;
 };
+// internals
+(function () {
+  var admobid = {};
+  if (/(android)/i.test(navigator.userAgent)) {
+    admobid = {
+      banner: 'ca-app-pub-8474379789882900/4565165323'
+    };
+  }
+  if ('AdMob' in window) {
+    window.AdMob.createBanner({
+      adId: admobid.banner,
+      position: window.AdMob.AD_POSITION.TOP_CENTER,
+      autoShow: true,
+      success:function () {},
+      error: function () {}
+    });
+  }
+})();
+// runtime
+chrome.app.runtime.onLaunched.addListener(function () {
+  chrome.app.window.create('data/manager/index.html', {
+    id: 'tdm-manager',
+  });
+});

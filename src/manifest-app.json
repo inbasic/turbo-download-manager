@@ -21,7 +21,9 @@
         "lib/chrome/md5.js",
         "lib/utils.js",
         "lib/config.js",
-        "lib/chrome/chrome.js",
+        "lib/chrome/chrome-cm.js",
+        "lib/chrome/chrome-br.js",
+        "lib/chrome/chrome-ap.js",
         "lib/wget.js",
         "lib/icon.js",
         "lib/mwget.js"
