@@ -10,7 +10,7 @@ http://add0n.com/turbo-download-manager.html
 2. Chrome: https://chrome.google.com/webstore/detail/turbo-download-manager/kemfccojgjoilhfmcblgimbggikekjip
 3. Opera: https://addons.opera.com/extensions/details/turbo-download-manager/
 4. Safari: not ready
-5. Android: https://play.google.com/store/apps/details?id=com.add0n.tdm
+5. Android: https://play.google.com/store/apps/details?id=com.add0n.downloader
 6. Windows: https://sourceforge.net/projects/turbo-download-manager/
 7. Mac: https://sourceforge.net/projects/turbo-download-manager/
 
