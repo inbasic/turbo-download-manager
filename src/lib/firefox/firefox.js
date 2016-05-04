@@ -18,7 +18,7 @@ var self          = require('sdk/self'),
     xpcom         = require('sdk/platform/xpcom'),
     {Page}        = require('sdk/page-worker'),
     {Class}       = require('sdk/core/heritage'),
-    {all, defer, race, resolve}  = require('sdk/core/promise'),
+    {all, defer, race, resolve, reject}  = require('sdk/core/promise'),
     {Ci, Cc, Cu, components}  = require('chrome');
 
 var utils = require('../utils');
@@ -27,6 +27,8 @@ var {Services} = Cu.import('resource://gre/modules/Services.jsm');
 var {NetUtil} = Cu.import('resource://gre/modules/NetUtil.jsm');
 var {FileUtils} = Cu.import('resource://gre/modules/FileUtils.jsm');
 var {Downloads} = Cu.import('resource://gre/modules/Downloads.jsm');
+
+var dnldMgr = Cc['@mozilla.org/download-manager;1'].getService(Ci.nsIDownloadManager);
 
 var desktop = ['winnt', 'linux', 'darwin', 'openbsd'].indexOf(platform) !== -1;
 var xhr = {
@@ -316,34 +318,36 @@ exports.notification = function (text) {
   }
 };
 
-exports.File = function (obj) { // {name, path, mime}
-  let file, flushed = false;
-  let dnldMgr = Cc['@mozilla.org/download-manager;1'].getService(Ci.nsIDownloadManager);
-
-  return {
-    open: function () {
-      return new Promise(function (resolve) {
-        file = obj.path ? FileUtils.File(obj.path) : dnldMgr.userDownloadsDirectory;
-        file.append(obj.name || 'unknown');
-        file.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
-        resolve(file.leafName);
-      });
+exports.fileSystem = {
+  file: {
+    exists: function (root, name) {
+      let file = root.clone();
+      file.append(name);
+      return resolve(file.exists());
     },
-    get native () {
-      return file;
+    create: function (root, name) {
+      let file = root.clone();
+      file.append(name);
+      let d = defer();
+      try {
+        file.create(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
+        d.resolve(file);
+      }
+      catch (e) {
+        d.reject(e);
+      }
+      return d.promise;
     },
-    write: function (offset, arr) {
+    truncate: () => resolve(),
+    write: function (file, offset, arr) {
       let d = defer();
       let ostream = Cc['@mozilla.org/network/file-output-stream;1']
         .createInstance(Ci.nsIFileOutputStream);
       ostream.init(file, 0x08 | 0x02, 0, 0);  // 0x08: Create File, 0x02: Write only
-
       let seekstream = ostream.QueryInterface(Ci.nsISeekableStream);
       seekstream.seek(0x00, offset); // 0x00: Offset is relative to the start of the stream.
-
       let istream = Cc['@mozilla.org/io/arraybuffer-input-stream;1']
         .createInstance(Ci.nsIArrayBufferInputStream);
-
       let content = new Uint8Array(arr.reduce((p, c) => p + c.byteLength, 0));
       (function (offset) {
         arr.forEach(function (buffer) {
@@ -351,13 +355,10 @@ exports.File = function (obj) { // {name, path, mime}
           offset += buffer.byteLength;
         });
       })(0);
-
       istream.setData(content.buffer, 0, content.buffer.byteLength);
-
       let bstream = Cc['@mozilla.org/binaryinputstream;1']
         .createInstance(Ci.nsIBinaryInputStream);
       bstream.setInputStream(istream);
-
       NetUtil.asyncCopy(bstream, ostream,
         function (status) {
           if (!components.isSuccessCode(status)) {
@@ -368,7 +369,7 @@ exports.File = function (obj) { // {name, path, mime}
       );
       return d.promise;
     },
-    md5: function () {
+    md5: function (file) {
       function toHexString(charCode) {
         return ('0' + charCode.toString(16)).slice(-2);
       }
@@ -384,66 +385,73 @@ exports.File = function (obj) { // {name, path, mime}
       let s = Array.from(hash, (c, i) => toHexString(hash.charCodeAt(i))).join('');
       return resolve(s);
     },
-    flush: function () {
-      flushed = true;
-      return resolve();
-    },
-    remove: function (forced) {
-      if (flushed && !forced) {
-        return;
+    rename: function (file, root, name) {
+      let d = defer();
+      let dummpy = root.clone();
+      dummpy.append(name);
+      try {
+        file.renameTo(null, name);
+        d.resolve(dummpy);
       }
+      catch (e) {
+        d.reject(e);
+      }
+      return d.promise;
+    },
+    remove: function (file) {
+      let d = defer();
       try {
         file.remove(false);
-        file = null;
-      }
-      catch (e) {}
-    },
-    reveal: function () {
-      try {
-        file.reveal();
+        d.resolve();
       }
       catch (e) {
-        exports.notification(e.message);
+        d.reject(e);
       }
+      return d.promise;
     },
-    launch: function () {
+    launch: function (file) {
+      let d = defer();
       try {
         file.launch();
+        d.resolve();
       }
       catch (e) {
-        exports.notification(e.message);
+        d.reject(e);
       }
+      return d.promise;
     },
-    rename: function (name) {
+    reveal: function (file) {
       let d = defer();
-      if (!name) {
-        d.reject(Error('File name cannot be empty'));
-      }
-      else if (file) {
-        let tmp = file.parent;
-        try {
-          tmp.append(name);
-          if (tmp.exists()) {
-            d.reject(Error('I am not overwriting an existing file.'));
-          }
-          else {
-            file.renameTo(null, name);
-            file = tmp;
-            obj.name = name || obj.name;
-            d.resolve();
-          }
-        }
-        catch (e) {
-          d.reject(e);
-        }
-      }
-      else {
-        obj.name = name || obj.name;
+      try {
+        file.reveal();
         d.resolve();
+      }
+      catch (e) {
+        d.reject(e);
+      }
+      return d.promise;
+    },
+    close: () => resolve()
+  },
+  root: {
+    internal: () => reject(),
+    external: function (bytes, path) {
+      let d = defer();
+      try {
+        let root = path ? FileUtils.File(path) : dnldMgr.userDownloadsDirectory;
+        if (root.diskSpaceAvailable > bytes) {
+          d.resolve(root);
+        }
+        else {
+          d.reject(new Error(`cannot allocate space; available: ${root.diskSpaceAvailable}, required: ${bytes}`));
+        }
+      }
+      catch (e) {
+        d.reject(e);
       }
       return d.promise;
     }
-  };
+  }
 };
 
 exports.disk = (function () {
@@ -609,16 +617,16 @@ exports.OS = (function () {
 
 // native downloader
 exports.download = function (obj) {
-  let file = new exports.File(obj);
-  return file.open().then(function () {
-    return Downloads.getList(Downloads.ALL).then(function (list) {
-      return Downloads.createDownload({
-        source: obj.url,
-        target: file.native,
-      }).then(function (download) {
-        list.add(download);
-        download.start();
-      });
+  let target = obj.path ? FileUtils.File(obj.path) : dnldMgr.userDownloadsDirectory;
+  target.append(obj.name || 'undefined'); // if obj.name is undefined then root folder is considered as file name
+  target.createUnique(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
+  return Downloads.getList(Downloads.ALL).then(function (list) {
+    return Downloads.createDownload({
+      source: obj.url,
+      target,
+    }).then(function (download) {
+      list.add(download);
+      download.start();
     });
   });
 };

@@ -160,7 +160,7 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
       }
       if (wget.status === 'pause' || wget.status === 'error') {
         if (wget.internals.file) {
-          wget.internals.file.remove();
+          wget.internals.file.remove().catch (function (){});
         }
       }
       delete instances[index];

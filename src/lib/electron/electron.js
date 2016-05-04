@@ -11,6 +11,7 @@ var shell = require('electron').shell;
 var path = require('path');
 var fs = require('fs');
 var crypt = require('crypto');
+var diskspace = require('diskspace');
 // libs
 var Storage = require('node-storage');
 var request = require('request');
@@ -295,58 +296,33 @@ exports.about = {
   })
 };
 
-exports.File = function (obj) { // {name, path, mime, length}
-  let file;
-  let cache = [];
-  let tmp = {
-    open: function () {
-      let p = obj.path ? path.resolve(obj.path, obj.name) : path.resolve(process.env.HOME || process.env.USERPROFILE, 'Downloads', obj.name);
-
-      function check (callback, index) {
-        let tp = p;
-        if (index) {
-          tp = tp.replace(/((\.[^\.]{1,3}){0,1}\.[^\.]+)$/, '-' + index + '$1');
-        }
-        fs.exists(tp, function (exists) {
-          if (exists) {
-            check(callback, (index || 0) + 1);
+exports.fileSystem = {
+  file: {
+    exists: function (root, name) {
+      return new Promise((resolve) => fs.exists(path.join(root, name), resolve));
+    },
+    create: function (root, name) {
+      return new Promise(function (resolve) {
+        // 'wx+' - Open file for reading and writing. It fails if path exists.
+        let url = path.join(root, name);
+        fs.open(url, 'wx+', function (err, fd) {
+          if (err) {
+            throw err;
           }
-          else {
-            callback(tp);
-          }
-        });
-      }
-      return new Promise(function (resolve, reject) {
-        check(function (p) {
-          let filePath = p;
-          fs.open(p, 'w+', function (err, fd) {
-            if (err) {
-              reject(err);
-            }
-            else {
-              file = fd;
-              return Promise.all(cache.map(o => tmp.write(o.offset, o.arr))).then(function () {
-                cache = [];
-                resolve(path.parse(filePath).base);
-              }, (e) => reject(e));
-            }
-          });
+          resolve({fd, name, root, path: url});
         });
       });
     },
-    write: function (offset, arr) {
-      if (!file) {
-        cache.push({offset, arr});
-        return Promise.resolve();
-      }
+    truncate: () => Promise.resolve(),
+    write: function (file, offset, arr) {
       function write (offset, buffer) {
         return new Promise(function (resolve, reject) {
-          fs.write(file, buffer, 0, buffer.length, offset, function (err, written, buffer) {
+          fs.write(file.fd, buffer, 0, buffer.length, offset, function (err, written, buffer) {
             if (err) {
-              reject(err);
+              throw err;
             }
             if (written !== buffer.length) {
-              reject(new Error('written length does not match to the actual buffer size'));
+              return reject(new Error('written length does not match to the actual buffer size'));
             }
             resolve();
           });
@@ -360,41 +336,84 @@ exports.File = function (obj) { // {name, path, mime, length}
       }
       return Promise.all(m);
     },
-    md5: function () {
-      return new Promise(function (resolve, reject) {
-        fs.readFile(file, function (err, buf) {
+    md5: function (file) {
+      return new Promise(function (resolve) {
+        fs.readFile(file.fd, function (err, buf) {
           if (err) {
-            reject(err);
+            throw err;
           }
-          else {
-            let hash = crypt.createHash('md5');
-            hash.update(buf);
-            resolve(hash.digest('hex'));
-          }
+          let hash = crypt.createHash('md5');
+          hash.update(buf);
+          resolve(hash.digest('hex'));
         });
       });
     },
-    flush: function () {
-      return Promise.resolve();
+    rename: function (file, root, name) {
+      return new Promise(function (resolve) {
+        let url = path.join(root, name);
+        console.error(file, url)
+        fs.rename(file.path, url, (err) => {
+          if (err) {
+            throw err;
+          }
+          fs.open(path.join(root, name), 'r+', function (err, fd) {
+            if (err) {
+              throw err;
+            }
+            resolve({fd, name, root, path: url});
+            fs.close(file.fd);
+          });
+        });
+      });
     },
-    remove: function () {
-      if (filePath && file) {
-        fs.unlink(filePath);
-      }
+    remove: function (file) {
+      return new Promise(function (resolve) {
+        fs.unlink(file.path, function (err) {
+          if (err) {
+            throw err;
+          }
+          resolve();
+        });
+      });
     },
-    launch: function () {},
-    reveal: function () {},
-    rename: function (name) {
-      if (name) {
-        obj.name = name || obj.name;
-        return Promise.resolve();
-      }
-      else {
-        return Promise.reject();
-      }
+    launch: function (file) {
+      return new Promise(function () {
+        return shell.openItem(file.path);
+      });
+    },
+    reveal: function (file) {
+      return new Promise(function () {
+        return shell.showItemInFolder(file.path);
+      });
+    },
+    close: function (file) {
+      return new Promise(function (resolve) {
+        fs.close(file.fd, function (err) {
+          if (err) {
+            throw err;
+          }
+        });
+        resolve();
+      });
     }
-  };
-  return tmp;
+  },
+  root: {
+    internal: () => new Promise.reject(),
+    external: function (bytes, url) {
+      return new Promise(function (resolve, reject) {
+        let root = url ? url : path.resolve(process.env.HOME || process.env.USERPROFILE, 'Downloads');
+        diskspace.check(root, function (err, total, free) {
+          if (err) {
+            throw err;
+          }
+          if (free < bytes) {
+            return reject(new Error(`cannot allocate space; available: ${free}, required: ${bytes}`));
+          }
+          resolve(root);
+        });
+      });
+    }
+  }
 };
 
 exports.disk = {

@@ -202,6 +202,10 @@ body:not([data-browser=electron]) #menu li[data-role=console] {
   background-color: red;
   position: absolute;
 }
+item[data-type=error] div[data-type=partial]>div,
+item[data-type=done] div[data-type=partial]>div {
+  display: none;
+}
 /* done */
 .item[data-type=done]>span:before {
   color: green;

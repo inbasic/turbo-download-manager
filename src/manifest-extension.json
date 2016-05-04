@@ -3,7 +3,7 @@
   "short_name": "itdmanager",
   "description": "a download manager with multi-threading support",
   "author": "Inbasic",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "manifest_version": 2,
   "permissions": [
     "storage",
@@ -31,6 +31,7 @@
       "lib/opera/chrome-cm.js",
       "lib/opera/chrome-br.js",
       "lib/opera/opera.js",
+       "lib/io.js",
        "lib/wget.js",
        "lib/icon.js",
        "lib/mwget.js"

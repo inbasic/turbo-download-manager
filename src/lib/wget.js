@@ -1,6 +1,7 @@
 'use strict';
 
 var utils = utils || require('./utils');
+var io = io || require('./io');
 var app = app || require('./firefox/firefox');
 var wget = typeof exports === 'undefined' ? {} : exports;
 
@@ -30,14 +31,27 @@ var wget = typeof exports === 'undefined' ? {} : exports;
   // helpers; spy a promise
   function spy (promise, callback) {
     return promise.then(
-     function (a) {
-       callback(null, a);
-       return a;
-     },
-     function (e) {
-       callback(e, null);
-       throw e;
-     }
+      function (a) {
+        let tmp = callback(null, a);
+        if (tmp && 'then' in tmp) {
+          return tmp.then(() => a, () => a);
+        }
+        return a;
+      },
+      function (e) {
+        let tmp = callback(e, null);
+        if (tmp && 'then' in tmp) {
+          return tmp.then(
+            function () {
+              throw e;
+            },
+            function () {
+              throw e;
+            }
+          );
+        }
+        throw e;
+      }
     );
   }
 
@@ -217,9 +231,6 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       internals.status = s || internals.status;
       event.emit('count', 0);
       if (s === 'error') {
-        if (internals.file) {
-          internals.file.remove();
-        }
         segments.forEach(s => s.event.emit('abort'));
         d.reject();
       }
@@ -478,7 +489,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         disposition: info.disposition
       }, obj));
       event.emit('name', internals.name);
-      internals.file = new app.File({
+      internals.file = new io.File({
         name: internals.name,
         mime: info.mime,
         path: obj.folder,
@@ -487,9 +498,12 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       event.emit('add-log', 'Allocating space ...');
       internals.file.open().then(function (name) {
         // sync the names
-        if (name) {
+        if (name && name !== internals.name) {
           internals.name = name;
           event.emit('name', internals.name);
+          event.emit('add-log', 'File with the same name already exist. Pausing the download for user attention.', {type: 'warning'});
+          app.notification('You new download is paused as a file with the same name exists. Resume if needed.');
+          obj['auto-pause'] = true;
         }
 
         function validateMirrors () {
@@ -568,10 +582,14 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       function okay () {
         internals.name = name || internals.name;
         obj.name = name || obj.name;
+        event.emit('name', internals.name);
         event.emit('log', `File-name is changed to ${internals.name}`);
       }
       if (internals.file) {
-        internals.file.rename(name).then(okay, (e) => a.event.emit('add-log', `**Unsuccesful** renaming; ${e.message}`, {type: 'warning'}));
+        internals.file.rename(name).then(okay, (e) => {
+          event.emit('add-log', `**Unsuccesful** renaming; ${e.message}`, {type: 'warning'});
+          app.notification(e.message);
+        });
       }
       else {
         okay();
@@ -621,20 +639,17 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     promise = spy(d.promise, function () {
       return app.Promise.all(buffers.map(b => internals.file.write(b.start, b.segments)))
         .then(() => buffers = [])
-        .then(internals.file.md5)
+        .then(() => internals.file.flush())
+        .then(() => internals.file.md5())
         .then(function (md5) {
           internals.md5 = md5;
           event.emit('md5', md5);
           event.emit('add-log', `MD5 checksum is **${md5}**`);
-          return internals.file.flush().then(function (name) {
-            // sync the names
-            if (name) {
-              internals.name = name;
-              event.emit('name', internals.name);
-            }
-            return internals.status;
-          });
+          return internals.status;
         });
+    });
+    promise = spy(promise, function () {
+      return internals.file.close().then().catch(function (){});
     });
     return {
       event,

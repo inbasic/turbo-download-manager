@@ -42,22 +42,16 @@ p {
   margin: 0;
 }
 
-.firefox {
-  display: none;
-}
-@-moz-document url-prefix() {
-  .firefox {
-    display: flex;
-  }
-}
-
 #toolbar {
+  display: none;
   justify-content: center;
   height: 40px;
 }
-
-body:not([data-status=done]):not([data-status=error]) #toolbar input[data-cmd=remove],
-body:not([data-status=done]):not([data-status=error]) #toolbar input[data-cmd=file] {
+body[data-support=true] #toolbar {
+  display: flex;
+}
+body:not([data-status=done]) #toolbar input[data-cmd=remove],
+body:not([data-status=done]) #toolbar input[data-cmd=file] {
   opacity: 0.5;
   pointer-events: none;
 }

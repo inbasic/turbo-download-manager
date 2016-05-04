@@ -2,7 +2,7 @@
   "name": "Turbo Download Manager",
   "description": "a download manager with multi-threading support",
   "launch_path": "/lib/webapp/background.html",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "icons": {
     "512": "/data/icons/512.png",
     "128": "/data/icons/128.png"

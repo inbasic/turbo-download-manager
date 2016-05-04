@@ -3,7 +3,7 @@
   "packageId": "com.add0n.downloader",
   "description": "a download manager with multi-threading support",
   "author": "Inbasic",
-  "version": "0.2.6",
+  "version": "0.2.7",
   "manifest_version": 2,
   "permissions": [
     "storage",
@@ -20,6 +20,7 @@
         "lib/config.js",
         "lib/android/chrome-cm.js",
         "lib/android/android.js",
+        "lib/io.js",
         "lib/wget.js",
         "lib/icon.js",
         "lib/mwget.js",

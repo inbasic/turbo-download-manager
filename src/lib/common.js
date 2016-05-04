@@ -11,7 +11,7 @@ app.startup(function () {
   if (app.version() !== version) {
     app.timer.setTimeout(function () {
       app.tab.open(
-        config.url.faq + '?v=' + app.version() +
+        config.urls.faq + '?v=' + app.version() +
         (version ? '&p=' + version + '&type=upgrade' : '&type=install')
       );
       config.welcome.version = app.version();

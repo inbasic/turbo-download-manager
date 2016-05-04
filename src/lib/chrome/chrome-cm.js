@@ -199,11 +199,120 @@ app.disk = {
         reject();
       }
     });
-
   }
 };
 /* app.play */
 app.play = (src) => {
   let audio = new Audio(chrome.runtime.getURL('/data/' + src));
   audio.play();
+};
+/* app.fileSystem */
+window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
+app.fileSystem = {
+  file: {
+    exists: function (root, name) {
+      return new Promise(function (resolve) {
+        root.getFile(name, {create: true, exclusive: true}, () => resolve(false), () => resolve(true));
+      });
+    },
+    create: function (root, name) {
+      return new Promise(function (resolve, reject) {
+        root.getFile(
+          name,  // a unique name
+          {create: true, exclusive: false},
+          (fe) => resolve(fe),
+          (e) => reject(e)
+        );
+      });
+    },
+    truncate: function (file, bytes) {
+      return new Promise(function (resolve, reject) {
+        file.createWriter(function (fileWriter) {
+          fileWriter.onwrite = () => resolve();
+          fileWriter.onerror = (e) => reject(e);
+          fileWriter.truncate(bytes);
+        });
+      });
+    },
+    write: function (file, offset, arr) {
+      return new Promise(function (resolve, reject) {
+        file.createWriter(function (fileWriter) {
+          let blob = new Blob(arr, {type: 'application/octet-stream'});
+          fileWriter.onerror = (e) => reject(e);
+          fileWriter.onwrite = () => resolve();
+          fileWriter.seek(offset);
+          fileWriter.write(blob);
+        }, (e) => reject(e));
+      });
+    },
+    md5: function (file, bytes) {
+      return new Promise(function (resolve, reject) {
+        if (!file) {
+          return resolve('file is not found');
+        }
+        if (bytes > 50 * 1024 * 1024) {
+          return resolve('MD5 calculation is skipped');
+        }
+        file.file(function (file) {
+          let reader = new FileReader();
+          reader.onloadend = function () {
+            resolve(CryptoJS.MD5(CryptoJS.enc.Latin1.parse(this.result)).toString());
+          };
+          reader.readAsBinaryString(file);
+        }, (e) => reject(e));
+      });
+    },
+    rename: function (file, root, name) {
+      return new Promise((resolve, reject) => file.moveTo(root, name, resolve, reject));
+    },
+    remove: function (file) {
+      return new Promise((resolve, reject) => file.remove(resolve, reject));
+    },
+    launch: () => Promise.reject(new Error('not implemented')),
+    reveal: () => Promise.reject(new Error('not implemented')),
+    close: () => Promise.resolve()
+  },
+  root: {
+    internal: function (bytes) {
+      return new Promise(function (resolve, reject) {
+        navigator.webkitTemporaryStorage.requestQuota(bytes, function (grantedBytes) {
+          if (grantedBytes === bytes) {
+            window.requestFileSystem(
+              window.TEMPORARY, bytes, function (fs) {
+                resolve(fs.root);
+              },
+              (e) => reject(e)
+            );
+          }
+          else {
+            reject(new Error('cannot allocate space in the internal storage'));
+          }
+        });
+      });
+    },
+    external: function () {
+      return new Promise(function (resolve, reject) {
+        chrome.storage.local.get(null, function (storage) {
+          if (storage.folder && storage['add-directory']) {
+            try {
+              chrome.fileSystem.restoreEntry(storage.folder, function (root) {
+                if (root) {
+                  resolve(root);
+                }
+                else {
+                  reject(new Error('storage.folder is undefined'));
+                }
+              });
+            }
+            catch (e) {
+              reject(e);
+            }
+          }
+          else {
+            reject(new Error('either storage.folder or storage["add-directory"] is undefined'));
+          }
+        });
+      });
+    }
+  }
 };

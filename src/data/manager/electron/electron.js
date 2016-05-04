@@ -48,4 +48,6 @@ ipcRenderer.on('_sandbox', (event, obj) => {
   webview.src = obj.url;
 });
 
-var manifest = {}; // jshint ignore:line
+var manifest = { // jshint ignore:line
+  open: true
+};

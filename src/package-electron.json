@@ -1,6 +1,6 @@
 {
   "name": "turbo-download-manager",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "description": "a download manager with multi-threading support",
   "main": "lib/common.js",
   "scripts": {
@@ -25,7 +25,8 @@
   "homepage": "http://add0n.com/turbo-download-manager.html",
   "dependencies": {
     "node-storage": "",
-    "request": ""
+    "request": "",
+    "diskspace": ""
   },
   "devDependencies": {
     "electron-prebuilt": "^0.36.7"

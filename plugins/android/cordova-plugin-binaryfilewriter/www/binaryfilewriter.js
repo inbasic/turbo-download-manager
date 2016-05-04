@@ -86,7 +86,7 @@ document.addEventListener('deviceready', function () {
         },
         'BinaryFileWriter',
         'writeBinaryArray',
-        [entry.toURL(), binaryArray, me.position]
+        [decodeURIComponent(entry.nativeURL), binaryArray, me.position]
       );
     });
   };

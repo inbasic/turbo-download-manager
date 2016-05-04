@@ -1,4 +1,4 @@
-/* globals background, showdown */
+/* globals background, showdown, manifest */
 'use strict';
 
 var id = /id\=([^\&]+)/.exec(document.location.search);
@@ -68,3 +68,5 @@ document.addEventListener('click', function (e) {
 if (id !== null) {
   background.send('init', id);
 }
+// manifest
+document.body.dataset.support = manifest.support;

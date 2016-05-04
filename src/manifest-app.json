@@ -2,7 +2,7 @@
   "name": "Turbo Download Manager",
   "description": "a download manager with multi-threading support",
   "author": "Inbasic",
-  "version": "0.2.5",
+  "version": "0.2.7",
   "manifest_version": 2,
   "permissions": [
     "storage",
@@ -24,6 +24,7 @@
         "lib/chrome/chrome-cm.js",
         "lib/chrome/chrome-br.js",
         "lib/chrome/chrome-ap.js",
+        "lib/io.js",
         "lib/wget.js",
         "lib/icon.js",
         "lib/mwget.js"

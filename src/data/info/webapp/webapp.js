@@ -14,4 +14,7 @@ var background = {
     }, false);
   }
 };
-console.error(9);
+
+var manifest = { // jshint ignore:line
+  support: false
+};

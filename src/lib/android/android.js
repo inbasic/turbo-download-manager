@@ -306,6 +306,74 @@ app.sandbox = function (url, options) {
   });
   return d.promise;
 };
+/* app.fileSystem */
+app.fileSystem.root.external = function () {
+  return new Promise(function (resolve, reject) {
+    window.resolveLocalFileSystemURL(
+      cordova.file.externalRootDirectory + 'Download',
+      (root) => resolve(root),
+      (e) => reject(e)
+    );
+  });
+};
+app.fileSystem.file.truncate = function (fileEntry, bytes) {
+  function allocate (start, length, success, fail) {
+    fileEntry.createWriter(function (fileWriter) {
+      fileWriter.onwrite = function () {
+        fileEntry.file(function (file) {
+          if (file.size === length + start) {
+            success();
+          }
+          else {
+            fail(new Error('Cannot allocate'));
+          }
+        }, (e) => fail(e));
+      };
+      fileWriter.onerror = (e) => fail(e);
+      let b = new pointers.manager.Blob([new Uint8Array(length)], {type: 'application/octet-stream'});
+      fileWriter.seek(start);
+      fileWriter.write(b);
+    }, (e) => fail(e));
+  }
+  let start = 0;
+  let size = 5 * 1024 * 1024;
+  // Since there is no truncate function for fileWriter, we are allocating space with 5Mbyte write requests
+  return new Promise(function (resolve, reject) {
+    function doOne () {
+      let a = Math.min(bytes - start, size);
+      if (a) {
+        allocate(start, a, function () {
+          start += a;
+          doOne();
+        }, (e) => reject(e));
+      }
+      else {
+        resolve();
+      }
+    }
+    doOne();
+  });
+};
+app.fileSystem.file.write = function (fileEntry, offset, arr) {
+  return new Promise(function (resolve, reject) {
+    fileEntry.createWriter(function (fileWriter) {
+      let blob = new pointers.manager.Blob(arr, {type: 'application/octet-stream'});
+      fileWriter.onerror = (e) => reject(e);
+      fileWriter.onwrite = () => resolve();
+      fileWriter.seek(offset);
+      let reader = new FileReader();
+      reader.onloadend = function () {
+        fileWriter.writeBinaryArray(reader.result);
+      };
+      reader.readAsBinaryString(blob);
+    }, (e) => reject(e));
+  });
+};
+app.fileSystem.file.md5 = function (file) {
+  return new Promise(function (resolve, reject) {
+    window.md5chksum.file(file, resolve, reject);
+  });
+};
 // internals
 (function () {
   var admobid = {};
