@@ -298,9 +298,6 @@ background.receive('progress', function (obj) {
     item.partial(stat.id, stat.start * 100, stat.width * 100, stat.id);
   }
 });
-background.receive('browser', function (browser) {
-  document.body.dataset.browser = browser;
-});
 background.send('init');
 
 /* user interaction */
@@ -333,3 +330,5 @@ document.addEventListener('click', function (e) {
 });
 // manifest
 document.body.dataset.open = manifest.open;
+document.body.dataset.developer = manifest.developer;
+document.body.dataset.helper = manifest.helper;

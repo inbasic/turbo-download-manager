@@ -7,5 +7,7 @@ var background = { // jshint ignore:line
 };
 
 var manifest = { // jshint ignore:line
-  open: true
+  open: true,
+  developer: false,
+  helper: false
 };

@@ -46,4 +46,8 @@ chrome.runtime.getBackgroundPage(function (b) {
   b.pointers.manager = window;
 });
 
-var manifest = {}; // jshint ignore:line
+var manifest = { // jshint ignore:line
+  open: false,
+  developer: false,
+  helper: false
+};

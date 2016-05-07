@@ -181,7 +181,6 @@ app.manager.receive('init', function () {
       'retries': instance.retries
     });
   });
-  app.manager.send('browser', app.globals.browser);
 });
 app.manager.receive('cmd', function (obj) {
   if (obj.cmd === 'pause') {

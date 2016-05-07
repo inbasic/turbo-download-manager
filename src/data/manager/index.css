@@ -95,10 +95,8 @@ input:active{
 #menu li:active {
   background-color: rgba(0, 0, 0, 0.2);
 }
-body:not([data-browser=chrome]) #menu li[data-role=helper] {
-  display: none;
-}
-body:not([data-browser=electron]) #menu li[data-role=console] {
+body[data-developer=false] li[data-role=developer],
+body[data-helper=false] li[data-role=helper] {
   display: none;
 }
 

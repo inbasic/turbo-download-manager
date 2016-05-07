@@ -49,5 +49,7 @@ ipcRenderer.on('_sandbox', (event, obj) => {
 });
 
 var manifest = { // jshint ignore:line
-  open: true
+  open: true,
+  developer: true,
+  helper: false
 };
