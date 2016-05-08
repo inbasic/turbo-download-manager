@@ -20,7 +20,7 @@ app.button.onCommand(function () {
 
 /* - */
 var actions = {
-  download: function download (obj) {
+  download: function (obj) {
     obj.threads = obj.threads || config.wget.threads;
     obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
     obj.update = obj.update * 1000 || config.wget.update * 1000;
@@ -35,7 +35,11 @@ var actions = {
       (config.triggers.pause.enabled && mwget.count() >= config.triggers.pause.value);
 
     // on Android and Opera, there is no directory selection
-    if (!obj.folder && !app.storage.read('notice-download') && ['android', 'opera'].indexOf(app.globals.browser) === -1) {
+    if (
+      !obj.folder &&
+      !app.storage.read('notice-download') &&
+      ['android', 'opera'].indexOf(app.globals.browser) === -1
+    ) {
       app.notification('Saving in the default download directory. Add a new job from manager to change the directory.');
       app.storage.write('notice-download', 'shown');
     }
@@ -51,6 +55,20 @@ var actions = {
     about: () => app.manager.send('about')
   }
 };
+// supporting comma separated or array of urls
+(function (pointer) {
+  actions.download = function (obj) {
+    let urls = obj.url;
+    if (typeof urls === 'string') {
+      urls = urls.split(/\s*\,\s*/);
+    }
+    if (urls.length > 1) {
+      obj.alternatives = [];
+      obj.name = '';
+    }
+    urls.map(url => Object.assign({}, obj, {url})).forEach(pointer);
+  };
+})(actions.download);
 app.on('open', function (cmd) {
   if (cmd in actions.open) {
     actions.open[cmd]();
@@ -230,13 +248,16 @@ app.add.receive('cmd', function (obj) {
 });
 app.add.receive('init', function () {
   app.OS.clipboard.get().then(function (clipboard) {
+    // is clipboard a comma separated array of urls
+    let isValid = clipboard.split(/\s*\,\s*/).map(utils.validate).reduce((p, c) => p && c, true);
+    console.error(isValid, clipboard);
     app.add.send('init', {
       settings: {
         threads: app.storage.read('add-threads'),
         timeout: app.storage.read('add-timeout'),
         folder: app.storage.read('add-directory')
       },
-      clipboard: utils.validate(clipboard) ? clipboard : ''
+      clipboard: isValid ? clipboard : ''
     });
   });
 });
@@ -350,9 +371,6 @@ app.startup(function () {
 app.arguments(function (argv) {
   // Download on init (currently only for electron build)
   if (argv && argv.url) {
-    if (typeof argv.url === 'string') {
-      argv.url = argv.url.split(',');
-    }
-    argv.url.forEach(url => actions.download(Object.assign({}, argv, {url})));
+    actions.download(argv);
   }
 });

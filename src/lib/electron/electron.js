@@ -444,7 +444,7 @@ exports.startup = function (c) {
 
 exports.arguments = function (c) {
   let callback = c || function () {};
-  electron.app.on('ready', () => callback(optimist.argv));
+  electron.app.on('ready', () => callback(optimist.parse(process.argv)));
   exports.on('command-line', (argv) => callback(argv));
 };
 

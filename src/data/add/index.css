@@ -36,8 +36,10 @@ input:active{
 input:invalid {
   border-color: red;
 }
+body[data-batch=true] input[data-id=name],
 input:disabled {
   background: rgba(0, 0, 0, 0.05);
+  pointer-events: none;
 }
 
 input[type=text] {
@@ -100,6 +102,10 @@ table {
   height: 26px;
   cursor: pointer;
   margin-left: 4px;
+}
+body[data-batch=true] #t2 td:last-child span {
+  opacity: 0.3;
+  pointer-events: none;
 }
 #t2 td:last-child span:hover {
   background-color: rgba(0, 0, 0, 0.1);

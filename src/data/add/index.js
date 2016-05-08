@@ -23,6 +23,11 @@ document.querySelector('form').addEventListener('submit', function (e) {
   return true;
 });
 
+document.querySelector('[data-id=url]').addEventListener('keyup', function () {
+  let length = this.value.split(/\s*\,\s*/).length;
+  document.body.dataset.batch = length > 1;
+});
+
 background.receive('folder', function (folder) {
   document.querySelector('[data-id=folder]').value = folder;
 });
@@ -56,6 +61,9 @@ background.receive('init', function (obj) {
     }
   }
   document.querySelector('[data-id=url]').value = obj.clipboard;
+  let e = document.createEvent('HTMLEvents');
+  e.initEvent('keyup', false, true);
+  document.querySelector('[data-id=url]').dispatchEvent(e);
 });
 background.send('init');
 // autofocus is not working on Firefox

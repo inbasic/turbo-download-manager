@@ -496,6 +496,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         length: info.length
       });
       event.emit('add-log', 'Allocating space ...');
+
       internals.file.open().then(function (name) {
         // sync the names
         if (name && name !== internals.name) {
