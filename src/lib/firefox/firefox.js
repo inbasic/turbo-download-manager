@@ -144,6 +144,9 @@ exports.startup = function (callback) {
   }
 };
 
+// arguments
+exports.arguments = function () {};
+
 // canvas
 exports.canvas = (function () {
   var hidden = Cc['@mozilla.org/appshell/appShellService;1']

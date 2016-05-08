@@ -133,10 +133,12 @@ gulp.task('electron-build', function () {
   .pipe(gulp.dest('builds/packed'));
 });
 gulp.task('electron-install', function () {
-  gulp.src('')
+  let keys = Object.keys(gulp.env).filter(key => key !== '_');
+  let args = keys.map(key => `--${key}="${gulp.env[key]}"`).join(' ');
+  return gulp.src('')
   .pipe(wait(1000))
   .pipe(shell([
-    '"/Applications/Electron.app/Contents/MacOS/Electron" `pwd` &'
+    '"/Applications/Electron.app/Contents/MacOS/Electron" `pwd` ' + args + ' &'
   ], {
     cwd: './builds/unpacked/electron'
   }));

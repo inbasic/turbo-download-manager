@@ -5,20 +5,6 @@ var config = config || require('./config');
 var mwget = mwget || require('./mwget');
 var utils = utils || require('./utils');
 
-/* welcome page */
-app.startup(function () {
-  let version = config.welcome.version;
-  if (app.version() !== version) {
-    app.timer.setTimeout(function () {
-      app.tab.open(
-        config.urls.faq + '?v=' + app.version() +
-        (version ? '&p=' + version + '&type=upgrade' : '&type=install')
-      );
-      config.welcome.version = app.version();
-    }, config.welcome.timeout);
-  }
-});
-
 /* button */
 app.button.onCommand(function () {
   app.tab.list().then(function (tabs) {
@@ -43,6 +29,7 @@ var actions = {
     obj['write-size'] = obj['write-size'] || config.wget['write-size'];
     obj.retries = obj.retries || config.wget.retrie;
     obj.folder = obj.folder || app.storage.read('add-directory');
+
     // pause trigger
     obj['auto-pause'] = obj['auto-pause'] ||
       (config.triggers.pause.enabled && mwget.count() >= config.triggers.pause.value);
@@ -71,7 +58,6 @@ app.on('open', function (cmd) {
 });
 /* connect */
 app.on('download', actions.download);
-
 
 /* context menu */
 (function (arr) {
@@ -346,3 +332,27 @@ app.about.receive('init', function () {
   });
 });
 app.about.receive('open', url => app.tab.open(url));
+/* startup */
+app.startup(function () {
+  // FAQs page
+  let version = config.welcome.version;
+  if (app.version() !== version) {
+    app.timer.setTimeout(function () {
+      app.tab.open(
+        config.urls.faq + '?v=' + app.version() +
+        (version ? '&p=' + version + '&type=upgrade' : '&type=install')
+      );
+      config.welcome.version = app.version();
+    }, config.welcome.timeout);
+  }
+});
+/* command line */
+app.arguments(function (argv) {
+  // Download on init (currently only for electron build)
+  if (argv && argv.url) {
+    if (typeof argv.url === 'string') {
+      argv.url = argv.url.split(',');
+    }
+    argv.url.forEach(url => actions.download(Object.assign({}, argv, {url})));
+  }
+});

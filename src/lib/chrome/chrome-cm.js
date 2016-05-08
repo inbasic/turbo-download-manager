@@ -206,6 +206,8 @@ app.play = (src) => {
   let audio = new Audio(chrome.runtime.getURL('/data/' + src));
   audio.play();
 };
+/* app.arguments */
+app.arguments = function () {};
 /* app.fileSystem */
 window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
 app.fileSystem = {

@@ -12,6 +12,7 @@ var path = require('path');
 var fs = require('fs');
 var crypt = require('crypto');
 var diskspace = require('diskspace');
+var optimist = require('optimist');
 // libs
 var Storage = require('node-storage');
 var request = require('request');
@@ -436,7 +437,16 @@ exports.disk = {
 // native downloader
 exports.download = (obj) => shell.openExternal(obj.url);
 
-exports.startup = (c) => c();
+exports.startup = function (c) {
+  let callback = c || function () {};
+  electron.app.on('ready', () => callback());
+};
+
+exports.arguments = function (c) {
+  let callback = c || function () {};
+  electron.app.on('ready', () => callback(optimist.argv));
+  exports.on('command-line', (argv) => callback(argv));
+};
 
 exports.developer = {
   console: () => mainWindow.webContents.openDevTools()
@@ -474,6 +484,21 @@ function createWindow () {
   mainWindow.on('closed', function () {
     mainWindow = null;
   });
+  // single instance
+  let iShouldQuit = electron.app.makeSingleInstance(function (commandLine) {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) {
+        mainWindow.restore();
+      }
+      mainWindow.show();
+      mainWindow.focus();
+      exports.emit('command-line', optimist.parse(commandLine));
+    }
+    return true;
+  });
+  if (iShouldQuit) {
+    electron.app.quit();return;
+  }
 }
 
 electron.app.on('ready', createWindow);
