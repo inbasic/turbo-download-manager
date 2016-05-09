@@ -20,6 +20,11 @@ deploy:
     - builds/packed/electron.zip
     - builds/packed/firefox.xpi
     - builds/packed/opera.zip
+    - builds/unpacked/tdm-darwin-x64.7z
+    - builds/unpacked/tdm-win32-x64.7z
+    - builds/unpacked/tdm-win32-ia32.7z
+    - builds/unpacked/tdm-linux-x64.7z
+    - builds/unpacked/tdm-linux-ia32.7z
   on:
     tags: true
   overwrite: true
