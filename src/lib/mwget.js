@@ -77,6 +77,7 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
         instance.stats = {};
       });
       instance.log.push(`Downloading ${obj.url}`);
+      instance.log.push(`Referrer ${obj.referrer}`);
       instance.event.on('progress', function (a, e) {
         let start = a.range.start;
         let length = e.offset + e.length;

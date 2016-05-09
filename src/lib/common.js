@@ -294,8 +294,8 @@ app.modify.receive('init', function (id) {
     app.modify.send('init', {
       url: instance.info ? instance.info.url : instance.obj.url,
       name: instance.internals.name,
-      threads: instance.threads,
-      timeout: instance.timeout / 1000
+      threads: instance.obj.threads,
+      timeout: instance.obj.timeout / 1000
     });
   }
 });

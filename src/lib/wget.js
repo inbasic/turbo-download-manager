@@ -580,20 +580,16 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       }
     });
     event.on('rename', function (name) {
-      function okay () {
-        internals.name = name || internals.name;
-        obj.name = name || obj.name;
-        event.emit('name', internals.name);
-        event.emit('log', `File-name is changed to ${internals.name}`);
-      }
-      if (internals.file) {
-        internals.file.rename(name).then(okay, (e) => {
+      if (name && internals.name !== name) {
+        internals.file.rename(name).then(() => {
+          internals.name = name;
+          event.emit('name', internals.name);
+          event.emit('log', `File-name is changed to ${internals.name}`);
+        },
+        (e) => {
           event.emit('add-log', `**Unsuccesful** renaming; ${e.message}`, {type: 'warning'});
           app.notification(e.message);
         });
-      }
-      else {
-        okay();
       }
     });
 
@@ -664,8 +660,8 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       get internals () {return internals;},
       modify: function (uo) {
         obj.threads = uo.threads || obj.threads;
-        obj.timeout = uo.timeout || obj.timeout;
-        if (uo.name !== obj.name) {
+        obj.timeout = uo.timeout ? uo.timeout * 1000 : obj.timeout;
+        if (uo.name !== internals.name) {
           event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-')); // removing exceptions
         }
         if (uo.url && obj.urls.indexOf(uo.url) === -1) {
