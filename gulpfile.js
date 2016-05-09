@@ -294,7 +294,9 @@ gulp.task('firefox-install', function () {
 gulp.task('webapp', (callback) => runSequence('clean', 'webapp-build', callback));
 gulp.task('android', (callback) => runSequence('clean', 'android-build', 'android-install', callback));
 gulp.task('chrome', (callback) => runSequence('clean', 'chrome-build', 'chrome-install', callback));
+gulp.task('chrome-travis', (callback) => runSequence('clean', 'chrome-build', callback));
 gulp.task('opera', (callback) => runSequence('clean', 'opera-build', callback));
+gulp.task('opera-travis', (callback) => runSequence('clean', 'opera-build', callback));
 gulp.task('firefox', (callback) => runSequence('clean', 'firefox-build', 'firefox-pack', 'firefox-install', callback));
 gulp.task('firefox-travis', (callback) => runSequence('clean', 'firefox-build', 'firefox-pack', callback));
 gulp.task('electron', (callback) => runSequence('clean', 'electron-build', 'electron-install', callback));
