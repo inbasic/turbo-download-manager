@@ -1,16 +1,17 @@
 language: node_js
 node_js:
   - '4.2'
-before_install:
-  - sudo apt-get install p7zip-full
-  - sudo apt-get install wine
 before_script:
-- npm install
+  - npm install
 script:
   - gulp chrome-travis
   - gulp opera-travis
   - gulp firefox-travis
   - gulp electron-travis
+before_deploy:
+  - sudo apt-get install p7zip-full
+  - sudo apt-get install wine
+  - gulp electron-packager
 deploy:
   provider: releases
   api_key:
@@ -21,11 +22,11 @@ deploy:
     - builds/packed/electron.zip
     - builds/packed/firefox.xpi
     - builds/packed/opera.zip
-    - builds/unpacked/tdm-darwin-x64.7z
-    - builds/unpacked/tdm-win32-x64.7z
-    - builds/unpacked/tdm-win32-ia32.7z
-    - builds/unpacked/tdm-linux-x64.7z
-    - builds/unpacked/tdm-linux-ia32.7z
+    - builds/tdm-darwin-x64.7z
+    - builds/tdm-win32-x64.7z
+    - builds/tdm-win32-ia32.7z
+    - builds/tdm-linux-x64.7z
+    - builds/tdm-linux-ia32.7z
   on:
     tags: true
   overwrite: true
