@@ -1,9 +1,8 @@
 'use strict';
-var ipcRenderer = window.top.ipcRenderer;
 
 var background = { // jshint ignore:line
   receive: (id, callback) => window.top.register(id + '@ad', callback),
-  send: (id, data) => ipcRenderer.send(id + '@ad', {
+  send: (id, data) => window.top.ipcRenderer.send(id + '@ad', {
     url: 'add/index.html',
     data
   })
