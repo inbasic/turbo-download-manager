@@ -78,7 +78,18 @@ gulp.task('electron-install', function () {
     cwd: './builds/unpacked/electron'
   }));
 });
-
+gulp.task('electron-packager', function () {
+  return gulp.src('')
+  .pipe(wait(1000))
+  .pipe(shell([
+    'npm install',
+    'electron-packager . "Turbo Download Manager" --platform=darwin --arch=x64 --version=0.37.7 --icon ../../packed/mac.icns --overwrite',
+    '7z -a -mx9 -r tdm-darwin-x64.7z "Turbo Download Manager-darwin-x64"/*',
+    'mv tdm-darwin-x64.7z ..'
+  ], {
+    cwd: './builds/unpacked/electron'
+  }));
+});
 /* chrome build */
 gulp.task('chrome-build', function () {
   return gulp.src([
@@ -300,3 +311,4 @@ gulp.task('opera-travis', (callback) => runSequence('clean', 'opera-build', call
 gulp.task('firefox', (callback) => runSequence('clean', 'firefox-build', 'firefox-pack', 'firefox-install', callback));
 gulp.task('firefox-travis', (callback) => runSequence('clean', 'firefox-build', 'firefox-pack', callback));
 gulp.task('electron', (callback) => runSequence('clean', 'electron-build', 'electron-install', callback));
+gulp.task('electron-travis', (callback) => runSequence('clean', 'electron-build', 'electron-packager', callback));

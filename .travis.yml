@@ -5,8 +5,9 @@ before_script:
 - npm install
 script:
   - gulp chrome-travis
-  - gulp firefox-travis
   - gulp opera-travis
+  - gulp firefox-travis
+  - gulp electron-travis
 deploy:
   provider: releases
   api_key:
