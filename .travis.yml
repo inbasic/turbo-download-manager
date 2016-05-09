@@ -3,6 +3,7 @@ node_js:
   - '4.2'
 before_install:
   - sudo apt-get install p7zip-full
+  - sudo apt-get install wine
 before_script:
 - npm install
 script:
