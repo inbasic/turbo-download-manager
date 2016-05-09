@@ -19,87 +19,22 @@ gulp.task('clean', function () {
     'builds/unpacked/chrome/*',
     'builds/unpacked/opera/*',
     'builds/unpacked/firefox/*',
-    'builds/unpacked/webapp/*',
     'builds/unpacked/electron/*',
     'builds/unpacked/android/*'
   ], {read: false})
     .pipe(clean());
 });
-/* webapp build */
-gulp.task('webapp-build', function () {
-  gulp.src([
-    'src/**/*'
-  ])
-  .pipe(gulpFilter(function (f) {
-    if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('firefox') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('chrome') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('android') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('electron') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('shadow_index.js') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('safari') !== -1) {
-      return false;
-    }
-    if (f.relative.split('/').length === 1) {
-      return f.relative === 'manifest.webapp' ? true : false;
-    }
-    return true;
-  }))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
-  }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="chrome/chrome.js"></script>\n    <script src="index.js"></script>');
-  })))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') !== -1;
-  }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="showdown.js"></script>\n    <script src="chrome/chrome.js"></script>\n    <script src="index.js"></script>');
-  })))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1 && f.relative.indexOf('EventEmitter.js') === -1;
-  }, babel()))
-  .pipe(gulp.dest('builds/unpacked/webapp'))
-  .pipe(zip('webapp.zip'))
-  .pipe(gulp.dest('builds/packed'));
-});
 
 /* electron build */
 gulp.task('electron-build', function () {
-  gulp.src([
+  return gulp.src([
     'src/**/*'
   ])
   .pipe(gulpFilter(function (f) {
     if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
       return false;
     }
-    if (f.relative.indexOf('firefox') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('webapp') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('android') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('chrome') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('opera') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('safari') !== -1) {
+    if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('android') !== -1 || f.relative.indexOf('chrome') !== -1 || f.relative.indexOf('opera') !== -1) {
       return false;
     }
     if (f.relative.split('/').length === 1) {
@@ -146,29 +81,14 @@ gulp.task('electron-install', function () {
 
 /* chrome build */
 gulp.task('chrome-build', function () {
-  gulp.src([
+  return gulp.src([
     'src/**/*'
   ])
   .pipe(gulpFilter(function (f) {
     if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
       return false;
     }
-    if (f.relative.indexOf('firefox') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('webapp') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('opera') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('android') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('electron') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('safari') !== -1) {
+    if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('opera') !== -1 || f.relative.indexOf('android') !== -1 || f.relative.indexOf('electron') !== -1) {
       return false;
     }
     if (f.relative.split('/').length === 1) {
@@ -197,7 +117,7 @@ gulp.task('chrome-build', function () {
   .pipe(gulp.dest('builds/packed'));
 });
 gulp.task('chrome-install', function () {
-  gulp.src('')
+  return gulp.src('')
   .pipe(wait(1000))
   .pipe(shell([
     '"/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --console --load-and-launch-app=`pwd` &'
@@ -207,29 +127,17 @@ gulp.task('chrome-install', function () {
 });
 /* opera build */
 gulp.task('opera-build', function () {
-  gulp.src([
+  return gulp.src([
     'src/**/*'
   ])
   .pipe(gulpFilter(function (f) {
     if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
       return false;
     }
-    if (f.relative.indexOf('firefox') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('webapp') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('android') !== -1) {
+    if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('android') !== -1 || f.relative.indexOf('electron') !== -1) {
       return false;
     }
     if (f.relative.indexOf('chrome') !== -1 && f.relative.indexOf('chrome-cm.js') === -1 && f.relative.indexOf('chrome-br.js') === -1) {
-      return false;
-    }
-    if (f.relative.indexOf('electron') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('safari') !== -1) {
       return false;
     }
     if (f.relative.split('/').length === 1) {
@@ -268,32 +176,17 @@ gulp.task('opera-install', function () {
 });
 /* android build */
 gulp.task('android-build', function () {
-  gulp.src([
+  return gulp.src([
     'src/**/*'
   ])
   .pipe(gulpFilter(function (f) {
     if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
       return false;
     }
-    if (f.relative.indexOf('firefox') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('webapp') !== -1) {
+    if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('opera') !== -1 || f.relative.indexOf('electron') !== -1) {
       return false;
     }
     if (f.relative.indexOf('chrome') !== -1 && f.relative.indexOf('chrome-cm.js') === -1) {
-      return false;
-    }
-    if (f.relative.indexOf('opera') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('safari') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('electron') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('shadow_index.js') !== -1) {
       return false;
     }
     if (f.relative.split('/').length === 1) {
@@ -327,7 +220,7 @@ gulp.task('android-build', function () {
   .pipe(gulp.dest('builds/packed'));
 });
 gulp.task('android-install', function () {
-  gulp.src('')
+  return gulp.src('')
   .pipe(wait(1000))
   .pipe(shell([
     'pwd & cca run android --device'
@@ -338,7 +231,7 @@ gulp.task('android-install', function () {
 
 /* firefox build */
 gulp.task('firefox-build', function () {
-  gulp.src([
+  return gulp.src([
     'src/**/*'
   ])
   .pipe(gulpFilter(function (f) {
@@ -351,22 +244,7 @@ gulp.task('firefox-build', function () {
     ) {
       return false;
     }
-    if (f.relative.indexOf('webapp') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('opera') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('android') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('shadow_index.js') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('safari') !== -1) {
-      return false;
-    }
-    if (f.relative.indexOf('electron') !== -1) {
+    if (f.relative.indexOf('opera') !== -1 || f.relative.indexOf('android') !== -1 || f.relative.indexOf('electron') !== -1) {
       return false;
     }
     if (f.relative.split('/').length === 1) {
@@ -389,12 +267,11 @@ gulp.task('firefox-build', function () {
 });
 /* firefox pack */
 gulp.task('firefox-pack', function () {
-  gulp.src('')
+  return gulp.src('')
   .pipe(wait(1000))
   .pipe(shell([
     'jpm xpi',
     'mv *.xpi ../../packed/firefox.xpi',
-    'jpm post --post-url http://localhost:8888/'
   ], {
     cwd: './builds/unpacked/firefox'
   }))
@@ -404,22 +281,20 @@ gulp.task('firefox-pack', function () {
     cwd: './builds/packed'
   }));
 });
+/* firefox install */
+gulp.task('firefox-install', function () {
+  return gulp.src('')
+  .pipe(shell([
+    'jpm post --post-url http://localhost:8888/'
+  ], {
+    cwd: './builds/unpacked/firefox'
+  }))
+});
 /* */
-gulp.task('webapp', function (callback) {
-  runSequence('clean', 'webapp-build', callback);
-});
-gulp.task('android', function (callback) {
-  runSequence('clean', 'android-build', 'android-install', callback);
-});
-gulp.task('chrome', function (callback) {
-  runSequence('clean', 'chrome-build', 'chrome-install', callback);
-});
-gulp.task('opera', function (callback) {
-  runSequence('clean', 'opera-build', callback);
-});
-gulp.task('firefox', function (callback) {
-  runSequence('clean', 'firefox-build', 'firefox-pack', callback);
-});
-gulp.task('electron', function (callback) {
-  runSequence('clean', 'electron-build', 'electron-install', callback);
-});
+gulp.task('webapp', (callback) => runSequence('clean', 'webapp-build', callback));
+gulp.task('android', (callback) => runSequence('clean', 'android-build', 'android-install', callback));
+gulp.task('chrome', (callback) => runSequence('clean', 'chrome-build', 'chrome-install', callback));
+gulp.task('opera', (callback) => runSequence('clean', 'opera-build', callback));
+gulp.task('firefox', (callback) => runSequence('clean', 'firefox-build', 'firefox-pack', 'firefox-install', callback));
+gulp.task('firefox-travis', (callback) => runSequence('clean', 'firefox-build', 'firefox-pack', callback));
+gulp.task('electron', (callback) => runSequence('clean', 'electron-build', 'electron-install', callback));

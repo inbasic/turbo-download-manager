@@ -1,19 +1,39 @@
 {
-    "id": "jid1-T1Q9uS3ABxzjGA",
-    "version": "",
-    "name": "",
-    "dependencies": {
-        "commander": "1.1",
-        "gulp": "0.1",
-        "gulp-change": "0.1",
-        "gulp-babel": "0.1",
-        "gulp-if": "0.1",
-        "gulp-filter": "0.1",
-        "gulp-shell": "0.1",
-        "gulp-wait": "0.1",
-        "gulp-clean": "0.1",
-        "gulp-zip": "0.1",
-        "run-sequence": "0.1"
-    },
-    "author": ""
+  "name": "turbo-download-manager",
+  "version": "0.1.0",
+  "description": "a multi-threading download manager for Firefox, Chrome, Opera, Android, Windows, Linux and Mac operation systems",
+  "scripts": {
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/inbasic/turbo-download-manager.git"
+  },
+  "author": "InBasic",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/inbasic/turbo-download-manager/issues"
+  },
+  "keywords": [
+    "Electron",
+    "Download Manager",
+    "DownThemAll",
+    "Flashget",
+    "Internet Download Manager"
+  ],
+  "homepage": "http://add0n.com/turbo-download-manager.html",
+  "dependencies": {
+    "gulp": "*",
+    "gulp-change": "*",
+    "gulp-babel": "*",
+    "gulp-if": "*",
+    "gulp-filter": "*",
+    "gulp-shell": "*",
+    "gulp-wait": "*",
+    "gulp-clean": "*",
+    "gulp-zip": "*",
+    "gulp-rename": "*",
+    "gulp-util": "*",
+    "run-sequence": "*",
+    "jpm": "*"
+  }
 }

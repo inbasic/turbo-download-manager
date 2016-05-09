@@ -17,7 +17,6 @@ document.querySelector('form').addEventListener('submit', function (e) {
   return true;
 });
 background.receive('init', function (obj) {
-  console.error(obj)
   for (let name in obj) {
     let elem = document.querySelector('[data-id="' + name + '"]');
     if (elem && obj[name]) {
