@@ -352,7 +352,6 @@ exports.fileSystem = {
     rename: function (file, root, name) {
       return new Promise(function (resolve) {
         let url = path.join(root, name);
-        console.error(file, url)
         fs.rename(file.path, url, (err) => {
           if (err) {
             throw err;

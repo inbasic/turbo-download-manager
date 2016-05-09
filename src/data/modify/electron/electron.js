@@ -2,11 +2,7 @@
 var ipcRenderer = window.top.ipcRenderer;
 
 var background = {  // jshint ignore:line
-  receive: (id, callback) => ipcRenderer.on(id + '@md', function (event, arg) {
-    if (arg && arg.url === 'background.html') {
-      callback(arg.data);
-    }
-  }),
+  receive: (id, callback) => window.top.register(id + '@md', callback),
   send: (id, data) => ipcRenderer.send(id + '@md', {
     url: 'modify/index.html',
     data

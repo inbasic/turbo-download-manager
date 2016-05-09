@@ -2,17 +2,29 @@
 
 var ipcRenderer = require('electron').ipcRenderer;
 
-var background = {  // jshint ignore:line
-  receive: (id, callback) => ipcRenderer.on(id + '@ui', function (event, arg) {
-    if (arg && arg.url === 'background.html') {
-      callback(arg.data);
+var register = (function () {
+  let callbacks = {};
+  return function (id, callback) {
+    if (!(id in callbacks)) {
+      callbacks[id] = [];
+      ipcRenderer.on(id, function (event, arg) {
+        if (arg && arg.url === 'background.html') {
+          callbacks[id].forEach(c => c(arg.data));
+        }
+      });
     }
-  }),
+    callbacks[id].push(callback);
+  };
+})();
+
+var background = {  // jshint ignore:line
+  receive: (id, callback) => register(id + '@ui', callback),
   send: (id, data) => ipcRenderer.send(id + '@ui', {
     url: 'manager/index.html',
     data
   })
 };
+
 // internals
 ipcRenderer.on('_notification', (event, body) => new Notification('Turbo Download Manager', {
   body,

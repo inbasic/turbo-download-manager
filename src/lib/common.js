@@ -250,7 +250,6 @@ app.add.receive('init', function () {
   app.OS.clipboard.get().then(function (clipboard) {
     // is clipboard a comma separated array of urls
     let isValid = clipboard.split(/\s*\,\s*/).map(utils.validate).reduce((p, c) => p && c, true);
-    console.error(isValid, clipboard);
     app.add.send('init', {
       settings: {
         threads: app.storage.read('add-threads'),
