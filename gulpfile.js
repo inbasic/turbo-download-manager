@@ -84,7 +84,7 @@ gulp.task('electron-packager', function () {
   .pipe(shell([
     'npm install',
     'electron-packager . "Turbo Download Manager" --platform=darwin --arch=x64 --version=0.37.7 --icon ../../packed/mac.icns --overwrite',
-    '7z -a -mx9 -r tdm-darwin-x64.7z "Turbo Download Manager-darwin-x64"/*',
+    '7z a -mx9 -r tdm-darwin-x64.7z "Turbo Download Manager-darwin-x64"/*',
     'mv tdm-darwin-x64.7z ..'
   ], {
     cwd: './builds/unpacked/electron'
