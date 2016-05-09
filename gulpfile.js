@@ -85,23 +85,23 @@ gulp.task('electron-packager', function () {
     'npm install',
     'electron-packager . "Turbo Download Manager" --platform=darwin --arch=x64 --version=0.37.7 --icon ../../packed/mac.icns',
     '7z a -mx9 -r tdm-darwin-x64.7z "Turbo Download Manager-darwin-x64"/*',
-    'mv tdm-darwin-x64.7z ..'
+    'mv tdm-darwin-x64.7z ..',
     'rm -r "Turbo Download Manager-darwin-x64"/',
     'electron-packager . "Turbo Download Manager" --platform=win32 --arch=x64 --version=0.37.7 --icon ../../packed/windows.ico',
     '7z a -mx9 -r tdm-win32-x64.7z "Turbo Download Manager-win32-x64"/*',
-    'mv tdm-win32-x64.7z ..'
+    'mv tdm-win32-x64.7z ..',
     'rm -r "Turbo Download Manager-win32-x64"/',
     'electron-packager . "Turbo Download Manager" --platform=win32 --arch=ia32 --version=0.37.7 --icon ../../packed/windows.ico',
     '7z a -mx9 -r tdm-win32-ia32.7z "Turbo Download Manager-win32-ia32"/*',
-    'mv tdm-win32-ia32.7z ..'
+    'mv tdm-win32-ia32.7z ..',
     'rm -r "Turbo Download Manager-win32-ia32"/',
     'electron-packager . "Turbo Download Manager" --platform=linux --arch=x64 --version=0.37.7',
     '7z a -mx9 -r tdm-linux-x64.7z "Turbo Download Manager-linux-x64"/*',
-    'mv tdm-linux-x64.7z ..'
+    'mv tdm-linux-x64.7z ..',
     'rm -r "Turbo Download Manager-linux-x64"/',
     'electron-packager . "Turbo Download Manager" --platform=linux --arch=ia32 --version=0.37.7',
     '7z a -mx9 -r tdm-linux-ia32.7z "Turbo Download Manager-linux-ia32"/*',
-    'mv tdm-linux-ia32.7z ..'
+    'mv tdm-linux-ia32.7z ..',
     'rm -r "Turbo Download Manager-linux-ia32"/'
   ], {
     cwd: './builds/unpacked/electron'
