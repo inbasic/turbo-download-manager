@@ -1,29 +1,27 @@
-# Turbo Download Manager (itdmanager)
-a multi-browser download manager with multi-threading support
-![screen shot 2016-01-30 at 11 11 42](https://cloud.githubusercontent.com/assets/351062/12694533/2dbefc40-c746-11e5-9037-5eb7df72a040.png)
+Turbo Download Manager (itdmanager) [![Build Status](https://travis-ci.org/inbasic/turbo-download-manager.svg?branch=master)](https://travis-ci.org/inbasic/turbo-download-manager)
+===
+
+TDM is an open-source multi-platform download manager with multi-threading support
+
+![screen shot](https://cloud.githubusercontent.com/assets/351062/15116089/28ab9f5e-1617-11e6-8ceb-82c0e604593c.png)
 
 For FAQs and discussions around this project visit:
 http://add0n.com/turbo-download-manager.html
 
 ### Downloads (released versions):
-1. Firefox: https://addons.mozilla.org/firefox/addon/turbo-download-manager/
-2. Chrome: https://chrome.google.com/webstore/detail/turbo-download-manager/kemfccojgjoilhfmcblgimbggikekjip
-3. Opera: https://addons.opera.com/extensions/details/turbo-download-manager/
-4. Safari: not ready
-5. Android: https://play.google.com/store/apps/details?id=com.add0n.downloader
-6. Windows: https://sourceforge.net/projects/turbo-download-manager/
-7. Mac: https://sourceforge.net/projects/turbo-download-manager/
+1. [Firefox](https://addons.mozilla.org/firefox/addon/turbo-download-manager/)
+2. [Chrome](https://chrome.google.com/webstore/detail/turbo-download-manager/kemfccojgjoilhfmcblgimbggikekjip)
+3. [Opera](https://addons.opera.com/extensions/details/turbo-download-manager/)
+5. [Android](https://play.google.com/store/apps/details?id=com.add0n.downloader)
+6. Windows: [SourceForge; only-releases](https://sourceforge.net/projects/turbo-download-manager/) or [GitHub; releases and pre-releases](https://github.com/inbasic/turbo-download-manager/releases)
+7. Mac: [SourceForge; only-releases](https://sourceforge.net/projects/turbo-download-manager/) or [GitHub; releases and pre-releases](https://github.com/inbasic/turbo-download-manager/releases)
+8. Linux [SourceForge; only-releases](https://sourceforge.net/projects/turbo-download-manager/) or [GitHub; releases and pre-releases](https://github.com/inbasic/turbo-download-manager/releases)
 
 ### Downloads (developer builds):
-1. Firefox: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/firefox.xpi?raw=true
-2. Chrome: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/chrome.zip?raw=true
-3. Opera: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/opera.zip?raw=true
-4. Safari: not ready
-5. Android: https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/android.zip?raw=true
-6. Electron (for Windows, Linux and Mac): https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/electron.zip?raw=true
-
+[Firefox](https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/firefox.xpi?raw=true), [Chrome](https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/chrome.zip?raw=true), [Opera](https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/opera.zip?raw=true), [Android](https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/android.zip?raw=true), and [Electron (for Windows, Linux and Mac)](https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/electron.zip?raw=true)
 
 ### Compile itdmanager project:
+itdmanager uses [GulpJS](http://gulpjs.com/) to build executable files for all platforms. For more info about how to compile this project take a look at `./.travis.yml` file. A log file of the latest [released or pre-released](https://github.com/inbasic/turbo-download-manager/releases) version is available at [travis-ci.org](https://travis-ci.org/inbasic/turbo-download-manager)
 
 1. Firefox: `gulp firefox`
 2. Google Chrome: `gulp chrome`
@@ -43,9 +41,12 @@ http://add0n.com/turbo-download-manager.html
 5. Electron:
   1. Mac:
     1. `electron-packager . "Turbo Download Manager" --platform=darwin --arch=x64 --version=0.37.7 --icon mac.icns --overwrite`
-    2. `electron-builder "Turbo Download Manager.app" --platform=osx --out="dist" --config=config.json`
-  2. Windows: `electron-packager . "Turbo Download Manager" --platform=win32 --arch=x64 --version=0.37.7 --icon ../512.ico --overwrite`
-  2. Linux: `electron-packager . "Turbo Download Manager" --platform=linux --arch=all --version=0.37.7 --overwrite`
+  2. Windows:
+    1. `electron-packager . "Turbo Download Manager" --platform=win32 --arch=x64 --version=0.37.7 --icon ../512.ico --overwrite`
+    1. `electron-packager . "Turbo Download Manager" --platform=win32 --arch=ia32 --version=0.37.7 --icon ../512.ico --overwrite`
+  2. Linux:
+    1. `electron-packager . "Turbo Download Manager" --platform=linux --arch=x64 --version=0.37.7 --overwrite`
+    2. `electron-packager . "Turbo Download Manager" --platform=linux --arch=ia32 --version=0.37.7 --overwrite`
 
 ### Technical notes:
 
