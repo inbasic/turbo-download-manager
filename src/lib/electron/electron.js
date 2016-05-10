@@ -408,7 +408,7 @@ exports.fileSystem = {
     external: function (bytes, url) {
       return new Promise(function (resolve, reject) {
         let root = url ? url : path.resolve(process.env.HOME || process.env.USERPROFILE, 'Downloads');
-        diskspace.check(root, function (err, total, free) {
+        diskspace.check(path.parse(root).root, function (err, total, free) {
           if (err) {
             throw err;
           }

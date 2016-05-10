@@ -20,7 +20,7 @@
   "dependencies": {
     "node-storage": "*",
     "request": "*",
-    "diskspace": "https://github.com/keverw/diskspace.js",
+    "diskspace": "*",
     "optimist": "*",
     "semver": "*"
   }
