@@ -10,7 +10,7 @@ app.button.onCommand(function () {
   app.tab.list().then(function (tabs) {
     tabs = tabs.filter(t => t && t.url.indexOf(app.getURL('manager/index.html')) === 0);
     if (tabs.length) {
-      app.tab.reload(tabs[0]).then(app.tab.activate);
+      app.tab.activate(tabs[0]);
     }
     else {
       app.tab.open(app.getURL('./manager/index.html'));
