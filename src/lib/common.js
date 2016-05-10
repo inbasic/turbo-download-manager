@@ -99,12 +99,8 @@ app.on('download', actions.download);
 ]);
 
 /* manager */
-mwget.addEventListener('done', function (id, status) {
-  app.manager.send('status', {id, status});
-});
-mwget.addEventListener('add', function (id) {
-  app.manager.send('new', id);
-});
+mwget.addEventListener('done', (id, status) => app.manager.send('status', {id, status}));
+mwget.addEventListener('add', (id) => app.manager.send('new', id));
 mwget.addEventListener('details', function (id, type, value) {
   if (type === 'name') {
     app.manager.send('name', {id, name: value});
@@ -157,18 +153,12 @@ mwget.addEventListener('percent', function (id, remained, length) {
   let tmp = (length - remained) / length * 100;
   app.manager.send('percent', {id, percent: tmp});
 });
-mwget.addEventListener('total-percent', function (percent) {
-  app.manager.send('total-percent', percent);
-});
-mwget.addEventListener('speed', function (id, speed, remained) {
+mwget.addEventListener('total-percent', (percent) => app.manager.send('total-percent', percent));
+mwget.addEventListener('speed', (id, speed, remained) => {
   app.manager.send('speed', {id, speed, time: remained / speed});
 });
-mwget.addEventListener('progress', function (id, stat) {
-  app.manager.send('progress', {id, stat});
-});
-mwget.addEventListener('logs', function (id, log) {
-  app.info.send('log', {id, log: [log]});
-});
+mwget.addEventListener('progress', (id, stat) => app.manager.send('progress', {id, stat}));
+mwget.addEventListener('logs', (id, log) => app.info.send('log', {id, log: [log]}));
 app.manager.receive('init', function () {
   let instances = mwget.list();
   instances.forEach(function (instance, id) {
@@ -222,6 +212,9 @@ app.manager.receive('cmd', function (obj) {
   if (obj.cmd === 'open') {
     mwget.get(obj.id).internals.file.launch();
   }
+  if (obj.cmd === 'download') {
+    actions.download(obj);
+  }
 });
 app.manager.receive('open', app.emit.bind(app, 'open'));
 /* add ui */
@@ -260,9 +253,7 @@ app.add.receive('init', function () {
     });
   });
 });
-app.add.receive('no-folder', function () {
-  app.notification('Please select the destination folder using the "browse" button');
-});
+app.add.receive('no-folder', () => app.notification('Please select the destination folder using the "browse" button'));
 /* info ui */
 app.info.receive('init', function (id) {
   app.info.send('log', {

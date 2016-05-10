@@ -11,20 +11,23 @@ var shell = require('electron').shell;
 var path = require('path');
 var fs = require('fs');
 var crypt = require('crypto');
-var diskspace = require('diskspace');
-var optimist = require('optimist');
-// libs
+var os = require('os');
+// community libs
 var Storage = require('node-storage');
 var request = require('request');
-
-if (typeof require !== 'undefined') {
-  var utils = require('../utils');
-}
-
+var semver = require('semver');
+var diskspace = require('diskspace');
+var optimist = require('optimist');
+// internals
+var utils = require('../utils');
 var self = require('../../package.json');
+var userAgant =  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36';
 
-var XMLHttpRequest = function () {
-  let method = 'GET', uri, headers = {}, readyState = 2;
+var XMLHttpRequest = function () { // jshint ignore:line
+  let method = 'GET', uri, readyState = 2;
+  let headers = {
+    'User-Agent': userAgant
+  };
   let onload = function () {};
   let onreadystatechange = function () {};
   let onerror = function () {};
@@ -37,6 +40,9 @@ var XMLHttpRequest = function () {
     },
     get readyState () {
       return readyState;
+    },
+    get response () {
+      return response;
     },
     open: (m, u) => {
       method = m || method;
@@ -552,3 +558,36 @@ electron.app.on('activate', function () {
     createWindow();
   }
 });
+/* update checker */
+(function () {
+  request({
+    uri: 'https://api.github.com/repos/inbasic/turbo-download-manager/releases',
+    method: 'GET',
+    headers: {
+      'User-Agent': userAgant
+    }
+  }, function (error, response, body) {
+    if (!error && response.statusCode === 200) {
+      try {
+        let json = JSON.parse(body);
+        let versions = json.map(o => o.tag_name);
+        versions = versions
+          .filter(v => semver.compare(v, self.version) > 0)
+          .filter(v => v.indexOf('alpha') === -1 && v.indexOf('beta') === -1);
+        if (versions.length) {
+          let version = versions.shift();
+          let url = `https://github.com/inbasic/turbo-download-manager/releases/download/${version}/tdm-${process.platform}-${os.arch()}.7z`;
+          mainWindow.webContents.send('_update', {
+            title: `New version of "Turbo Download Manager" is available (${version}). Would you like to update?`,
+            url,
+            referrer: 'https://github.com/inbasic/turbo-download-manager/releases/'
+          });
+        }
+      }
+      catch (e) {
+        console.error(e);
+      }
+     }
+  });
+})();
+

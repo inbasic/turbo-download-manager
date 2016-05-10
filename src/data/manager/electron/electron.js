@@ -59,6 +59,11 @@ ipcRenderer.on('_sandbox', (event, obj) => {
   webview.addEventListener('crashed', () => destroy(null, 2));
   webview.src = obj.url;
 });
+ipcRenderer.on('_update', (event, obj) => {
+  window.confirm(obj.title, () => background.send('cmd', Object.assign(obj, {
+    cmd: 'download'
+  })));
+});
 
 var manifest = { // jshint ignore:line
   open: true,

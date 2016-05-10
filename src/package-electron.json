@@ -21,6 +21,7 @@
     "node-storage": "*",
     "request": "*",
     "diskspace": "*",
-    "optimist": "*"
+    "optimist": "*",
+    "semver": "*"
   }
 }

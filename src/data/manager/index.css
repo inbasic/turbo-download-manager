@@ -396,6 +396,7 @@ body[data-open=true] .item[data-type=done] i[data-cmd=open],
   }
 }
 #confirm>div {
+  border: solid 3px #ddd;
   width: 80%;
   max-width: 400px;
   height: 100px;
