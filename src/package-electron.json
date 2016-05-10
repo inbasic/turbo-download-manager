@@ -1,28 +1,22 @@
 {
-  "name": "turbo-download-manager",
-  "version": "0.2.7",
-  "description": "a download manager with multi-threading support for Windows, Mac and Linux",
+  "name": "%name;",
+  "version": "%version;",
+  "description": "%description;",
   "main": "lib/common.js",
   "scripts": {
     "start": "electron main.js"
   },
   "repository": {
-    "type": "https",
-    "url": "https://github.com/inbasic/turbo-download-manager/"
+    "type": "git",
+    "url": "%repository.url;"
   },
-  "keywords": [
-    "Electron",
-    "Download Manager",
-    "DownThemAll",
-    "Flashget",
-    "Internet Download Manager"
-  ],
-  "author": "Inbasic",
-  "license": "Mozilla Public License, version 2.0",
+  "keywords": config.keywords,
+  "author": "%author;",
+  "license": "%license;",
   "bugs": {
-    "url": "https://github.com/inbasic/turbo-download-manager/issues"
+    "url": "%bugs.url;"
   },
-  "homepage": "http://add0n.com/turbo-download-manager.html",
+  "homepage": "%homepage;",
   "dependencies": {
     "node-storage": "*",
     "request": "*",

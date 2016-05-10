@@ -1,14 +1,14 @@
 {
-  "title": "Turbo Download Manager",
-  "name": "itdmanager",
-  "description": "a download manager with multi-threading support",
+  "title": "%title;",
+  "name": "%name;",
+  "description": "%description;",
   "id": "jid0-dsq67mf5kjjhiiju2dfb6kk8dfw@jetpack",
-  "license": "Mozilla Public License, version 2.0",
-  "version": "0.2.7",
-  "author": "InBasic",
+  "license": "%license;",
+  "version": "%version;",
+  "author": "%author;",
   "lib": "lib",
   "main": "./lib/common.js",
-  "url": "http://add0n.com/turbo-download-manager.html",
+  "url": "%homepage;",
   "engines": {
     "firefox": ">=29.0",
     "fennec": ">=29.0"

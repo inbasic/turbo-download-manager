@@ -25,6 +25,31 @@ gulp.task('clean', function () {
     .pipe(clean());
 });
 
+function json () {
+  let config = require('./package.json');
+  return gulpif(f => f.relative.endsWith('.json'), change(content => content
+    .replace('%title;', config.title)
+    .replace('%name;', config.name)
+    .replace('%description;', config.description)
+    .replace('%license;', config.license)
+    .replace('%version;', config.version)
+    .replace('%author;', config.author)
+    .replace('%homepage;', config.homepage)
+    .replace('%repository.url;', config.repository.url)
+    .replace('%bugs.url;', config.bugs.url)
+    .replace('config.keywords', JSON.stringify(config.keywords))
+  ));
+}
+
+function shadow (browser) {
+  let c1 = `    <script src="${browser}/${browser}.js"></script>\n    <script src="index.js"></script>`;
+  let c2 = `    <script src="showdown.js"></script>\n    <script src="${browser}/${browser}.js"></script>\n    <script src="index.js"></script>`;
+  return gulpif(f => f.relative.endsWith('.html'), gulpif(f => f.relative.endsWith('info/index.html'),
+    change(content => content.replace(/.*shadow_index\.js.*/, c2)),
+    change(content => content.replace(/.*shadow_index\.js.*/, c1))
+  ));
+}
+
 /* electron build */
 gulp.task('electron-build', function () {
   return gulp.src([
@@ -48,21 +73,13 @@ gulp.task('electron-build', function () {
     }
     return path;
   }))
+  .pipe(json())
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
   }, change(function (content) {
     return content.replace('firefox/firefox', 'electron/electron');
   })))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
-  }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="electron/electron.js"></script>\n    <script src="index.js"></script>');
-  })))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') !== -1;
-  }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="showdown.js"></script>\n    <script src="electron/electron.js"></script>\n    <script src="index.js"></script>');
-  })))
+  .pipe(shadow('electron'))
   .pipe(gulp.dest('builds/unpacked/electron'))
   .pipe(zip('electron.zip'))
   .pipe(gulp.dest('builds/packed'));
@@ -135,16 +152,8 @@ gulp.task('chrome-build', function () {
     }
     return path;
   }))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
-  }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="chrome/chrome.js"></script>\n    <script src="index.js"></script>');
-  })))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') !== -1;
-  }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="showdown.js"></script>\n    <script src="chrome/chrome.js"></script>\n    <script src="index.js"></script>');
-  })))
+  .pipe(json())
+  .pipe(shadow('chrome'))
   .pipe(gulp.dest('builds/unpacked/chrome'))
   .pipe(zip('chrome.zip'))
   .pipe(gulp.dest('builds/packed'));
@@ -184,16 +193,8 @@ gulp.task('opera-build', function () {
     }
     return path;
   }))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
-  }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="opera/opera.js"></script>\n    <script src="index.js"></script>');
-  })))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') !== -1;
-  }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="showdown.js"></script>\n    <script src="opera/opera.js"></script>\n    <script src="index.js"></script>');
-  })))
+  .pipe(json())
+  .pipe(shadow('opera'))
   .pipe(gulp.dest('builds/unpacked/opera'))
   .pipe(zip('opera.zip'))
   .pipe(gulp.dest('builds/packed'));
@@ -233,16 +234,8 @@ gulp.task('android-build', function () {
     }
     return path;
   }))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') === -1;
-  }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="android/android.js"></script>\n    <script src="index.js"></script>');
-  })))
-  .pipe(gulpif(function (f) {
-    return f.path.indexOf('.html') !== -1 && f.path.indexOf('info/index.html') !== -1;
-  }, change(function (content) {
-    return content.replace(/.*shadow_index\.js.*/, '    <script src="showdown.js"></script>\n    <script src="android/android.js"></script>\n    <script src="index.js"></script>');
-  })))
+  .pipe(json())
+  .pipe(shadow('android'))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1 && f.relative.indexOf('EventEmitter.js') === -1;
   }, babel({
@@ -291,6 +284,7 @@ gulp.task('firefox-build', function () {
     }
     return path;
   }))
+  .pipe(json())
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.html') !== -1;
   }, change(function (content) {

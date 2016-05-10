@@ -1,7 +1,8 @@
 {
-  "name": "turbo-download-manager",
-  "version": "0.1.0",
-  "description": "a multi-threading download manager for Firefox, Chrome, Opera, Android, Windows, Linux and Mac operation systems",
+  "name": "itdmanager",
+  "title": "Turbo Download Manager",
+  "version": "0.2.7",
+  "description": "a download manager with multi-threading support",
   "scripts": {
   },
   "repository": {

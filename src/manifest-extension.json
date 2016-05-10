@@ -1,9 +1,9 @@
 {
-  "name": "Turbo Download Manager",
-  "short_name": "itdmanager",
-  "description": "a download manager with multi-threading support",
-  "author": "Inbasic",
-  "version": "0.2.7",
+  "name": "%title;",
+  "short_name": "%name;",
+  "description": "%description;",
+  "author": "%author;",
+  "version": "%version;",
   "manifest_version": 2,
   "permissions": [
     "storage",
@@ -37,7 +37,7 @@
        "lib/mwget.js"
     ]
   },
-  "homepage_url": "http://add0n.com/turbo-download-manager.html",
+  "homepage_url": "%homepage;",
   "icons": {
     "16": "data/icons/16.png",
     "48": "data/icons/48.png",

@@ -495,8 +495,8 @@ function createWindow () {
     }
     return true;
   });
-  if (iShouldQuit) {
-    electron.app.quit();return;
+  if (iShouldQuit && !optimist.argv.forced) {
+    return electron.app.quit();
   }
 }
 
