@@ -18,7 +18,7 @@ http://add0n.com/turbo-download-manager.html
 8. Linux [SourceForge; only-releases](https://sourceforge.net/projects/turbo-download-manager/) or [GitHub; releases and pre-releases](https://github.com/inbasic/turbo-download-manager/releases)
 
 ### Downloads (developer builds):
-[Firefox](https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/firefox.xpi?raw=true), [Chrome](https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/chrome.zip?raw=true), [Opera](https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/opera.zip?raw=true), [Android](https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/android.zip?raw=true), and [Electron (for Windows, Linux and Mac)](https://github.com/inbasic/turbo-download-manager/blob/master/builds/packed/electron.zip?raw=true)
+[Firefox](https://github.com/inbasic/turbo-download-manager/releases), [Chrome](https://github.com/inbasic/turbo-download-manager/releases), [Opera](https://github.com/inbasic/turbo-download-manager/releases), [Android](https://github.com/inbasic/turbo-download-manager/releases), and [Electron (for Windows, Linux and Mac)](https://github.com/inbasic/turbo-download-manager/releases)
 
 ### Compile itdmanager project:
 itdmanager uses [GulpJS](http://gulpjs.com/) to build executable files for all platforms. For more info about how to compile this project take a look at `./.travis.yml` file. A log file of the latest [released or pre-released](https://github.com/inbasic/turbo-download-manager/releases) version is available at [travis-ci.org](https://travis-ci.org/inbasic/turbo-download-manager)
