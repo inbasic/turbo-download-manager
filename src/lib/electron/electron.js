@@ -501,11 +501,11 @@ function createWindow () {
     }
     return true;
   });
-  if (iShouldQuit && !optimist.argv.forced) {
+  if (iShouldQuit && !optimist.parse(process.argv).forced) {
     return electron.app.quit();
   }
 }
-
+console.error(optimist.parse(process.argv).forced)
 electron.app.on('ready', createWindow);
 
 function createMenu () {
