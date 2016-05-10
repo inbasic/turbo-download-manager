@@ -150,7 +150,7 @@ var get = function (id) {
         item.dataset.id = id;
       }
       item.style.left = offset + '%';
-      item.style.width = percent + '%';
+      item.style.width = percent ? percent + '%' : '2px';
       item.style.backgroundColor = color;
     },
     clear: function () {
