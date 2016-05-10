@@ -25,14 +25,18 @@ gulp.task('clean', function () {
     .pipe(clean());
 });
 
-function json () {
+function json (clean) {
   let config = require('./package.json');
+  let version = config.version;
+  if (clean) {
+    version = version.replace(/.beta*/, '');
+  }
   return gulpif(f => f.relative.endsWith('.json'), change(content => content
     .replace('%title;', config.title)
     .replace('%name;', config.name)
     .replace('%description;', config.description)
     .replace('%license;', config.license)
-    .replace('%version;', config.version)
+    .replace('%version;', version)
     .replace('%author;', config.author)
     .replace('%homepage;', config.homepage)
     .replace('%repository.url;', config.repository.url)
@@ -152,7 +156,7 @@ gulp.task('chrome-build', function () {
     }
     return path;
   }))
-  .pipe(json())
+  .pipe(json(true))
   .pipe(shadow('chrome'))
   .pipe(gulp.dest('builds/unpacked/chrome'))
   .pipe(zip('chrome.zip'))
@@ -193,7 +197,7 @@ gulp.task('opera-build', function () {
     }
     return path;
   }))
-  .pipe(json())
+  .pipe(json(true))
   .pipe(shadow('opera'))
   .pipe(gulp.dest('builds/unpacked/opera'))
   .pipe(zip('opera.zip'))

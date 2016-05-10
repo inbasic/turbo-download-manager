@@ -17,6 +17,9 @@ hr {
   border-width: 1px 0 0 0;
   border-style: dashed;
 }
+a:not([href]) {
+  text-decoration: line-through;
+}
 input {
   background: #fff;
   border: solid 1px rgba(0, 0, 0, 0.1);
