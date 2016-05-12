@@ -449,7 +449,7 @@ exports.startup = function (c) {
 
 exports.arguments = function (c) {
   let callback = c || function () {};
-  electron.app.on('ready', () => callback(optimist.parse(process.argv)));
+  exports.on('ready', () => callback(optimist.parse(process.argv)));
   exports.on('command-line', (argv) => callback(argv));
 };
 
@@ -480,15 +480,6 @@ exports.sandbox = (function () {
 
 /* internals */
 function createWindow () {
-  mainWindow = new BrowserWindow({
-    width: 800,
-    height: 700
-  });
-  mainWindow.loadURL('file://' + __dirname + '/../../data/manager/index.html');
-
-  mainWindow.on('closed', function () {
-    mainWindow = null;
-  });
   // single instance
   let iShouldQuit = electron.app.makeSingleInstance(function (commandLine) {
     if (mainWindow) {
@@ -500,12 +491,25 @@ function createWindow () {
       exports.emit('command-line', optimist.parse(commandLine));
     }
     return true;
-  });
-  if (iShouldQuit && !optimist.parse(process.argv).forced) {
-    return electron.app.quit();
+  }) && !optimist.parse(process.argv).forced;
+
+  if (iShouldQuit) {
+    electron.app.quit();
+  }
+  else {
+    mainWindow = new BrowserWindow({
+      width: 800,
+      height: 700
+    });
+    mainWindow.loadURL('file://' + __dirname + '/../../data/manager/index.html');
+
+    mainWindow.on('closed', function () {
+      mainWindow = null;
+    });
+    exports.emit('ready');
   }
 }
-console.error(optimist.parse(process.argv).forced)
+
 electron.app.on('ready', createWindow);
 
 function createMenu () {
@@ -559,7 +563,7 @@ electron.app.on('activate', function () {
   }
 });
 /* update checker */
-(function () {
+exports.on('ready', function () {
   request({
     uri: 'https://api.github.com/repos/inbasic/turbo-download-manager/releases',
     method: 'GET',
@@ -587,7 +591,6 @@ electron.app.on('activate', function () {
       catch (e) {
         console.error(e);
       }
-     }
+    }
   });
-})();
-
+});
