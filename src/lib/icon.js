@@ -148,6 +148,7 @@ var icon = typeof exports === 'undefined' ? {} : exports;
         type = 'normal';
       }
       value = value === null ? oValue : value;
+      value = value === 100 ? 0 : value;
       if (type !== 'normal') {
         app.timer.clearTimeout(id);
         id = app.timer.setTimeout(icon.percent, config.icon.timeout * 1000, null, 'normal', true);

@@ -39,7 +39,6 @@ ipcRenderer.on('_sandbox', (event, obj) => {
   webview.setAttribute('style', 'visibility: hidden; display:inline-block; max-height: 20px; max-width: 20px;');
   document.body.appendChild(webview);
   function destroy (url, mm) {
-    console.error(mm);
     if (webview) {
       webview.parentNode.removeChild(webview);
       webview = null;

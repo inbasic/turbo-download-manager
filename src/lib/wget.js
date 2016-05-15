@@ -122,7 +122,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
           'url': req.responseURL,
           'mime': req.getResponseHeader('Content-Type'),
           'disposition': req.getResponseHeader('Content-Disposition'),
-          'can-download': contentEncoding === null && lengthComputable !== 'false',
+          'simple-mode': contentEncoding !== null || lengthComputable === 'false' || length === 0,
           'multi-thread': !!length &&
             contentEncoding === null &&
             req.getResponseHeader('Accept-Ranges') === 'bytes' &&
@@ -304,8 +304,17 @@ var wget = typeof exports === 'undefined' ? {} : exports;
           event.emit('add-log', `${url} is removed from url list due to a fetch error`, {type: 'warning'});
         }
       }
-      chunk(obj, range, e, range.start !== 0 || range.end !== info.length - 1, writer).then(
+
+      chunk(
+        obj, range, e,
+        range.start !== 0 || (range.end !== info.length - 1 && range.end !== Infinity),
+        writer
+      ).then(
         function (status) {
+          if (info['simple-mode'] && status === 'done') {
+            internals.ranges = [];
+            internals.locks = [];
+          }
           tmp.status = status;
           after();
           app.timer.setTimeout(schedule, obj.pause || 100);
@@ -372,7 +381,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       );
     }
     function guess (obj) {
-      let url = obj.urls[0], name = obj.name, mime = obj.mime, disposition = obj.disposition;
+      let url = obj.urls[0], name = obj.name, mime = obj.mime.split(';').shift(), disposition = obj.disposition;
       if (!name && disposition) {
         let tmp = /filename\=([^\;]*)/.exec(disposition);
         if (tmp && tmp.length) {
@@ -391,7 +400,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         name = decodeURIComponent(name.split('?')[0].split('&')[0]) || 'unknown';
       }
       // extracting extension from file name
-      let se = /\.\w+$/.exec(name);
+      let se = /\.\w{2,}$/.exec(name);
       if (se && se.length) {
         name = name.replace(se[0], '');
       }
@@ -405,9 +414,9 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       // extension
       let extension =  app.mimes[mime] || '';
       if (extension) {
-        let r = new RegExp('\.' + extension + '$');
+        let r = new RegExp('\.(' + extension.join('|') + ')$');
         name = name.replace(r, '');
-        return name + '.' + extension;
+        return name + '.' + extension[0];
       }
       else {
         return name;
@@ -416,12 +425,10 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     //
     event.on('info', function () {
       if (info.length === 0) {
-        event.emit('add-log', 'Internal Error: \`info.length\` is equal to zero', {type: 'error'});
-        return done('error');
+        event.emit('add-log', '\`info.length\` is equal to zero', {type: 'warning'});
       }
       if (info.encoding) {
-        event.emit('add-log', 'Internal Error: \`info.encoding\` is not null', {type: 'error'});
-        return done('error');
+        event.emit('add-log', '\`info.encoding\` is not null', {type: 'warning'});
       }
       (function (len) {
         len = Math.max(len, obj.minByteSize ||  50 * 1024);
@@ -439,15 +446,12 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         }));
         internals.locks = [];
       })(Math.floor(info.length / obj.threads));
-      // do not download large files if multi-thread is not supported
-      /*if (!info['multi-thread'] && info.length > 200 * 1024 * 1024) {
-        event.emit('add-log', 'Server does not support multi-threading; file-size is more than **200MB**', {type: 'error'});
-        return done('error');
-      }*/
-      if (!info['can-download']) {
-        event.emit('add-log', 'Server does not support multi-threading; Either file-size is not defined or file is encoded', {type: 'error'});
-        return done('error');
+
+      if (info['simple-mode']) {
+        internals.ranges[0].end = Infinity;
+        event.emit('add-log', 'Server does not support multi-threading; Either file-size is not defined or file is encoded', {type: 'warning'});
       }
+
       internals.status = 'download';
 
       internals.name = guess(Object.assign({
