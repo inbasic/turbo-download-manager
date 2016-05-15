@@ -21,54 +21,20 @@ var wget = typeof exports === 'undefined' ? {} : exports;
 // @param  {[type]} obj.writer        request writing to disk
 
 (function () {
-  // helpers; Custom Error
-  function CError (message, code, obj) {
-    this.code = code || -1;
-    this.message = message || -1;
-    Object.keys(obj || {}).forEach(n => this[n] = obj[n]);
-  }
-  CError.prototype = Error.prototype;
-  // helpers; spy a promise
-  function spy (promise, callback) {
-    return promise.then(
-      function (a) {
-        let tmp = callback(null, a);
-        if (tmp && 'then' in tmp) {
-          return tmp.then(() => a, () => a);
-        }
-        return a;
-      },
-      function (e) {
-        let tmp = callback(e, null);
-        if (tmp && 'then' in tmp) {
-          return tmp.then(
-            function () {
-              throw e;
-            },
-            function () {
-              throw e;
-            }
-          );
-        }
-        throw e;
-      }
-    );
-  }
-
   function xhr (obj, range) {
     let d = app.Promise.defer(), loaded = 0, dead = false;
-    let id = app.timer.setTimeout(() => d.reject(new CError('timeout', 3, {url: obj.urls[0]})), obj.timeout);
+    let id = app.timer.setTimeout(() => d.reject(new utils.CError('timeout', 3, {url: obj.urls[0]})), obj.timeout);
     let reader = {
       cancel: function () {}
     };
 
     obj.event.on('abort', () => {
-      d.reject(new CError('abort', 2));
+      d.reject(new utils.CError('abort', 2));
     });
     function process () {
       return reader.read().then(function (result) {
         app.timer.clearTimeout(id);
-        id = app.timer.setTimeout(() => d.reject(new CError('timeout', 3, {url: obj.urls[0]})), obj.timeout);
+        id = app.timer.setTimeout(() => d.reject(new utils.CError('timeout', 3, {url: obj.urls[0]})), obj.timeout);
 
         let buffer = result.value;
         if (buffer && buffer.byteLength) {
@@ -98,16 +64,16 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         reader.cancel();
       }
       if (!res.ok) {
-        throw new CError('fetch error', 4);
+        throw new utils.CError('fetch error', 4);
       }
       // make sure server supports partial content fetching; 206
       if (res.status && res.status !== 206 && obj.headers.Range) {
-        throw new CError(`expected 206 but got ${res.status}`, 1, {url: obj.urls[0]});
+        throw new utils.CError(`expected 206 but got ${res.status}`, 1, {url: obj.urls[0]});
       }
       return process();
     }).catch((e) => d.reject(Object.assign(e, {url: obj.urls[0]})));
 
-    return spy(d.promise, () => {
+    return utils.spy(d.promise, () => {
       dead = true;
       reader.cancel();
     });
@@ -633,7 +599,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       }
     );
     let promise;
-    promise = spy(d.promise, function () {
+    promise = utils.spy(d.promise, function () {
       return app.Promise.all(buffers.map(b => internals.file.write(b.start, b.segments)))
         .then(() => buffers = [])
         .then(() => internals.file.flush())
@@ -645,7 +611,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
           return internals.status;
         });
     });
-    promise = spy(promise, function () {
+    promise = utils.spy(promise, function () {
       return internals.file.close().then().catch(function (){});
     });
     return {
@@ -721,7 +687,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     b.event.on('resume', start);
     start();
 
-    b.promise = spy(b.promise, done);
+    b.promise = utils.spy(b.promise, done);
 
     Object.defineProperty(b, 'speed', {
       get: function () {
@@ -734,7 +700,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
   function vget (obj) {
     let c = cget(obj);
 
-    c.promise = spy(c.promise, function () {
+    c.promise = utils.spy(c.promise, function () {
       app.timer.setTimeout(() => c.event.removeAllListeners(), 5000);
     });
 

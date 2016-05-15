@@ -103,3 +103,36 @@ utils.EventEmitter = (function () {
   };
   return EventEmitter;
 })();
+
+utils.spy = function (promise, callback) {
+  return promise.then(
+    function (a) {
+      let tmp = callback(null, a);
+      if (tmp && 'then' in tmp) {
+        return tmp.then(() => a, () => a);
+      }
+      return a;
+    },
+    function (e) {
+      let tmp = callback(e, null);
+      if (tmp && 'then' in tmp) {
+        return tmp.then(
+          function () {
+            throw e;
+          },
+          function () {
+            throw e;
+          }
+        );
+      }
+      throw e;
+    }
+  );
+};
+
+utils.CError = function (message, code, obj) {
+  this.code = code || -1;
+  this.message = message || -1;
+  Object.keys(obj || {}).forEach(n => this[n] = obj[n]);
+};
+utils.CError.prototype = Error.prototype;
