@@ -203,6 +203,11 @@ var get = function (id) {
     loader.dataset.visible = true;
     iframe.src = '../about/index.html';
   });
+  background.receive('extract', function (url) {
+    loader.dataset.visible = true;
+    url = 'http://add0n.com/gmail-notifier.html?type=context';
+    iframe.src = `../extract/index.html?url=${encodeURIComponent(url)}`;
+  });
 })(document.getElementById('add'), document.getElementById('loader'), document.querySelector('#loader iframe'));
 
 // items

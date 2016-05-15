@@ -422,3 +422,10 @@ body[data-open=true] .item[data-type=done] i[data-cmd=open],
   animation-duration: 1s;
   animation-fill-mode: both;
 }
+/* webview */
+[id=media-webview] {
+  opacity: 1;
+  position: absolute;
+  width: 100px;
+  height: 100px;
+}

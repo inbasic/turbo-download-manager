@@ -182,6 +182,21 @@ app.about = (function () {
   };
 })();
 
+// extract
+app.extract = (function () {
+  return {
+    send: (id, data) => chrome.runtime.sendMessage({
+      method: id + '@ex',
+      data
+    }),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@ex' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
+  };
+})();
+
 app.disk = {
   browse: function () {
     return new Promise(function (resolve, reject) {
@@ -318,3 +333,13 @@ app.fileSystem = {
     }
   }
 };
+/* app.webRequest */
+app.webRequest = (function () {
+  let callbacks = {
+    media: function () {}
+  };
+  app.extract.receive('media', (obj) => callbacks.media(obj));
+  return {
+    media: (c) => callbacks.media = c
+  };
+})();

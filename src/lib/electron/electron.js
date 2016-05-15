@@ -303,6 +303,19 @@ exports.about = {
   })
 };
 
+// extract
+exports.extract = {
+  send: (id, data) => mainWindow.webContents.send(id + '@ex', {
+    url: 'background.html',
+    data
+  }),
+  receive: (id, callback) => ipcMain.on(id + '@ex', function (event, arg) {
+    if (arg &&  arg.url === 'extract/index.html') {
+      callback(arg.data);
+    }
+  })
+};
+
 exports.fileSystem = {
   file: {
     exists: function (root, name) {
@@ -594,3 +607,14 @@ exports.on('ready', function () {
     }
   });
 });
+
+exports.webRequest = (function () {
+  let callbacks = {
+    media: function () {}
+  };
+  exports.extract.receive('media', (obj) => console.error(obj));
+  exports.extract.receive('media', (obj) => callbacks.media(obj));
+  return {
+    media: (c) => callbacks.media = c
+  };
+})();

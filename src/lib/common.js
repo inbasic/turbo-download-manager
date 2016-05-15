@@ -52,6 +52,7 @@ var actions = {
     sourceforge: () => app.tab.open(config.urls.sourceforge),
     developer: () => app.developer.console(),
     triggers: () => app.manager.send('triggers'),
+    extract: (url) => app.manager.send('extract', url),
     about: () => app.manager.send('about')
   }
 };
@@ -343,6 +344,10 @@ app.about.receive('init', function () {
   });
 });
 app.about.receive('open', url => app.tab.open(url));
+/* extract ui */
+if (app.webRequest) {
+  app.webRequest.media(obj => app.extract.send('media', obj));
+}
 /* startup */
 app.startup(function () {
   // FAQs page

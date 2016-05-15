@@ -1,0 +1,70 @@
+html {
+  height: 100%;
+}
+body {
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  margin: 5px;
+}
+body,
+table,
+input {
+  font-family: arial;
+  font-size: 12px;
+  outline: none;
+}
+input {
+  background: #fff;
+  border: solid 1px rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  padding: 0 5px;
+  margin: 1px;
+  height: 28px;
+}
+input[type=button] {
+  cursor: pointer;
+  font-family: "fontello";
+}
+input[type=text] {
+  width: 100%;
+}
+input:focus{
+  border-color: rgba(0, 0, 0, 0.2);
+}
+input:active{
+  border-color: rgba(0, 0, 0, 0.3);
+}
+
+#toolbar {
+  display: flex;
+}
+body[data-loading=false] input[data-cmd=stop],
+body[data-loading=true] input[data-cmd=go] {
+  background: rgba(0, 0, 0, 0.05);
+  pointer-events: none;
+  color: rgba(0, 0, 0, 0.25);;
+}
+
+#elements {
+  text-align: center;
+  border: solid 1px rgba(0, 0, 0, 0.1);
+  height: 100%;
+  margin-top: 5px;
+}
+#elements img {
+  margin: 5px 1px;
+}
+#elements>div {
+  max-width: 200px;
+  max-height: 200px;
+  min-width: 100px;
+  min-height: 100px;
+  width: calc(25vw - 10px);
+  height: calc(25vw - 10px);
+  display: none;
+  background-position: center;
+  background-repeat: no-repeat;
+  align-items: flex-end;
+  justify-content: center;
+}

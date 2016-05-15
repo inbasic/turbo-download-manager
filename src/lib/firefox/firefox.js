@@ -16,6 +16,9 @@ var self          = require('sdk/self'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
     xpcom         = require('sdk/platform/xpcom'),
+    tUtils        = require('sdk/tabs/utils'),
+    wUtils        = require('sdk/window/utils'),
+    {viewFor}     = require('sdk/view/core'),
     {Page}        = require('sdk/page-worker'),
     {Class}       = require('sdk/core/heritage'),
     {all, defer, race, resolve, reject}  = require('sdk/core/promise'),
@@ -577,6 +580,10 @@ exports.OS = (function () {
     data.url('about/index.html'),
     [data.url('./about/firefox/firefox.js'), data.url('./about/index.js')]
   );
+  exports.extract = attach(
+    data.url('extract/index.html') + '*',
+    [data.url('./extract/firefox/firefox.js'), data.url('./extract/index.js')]
+  );
 })(function (include, contentScriptFile) {
   let workers = [], contentScripts = [];
   pageMod.PageMod({
@@ -663,6 +670,7 @@ exports.sandbox = (function () {
       }
       callbacks.filter(c => c.spec === requestOrigin.spec)
         .forEach(o => o.callback(contentLocation.spec));
+
       return Ci.nsIContentPolicy.ACCEPT;
     },
     shouldProcess: () => Ci.nsIContentPolicy.ACCEPT
@@ -715,3 +723,50 @@ exports.sandbox = (function () {
     return d.promise;
   };
 })();
+/*
+var {WebRequest} = Cu.import('resource://gre/modules/WebRequest.jsm');
+exports.webRequest = (function () {
+  let ids = [];
+  let callbacks = {
+    media: function () {}
+  };
+
+  tabs.on('ready', function (tab) {
+    if (tab.url === self.data.url('manager/index.html')) {
+      let win = tUtils.getTabContentWindow(viewFor(tab));
+      if (win) {
+        let id = wUtils.getOuterId(win);
+        if (id) {
+          ids.push(id);
+        }
+      }
+    }
+  });
+  tabs.on('close', function (tab) {
+    if (tab.url === self.data.url('manager/index.html')) {
+      ids = [];
+    }
+  });
+
+  function logURL(e) {
+    if (ids.indexOf(e.parentWindowId) === -1) {
+      return;
+    }
+    if (e.type === 'sub_frame' || e.type === 'main_frame') {
+      ids.push(e.windowId);
+    }
+    if (e.url.startsWith('http') && (e.type === 'image')) {
+      callbacks.media({
+        url: e.url,
+        type: e.type
+      });
+    }
+  }
+  WebRequest.onBeforeRequest.addListener(logURL);
+  unload.when(() => WebRequest.onBeforeRequest.removeListener(logURL));
+
+  return {
+    media: (c) => callbacks.media = c
+  };
+})();
+*/

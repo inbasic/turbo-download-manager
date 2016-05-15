@@ -121,7 +121,7 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
       return index;
     }
     else {
-      return app.notification('URL is not valid');
+      return app.notification(`URL is not valid; ${obj.url}`);
     }
   };
   mwget.list = () => instances;
