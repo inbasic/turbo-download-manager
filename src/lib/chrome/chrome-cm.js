@@ -83,7 +83,7 @@ app.menu = function () {};
 
 app.getURL = (path) => chrome.runtime.getURL('/data/' + path);
 
-app.version = () => chrome[chrome.runtime && chrome.runtime.getManifest ? 'runtime' : 'extension'].getManifest().version;
+app.version = () => Promise.resolve(chrome.runtime.getManifest().version);
 
 app.platform = function () {
   let v1 = /Chrome\/[\d\.]*/.exec(navigator.userAgent);

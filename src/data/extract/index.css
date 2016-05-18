@@ -5,7 +5,8 @@ body {
   display: flex;
   flex-direction: column;
   overflow: auto;
-  margin: 5px;
+  margin: 15px;
+  overflow: auto;
 }
 body,
 table,

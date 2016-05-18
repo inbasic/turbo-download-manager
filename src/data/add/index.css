@@ -146,3 +146,7 @@ body[data-support=false] [support] {
 body[data-sandbox=false] [sandbox] {
   display: none;
 }
+
+#info {
+  margin-bottom: 15px;
+}

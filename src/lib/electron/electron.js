@@ -214,7 +214,7 @@ exports.menu = function () {};
 
 exports.notification = (message) => mainWindow.webContents.send('_notification', message);
 
-exports.version = () => self.version;
+exports.version = () => Promise.resolve(self.version);
 exports.platform = () => `io.js ${process.version} & Electron ${process.versions['electron']} on ${process.platform}`;
 
 exports.OS = {
@@ -462,7 +462,7 @@ exports.startup = function (c) {
 
 exports.arguments = function (c) {
   let callback = c || function () {};
-  exports.on('ready', () => callback(optimist.parse(process.argv)));
+  exports.once('ready', () => callback(optimist.parse(process.argv)));
   exports.on('command-line', (argv) => callback(argv));
 };
 

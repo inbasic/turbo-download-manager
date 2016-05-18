@@ -5,8 +5,9 @@ body {
   flex-direction: column;
   height: 100%;
   margin: 0;
-  padding: 15px;
   box-sizing: border-box;
+  padding: 15px;
+  overflow: auto;
 }
 body,
 table,
@@ -66,6 +67,10 @@ tr[data-state=hide] + tr {
   flex: 1;
   display: flex;
   align-items: center;
+  overflow: auto;
+}
+#container>table {
+  margin: auto;
 }
 #notes {
   height: 50px;

@@ -4,8 +4,12 @@ body {
   justify-content: center;
   height: 100%;
   margin: 0;
-  padding: 5px;
+  padding: 15px;
   box-sizing: border-box;
+  overflow: auto;
+}
+body>div {
+  margin: auto;
 }
 body,
 table,

@@ -31,7 +31,6 @@
       ]
     }
   },
-  "homepage_url": "%homepage;",
   "icons": {
     "16": "data/icons/16.png",
     "48": "data/icons/48.png",

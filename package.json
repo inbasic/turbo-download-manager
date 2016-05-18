@@ -10,6 +10,7 @@
     "url": "git+https://github.com/inbasic/turbo-download-manager.git"
   },
   "author": "InBasic",
+  "email": "inb.cor@gmail.com",
   "license": "MPL-2.0",
   "bugs": {
     "url": "https://github.com/inbasic/turbo-download-manager/issues"

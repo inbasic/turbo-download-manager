@@ -1,21 +1,11 @@
-/* globals chrome */
 'use strict';
 
-var listeners = [];
-
-window.addEventListener('message', function (e) {
-  if (e.source === e.target) {
-    return;
-  }
-  listeners.forEach(function (c) {
-    c(e.data, {url: 'background.html'});
-  });
-});
-
 var background = { // jshint ignore:line
-  send: (id, data) => window.top.postMessage({method: id + '@ex', data: data}, '*'),
-  receive: (id, callback) => listeners.push(function (request, sender) {
-    if (request.method === id + '@ex' && (!sender.url || sender.url.indexOf('background') !== -1)) {
+  send: (id, data) => window.top.listeners.background.forEach(function (c) {
+    c({method: id + '@ex', data}, {url: 'extract.html'});
+  }),
+  receive: (id, callback) => window.top.listeners.pagemod.push(function (request, sender) {
+    if (request.method === id + '@ex' && sender.url.indexOf('background') !== -1) {
       callback(request.data);
     }
   })

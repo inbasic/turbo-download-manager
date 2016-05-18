@@ -1,25 +1,5 @@
-/* globals app, utils, cordova */
+/* globals app, cordova */
 'use strict';
-
-var listeners = {
-  background: [],
-  pagemod: []
-};
-var pointers = {};
-
-chrome.runtime.sendMessage = function (obj) {
-  listeners.pagemod.forEach(function (c) {
-    c(obj, {url: 'background.html'});
-  });
-};
-chrome.runtime.onMessage = {
-  addListener: function (c) {
-    listeners.background.push(c);
-  }
-};
-chrome.runtime.onMessageExternal = {
-  addListener: function () {}
-};
 
 if (!Object.assign) {
   Object.defineProperty(Object, 'assign', {
@@ -141,6 +121,27 @@ app.platform = function () {
   let v1 = /Chrome\/[\d\.]*/.exec(navigator.userAgent);
   return v1[0].replace('Chrome/', 'Chrome ') + ` & Cordova ${cordova.version}`;
 };
+/* app.version */
+app.version = () => cordova.getAppVersion.getVersionNumber();
+/* app.storage */
+app.storage = (function () {
+  let callbacks = {};
+  let storage = window.localStorage;
+
+  return {
+    read: (id) => storage.getItem(id),
+    write: function (id, data) {
+      storage.setItem(id, data);
+      if (id in callbacks) {
+        callbacks[id].forEach(c => c());
+      }
+    },
+    on: (name, callback) => {
+      callbacks[name] = callbacks[name] || [];
+      callbacks[name].push(callback);
+    }
+  };
+})();
 /* app.OS */
 app.OS = {
   clipboard: {
@@ -173,7 +174,7 @@ app.File = function (obj) { // {name, path, mime, length}
             }, (e) => fail(e));
           };
           fileWriter.onerror = (e) => fail(e);
-          let b = new pointers.manager.Blob([new Uint8Array(length)], {type: 'application/octet-stream'});
+          let b = new Blob([new Uint8Array(length)], {type: 'application/octet-stream'});
           fileWriter.seek(start);
           fileWriter.write(b);
         }, (e) => fail(e));
@@ -212,7 +213,7 @@ app.File = function (obj) { // {name, path, mime, length}
     write: function (offset, arr) {
       let d = Promise.defer();
       fileEntry.createWriter(function (fileWriter) {
-        let blob = new pointers.manager.Blob(arr, {type: 'application/octet-stream'});
+        let blob = new Blob(arr, {type: 'application/octet-stream'});
         arr = [];
         fileWriter.onerror = (e) => d.reject(e);
         fileWriter.onwrite = function (e) {
@@ -330,7 +331,7 @@ app.fileSystem.file.truncate = function (fileEntry, bytes) {
         }, (e) => fail(e));
       };
       fileWriter.onerror = (e) => fail(e);
-      let b = new pointers.manager.Blob([new Uint8Array(length)], {type: 'application/octet-stream'});
+      let b = new Blob([new Uint8Array(length)], {type: 'application/octet-stream'});
       fileWriter.seek(start);
       fileWriter.write(b);
     }, (e) => fail(e));
@@ -357,7 +358,7 @@ app.fileSystem.file.truncate = function (fileEntry, bytes) {
 app.fileSystem.file.write = function (fileEntry, offset, arr) {
   return new Promise(function (resolve, reject) {
     fileEntry.createWriter(function (fileWriter) {
-      let blob = new pointers.manager.Blob(arr, {type: 'application/octet-stream'});
+      let blob = new Blob(arr, {type: 'application/octet-stream'});
       fileWriter.onerror = (e) => reject(e);
       fileWriter.onwrite = () => resolve();
       fileWriter.seek(offset);
@@ -375,14 +376,13 @@ app.fileSystem.file.md5 = function (file) {
   });
 };
 // internals
-(function () {
-  var admobid = {};
-  if (/(android)/i.test(navigator.userAgent)) {
+document.addEventListener('deviceready', function () {
+  return;
+  let admobid = {};
+  if ('AdMob' in window && /(android)/i.test(navigator.userAgent)) {
     admobid = {
       banner: 'ca-app-pub-8474379789882900/4565165323'
     };
-  }
-  if ('AdMob' in window) {
     window.AdMob.createBanner({
       adId: admobid.banner,
       position: window.AdMob.AD_POSITION.TOP_CENTER,
@@ -391,10 +391,4 @@ app.fileSystem.file.md5 = function (file) {
       error: function () {}
     });
   }
-})();
-// runtime
-chrome.app.runtime.onLaunched.addListener(function () {
-  chrome.app.window.create('data/manager/index.html', {
-    id: 'tdm-manager',
-  });
-});
+}, false);

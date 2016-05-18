@@ -338,10 +338,10 @@ app.triggers.receive('change', function (obj) {
 });
 /* about ui */
 app.about.receive('init', function () {
-  app.about.send('init', {
-    version: app.version(),
+  app.version().then(version => app.about.send('init', {
+    version,
     platform: app.platform()
-  });
+  }));
 });
 app.about.receive('open', url => app.tab.open(url));
 /* extract ui */
@@ -352,15 +352,17 @@ if (app.webRequest) {
 app.startup(function () {
   // FAQs page
   let version = config.welcome.version;
-  if (app.version() !== version) {
-    app.timer.setTimeout(function () {
-      app.tab.open(
-        config.urls.faq + '?v=' + app.version() +
-        (version ? '&p=' + version + '&type=upgrade' : '&type=install')
-      );
-      config.welcome.version = app.version();
-    }, config.welcome.timeout);
-  }
+  app.version().then(function (v) {
+    if (v !== version) {
+      app.timer.setTimeout(function () {
+        app.tab.open(
+          config.urls.faq + '?v=' + v +
+          (version ? '&p=' + version + '&type=upgrade' : '&type=install')
+        );
+        config.welcome.version = v;
+      }, config.welcome.timeout);
+    }
+  });
 });
 /* command line */
 app.arguments(function (argv) {

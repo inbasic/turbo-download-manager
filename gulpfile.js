@@ -31,13 +31,14 @@ function json (clean) {
   if (clean) {
     version = version.replace(/.beta*/, '');
   }
-  return gulpif(f => f.relative.endsWith('.json'), change(content => content
+  return gulpif(f => f.relative.endsWith('.json') || f.relative.endsWith('.xml'), change(content => content
     .replace('%title;', config.title)
     .replace('%name;', config.name)
     .replace('%description;', config.description)
     .replace('%license;', config.license)
     .replace('%version;', version)
     .replace('%author;', config.author)
+    .replace('%email;', config.email)
     .replace('%homepage;', config.homepage)
     .replace('%repository.url;', config.repository.url)
     .replace('%bugs.url;', config.bugs.url)
@@ -224,19 +225,13 @@ gulp.task('android-build', function () {
     if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('opera') !== -1 || f.relative.indexOf('electron') !== -1) {
       return false;
     }
-    if (f.relative.indexOf('chrome') !== -1 && f.relative.indexOf('chrome-cm.js') === -1) {
+    if (f.relative.indexOf('chrome') !== -1 && f.relative.indexOf('chrome-cm.js') === -1 && f.relative.indexOf('chrome-shim.js') === -1) {
       return false;
     }
     if (f.relative.split('/').length === 1) {
-      return f.relative === 'manifest-android.json' ? true : false;
+      return f.relative === 'config.xml';
     }
     return true;
-  }))
-  .pipe(rename(function (path) {
-    if (path.basename === 'manifest-android') {
-      path.basename = 'manifest';
-    }
-    return path;
   }))
   .pipe(json())
   .pipe(shadow('android'))
@@ -253,7 +248,7 @@ gulp.task('android-install', function () {
   return gulp.src('')
   .pipe(wait(1000))
   .pipe(shell([
-    'pwd & cca run android --device'
+    'pwd & cordova run android'
   ], {
     cwd: 'trash/android/TDM/'
   }));

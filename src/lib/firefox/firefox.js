@@ -305,7 +305,7 @@ exports.menu = function (label, ...items) {
   }
 };
 
-exports.version = () => self.version;
+exports.version = () => resolve(self.version);
 exports.platform = () => `${xul.name} v.${xul.platformVersion} on ${runtime.OS}`;
 
 exports.timer = timers;

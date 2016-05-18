@@ -173,7 +173,7 @@ var get = function (id) {
   (function (blank) {
     loader.addEventListener('click', e => iframe.contains(e.target) ? '' : blank());
     background.receive('hide', blank, false);
-    document.addEventListener('backbutton', (e) => {
+    window.top.document.addEventListener('backbutton', (e) => {
       e.preventDefault();
       blank();
     }, false);
