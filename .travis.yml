@@ -31,6 +31,7 @@ before_deploy:
   # electron
   - sudo apt-get install p7zip-full
   - sudo apt-get install wine
+  - unzip builds/packed/electron.zip -d builds/unpacked/electron
   - gulp electron-packager
 deploy:
   provider: releases
