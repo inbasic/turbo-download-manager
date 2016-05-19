@@ -225,7 +225,7 @@ gulp.task('android-build', function () {
     if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('opera') !== -1 || f.relative.indexOf('electron') !== -1) {
       return false;
     }
-    if (f.relative.indexOf('chrome') !== -1 && f.relative.indexOf('chrome-cm.js') === -1 && f.relative.indexOf('chrome-shim.js') === -1) {
+    if (f.relative.indexOf('chrome') !== -1 && f.relative.indexOf('android/chrome-cm.js') === -1 && f.relative.indexOf('android/chrome-shim.js') === -1) {
       return false;
     }
     if (f.relative.split('/').length === 1) {
@@ -241,10 +241,30 @@ gulp.task('android-build', function () {
     presets: ['es2015']
   })))
   .pipe(gulp.dest('builds/unpacked/android'))
+});
+gulp.task('android-pack', function () {
+  return gulp.src([
+    'builds/unpacked/android/**/*'
+  ])
   .pipe(zip('android.zip'))
   .pipe(gulp.dest('builds/packed'));
 });
 gulp.task('android-install', function () {
+  return gulp.src('')
+  .pipe(shell([
+    'cordova platform add android',
+    'cordova plugin add cordova-plugin-admobpro',
+    'cordova plugin add https://github.com/VersoSolutions/CordovaClipboard',
+    'cordova plugin add https://github.com/fastrde/phonegap-md5.git',
+    'cordova plugin add https://github.com/whiteoctober/cordova-plugin-app-version.git',
+    'cordova plugin add ../../plugins/android/cordova-plugin-binaryfilewriter/',
+    'cordova plugin add ../../plugins/android/Toast-PhoneGap-Plugin-master/',
+    'cordova build android'
+  ], {
+    cwd: 'builds/TDM'
+  }));
+});
+gulp.task('android-packager', function () {
   return gulp.src('')
   .pipe(wait(1000))
   .pipe(shell([
@@ -317,8 +337,8 @@ gulp.task('firefox-install', function () {
   }))
 });
 /* */
-gulp.task('webapp', (callback) => runSequence('clean', 'webapp-build', callback));
-gulp.task('android', (callback) => runSequence('clean', 'android-build', 'android-install', callback));
+gulp.task('android', (callback) => runSequence('clean', 'android-build', 'android-pack', 'android-install', callback));
+gulp.task('android-travis', (callback) => runSequence('clean', 'android-build', 'android-pack', callback));
 gulp.task('chrome', (callback) => runSequence('clean', 'chrome-build', 'chrome-install', callback));
 gulp.task('chrome-travis', (callback) => runSequence('clean', 'chrome-build', callback));
 gulp.task('opera', (callback) => runSequence('clean', 'opera-build', callback));

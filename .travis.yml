@@ -3,12 +3,21 @@ node_js:
   - '4.2'
 before_script:
   - npm install
+env:
+  - RUNFOR=chrome-travis
+  - RUNFOR=opera-travis
+  - RUNFOR=firefox-travis
+  - RUNFOR=electron-travis
+  - RUNFOR=android-travis
 script:
-  - gulp chrome-travis
-  - gulp opera-travis
-  - gulp firefox-travis
-  - gulp electron-travis
+  - gulp $RUNFOR
 before_deploy:
+  - cordova create builds/TDM com.add0n.downloader "Turbo Download Manager"
+  - rm -r builds/TDM/www
+  - rm builds/TDM/config.xml
+  - unzip builds/packed/android.zip -d builds/TDM/www
+  - mv builds/TDM/www/config.xml builds/TDM/
+  - gulp android-install
   - sudo apt-get install p7zip-full
   - sudo apt-get install wine
   - gulp electron-packager
@@ -28,6 +37,7 @@ deploy:
     - builds/tdm-win32-ia32.7z
     - builds/tdm-linux-x64.7z
     - builds/tdm-linux-ia32.7z
+    - builds/TDM/platforms/android/build/outputs/apk/android-debug.apk
   on:
     tags: true
   overwrite: true
