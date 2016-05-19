@@ -111,7 +111,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       let length = +req.getResponseHeader('Content-Length');
       let contentEncoding = req.getResponseHeader('Content-Encoding');
       let lengthComputable = req.getResponseHeader('Length-Computable');
-      //console.error(req.getAllResponseHeaders())
+      console.error(req.getAllResponseHeaders(), obj)
       if (req.getResponseHeader('Content-Length') === null && !forced) {
         head(obj, true, d);
       }

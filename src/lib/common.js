@@ -61,7 +61,7 @@ var actions = {
   actions.download = function (obj) {
     let urls = obj.url;
     if (typeof urls === 'string') {
-      urls = urls.split(/\s*\,\s*/);
+      urls = urls.replace(/\s*\,\s*http/g, String.fromCharCode(0) + 'http').split(String.fromCharCode(0));
     }
     if (urls.length > 1) {
       obj.alternatives = [];
