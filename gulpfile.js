@@ -258,7 +258,7 @@ gulp.task('android-apk', function () {
     'cordova plugin add https://github.com/fastrde/phonegap-md5.git',
     'cordova plugin add https://github.com/whiteoctober/cordova-plugin-app-version.git',
     'cordova plugin add ../../plugins/android/cordova-plugin-binaryfilewriter/',
-    'cordova plugin add ../../plugins/android/Toast-PhoneGap-Plugin-master/',
+    'cordova plugin add cordova-plugin-x-toast',
     'cordova build android'
   ], {
     cwd: 'builds/TDM'
