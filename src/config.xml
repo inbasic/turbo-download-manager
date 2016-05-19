@@ -35,6 +35,9 @@
     <icon src="www/data/icons/192.png" density="xxxhdpi" />
     <icon src="www/data/icons/256.png" width="256" />
     <icon src="www/data/icons/512.png" width="512" />
+
+    <preference name="android-minSdkVersion" value="23" />
+    <preference name="android-targetSdkVersion" value="25" />
   </platform>
   <platform name="ios">
     <allow-intent href="itms:*" />
