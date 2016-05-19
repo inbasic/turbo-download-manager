@@ -41,6 +41,7 @@ deploy:
     - builds/packed/chrome.zip
     - builds/packed/opera.zip
     - builds/packed/firefox.xpi
+    - builds/packed/electron.zip
     - builds/tdm-darwin-x64.7z
     - builds/tdm-win32-x64.7z
     - builds/tdm-win32-ia32.7z

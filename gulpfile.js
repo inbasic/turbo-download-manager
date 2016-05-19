@@ -105,27 +105,27 @@ gulp.task('electron-packager', function () {
   .pipe(wait(1000))
   .pipe(shell([
     'npm install',
-    'electron-packager . "Turbo Download Manager" --platform=darwin --arch=x64 --version=0.37.8 --icon ../../packed/mac.icns',
+    'electron-packager . "Turbo Download Manager" --platform=darwin --arch=x64 --version=1.1.0 --icon ../../packed/mac.icns',
     'mv "Turbo Download Manager-darwin-x64" tdm-darwin-x64',
     '7z a -mx9 -r tdm-darwin-x64.7z tdm-darwin-x64/*',
     'mv tdm-darwin-x64.7z ../..',
     'rm -r tdm-darwin-x64/',
-    'electron-packager . "Turbo Download Manager" --platform=win32 --arch=x64 --version=0.37.8 --icon ../../packed/windows.ico',
+    'electron-packager . "Turbo Download Manager" --platform=win32 --arch=x64 --version=1.1.0 --icon ../../packed/windows.ico',
     'mv "Turbo Download Manager-win32-x64" tdm-win32-x64',
     '7z a -mx9 -r tdm-win32-x64.7z tdm-win32-x64/*',
     'mv tdm-win32-x64.7z ../..',
     'rm -r tdm-win32-x64/',
-    'electron-packager . "Turbo Download Manager" --platform=win32 --arch=ia32 --version=0.37.8 --icon ../../packed/windows.ico',
+    'electron-packager . "Turbo Download Manager" --platform=win32 --arch=ia32 --version=1.1.0 --icon ../../packed/windows.ico',
     'mv "Turbo Download Manager-win32-ia32" tdm-win32-ia32',
     '7z a -mx9 -r tdm-win32-ia32.7z tdm-win32-ia32/*',
     'mv tdm-win32-ia32.7z ../..',
     'rm -r tdm-win32-ia32/',
-    'electron-packager . "Turbo Download Manager" --platform=linux --arch=x64 --version=0.37.8',
+    'electron-packager . "Turbo Download Manager" --platform=linux --arch=x64 --version=1.1.0',
     'mv "Turbo Download Manager-linux-x64" tdm-linux-x64',
     '7z a -mx9 -r tdm-linux-x64.7z tdm-linux-x64/*',
     'mv tdm-linux-x64.7z ../..',
     'rm -r tdm-linux-x64/',
-    'electron-packager . "Turbo Download Manager" --platform=linux --arch=ia32 --version=0.37.8',
+    'electron-packager . "Turbo Download Manager" --platform=linux --arch=ia32 --version=1.1.0',
     'mv "Turbo Download Manager-linux-ia32" tdm-linux-ia32',
     '7z a -mx9 -r tdm-linux-ia32.7z tdm-linux-ia32/*',
     'mv tdm-linux-ia32.7z ../..',
@@ -261,7 +261,7 @@ gulp.task('android-apk', function () {
     'cordova plugin add cordova-plugin-x-toast',
     'openssl aes-256-cbc -k $ENCRYPTION_PASSWORD -in ../packed/keys.p12.enc -d -a -out platforms/android/keys.p12',
     'printf "storeFile=keys.p12\\nkeyAlias=ReleaseKey\\nkeyPassword=$ENCRYPTION_PASSWORD\\nstorePassword=$ENCRYPTION_PASSWORD" > platforms/android/release-signing.properties',
-    'cordova build --release --minSdkVersion=21'
+    'cordova build --release --minSdkVersion=23'
   ], {
     cwd: 'builds/TDM'
   }));

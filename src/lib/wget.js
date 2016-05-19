@@ -468,7 +468,6 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       event.emit('add-log', 'Allocating space ...');
 
       internals.file.open().then(function (name) {
-        console.error(name);
         // sync the names
         if (name && name !== internals.name) {
           internals.name = name;
