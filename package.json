@@ -27,6 +27,7 @@
     "gulp": "*",
     "gulp-change": "*",
     "gulp-babel": "*",
+    "babel-preset-es2015": "*",
     "gulp-if": "*",
     "gulp-filter": "*",
     "gulp-shell": "*",
