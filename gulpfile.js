@@ -259,7 +259,9 @@ gulp.task('android-apk', function () {
     'cordova plugin add https://github.com/whiteoctober/cordova-plugin-app-version.git',
     'cordova plugin add ../../plugins/android/cordova-plugin-binaryfilewriter/',
     'cordova plugin add cordova-plugin-x-toast',
-    'cordova build android'
+    'openssl aes-256-cbc -k $ENCRYPTION_PASSWORD -in ../packed/keys.p12.enc -d -a -out platforms/android/keys.p12',
+    'printf "storeFile=keys.p12\\nkeyAlias=ReleaseKey\\nkeyPassword=$ENCRYPTION_PASSWORD\\nstorePassword=$ENCRYPTION_PASSWORD" > platforms/android/release-signing.properties',
+    'cordova build --release --minSdkVersion=21'
   ], {
     cwd: 'builds/TDM'
   }));
