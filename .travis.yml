@@ -3,14 +3,12 @@ node_js:
   - '4.2'
 before_script:
   - npm install
-env:
-  - RUNFOR=chrome-travis
-  - RUNFOR=opera-travis
-  - RUNFOR=firefox-travis
-  - RUNFOR=electron-travis
-  - RUNFOR=android-travis
 script:
-  - gulp $RUNFOR
+  - gulp chrome-travis
+  - gulp opera-travis
+  - gulp firefox-travis
+  - gulp electron-travis
+  - gulp android-travis
 before_deploy:
   - cordova create builds/TDM com.add0n.downloader "Turbo Download Manager"
   - rm -r builds/TDM/www
