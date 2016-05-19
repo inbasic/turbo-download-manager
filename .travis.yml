@@ -15,7 +15,7 @@ before_deploy:
   - rm builds/TDM/config.xml
   - unzip builds/packed/android.zip -d builds/TDM/www
   - mv builds/TDM/www/config.xml builds/TDM/
-  - gulp android-install
+  - gulp android-apk
   - sudo apt-get install p7zip-full
   - sudo apt-get install wine
   - gulp electron-packager
@@ -25,11 +25,9 @@ deploy:
   api_key:
     secure: OovJYivgJ4OsFRCz8evNSAwuoS8cO8RJRS4qKkF1g2OjwgIRZssRPz4ZbWj8J+SGCX0Fg8eyogWUxHLankARlJsL9Oq7jg+oiHQOW5OQax4uaMqDNmVfukBw6v6c0ITahK9WA6+p0FCdv6eskILqhj+7dD7TPJaKzzlNVbFK31XFGUI+SrD/jLhPkL8f7fiUXStIOrLInFNzKmQRNzc1K5v9neUQgVjOdoSQC97RJ/cavTA+0B1yyBLik9VgRD+VaxoWa83Pkl0PGx2vXWmmpXQDnWjD+KvfMvNAbBAlL5XQektvvgMti5bTkl3hyd51MIbg8/SaNJe0pul7t/0HvP2oq6Ke92JjgcGXhZr88I8lghftDZY7tPoVdrKj1+B/T3rRtNp8KCW3KX+GSCDqCEMXEydQa1jCIE5Z/IpZPlFSfr5i30zaifyHsPu4oKvhXwH3vaQpOvdNDNfZ0iIpaSqFb4l6dJKZjlnlVtdzwtE0uZliZ0+igY4ann2EElLGTfIliAOuX0MD0/yj4b2gdYbFjoNzCNxlcoFFtcSpM4dotfz7mNYJIlJHkyQ8mxqssUKCmDZ34d+bgiVUKCA5EDf67sMnc2bLOMC1H/dxtEGXrxltizWOup3tknBzP03r49WhCqPDqWfmxMaaBuYsMMrsbGYbJJ8CUSo0UJR6upI=
   file:
-    - builds/packed/android.zip
     - builds/packed/chrome.zip
-    - builds/packed/electron.zip
-    - builds/packed/firefox.xpi
     - builds/packed/opera.zip
+    - builds/packed/firefox.xpi
     - builds/tdm-darwin-x64.7z
     - builds/tdm-win32-x64.7z
     - builds/tdm-win32-ia32.7z

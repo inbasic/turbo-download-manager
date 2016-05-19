@@ -338,7 +338,7 @@ gulp.task('firefox-install', function () {
 });
 /* */
 gulp.task('android', (callback) => runSequence('clean', 'android-build', 'android-pack', 'android-run', callback));
-gulp.task('android-travis', (callback) => runSequence('clean', 'android-build', 'android-pack', 'android-apk', callback));
+gulp.task('android-travis', (callback) => runSequence('clean', 'android-build', 'android-pack', callback));
 gulp.task('chrome', (callback) => runSequence('clean', 'chrome-build', 'chrome-install', callback));
 gulp.task('chrome-travis', (callback) => runSequence('clean', 'chrome-build', callback));
 gulp.task('opera', (callback) => runSequence('clean', 'opera-build', callback));
