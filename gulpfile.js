@@ -249,7 +249,7 @@ gulp.task('android-pack', function () {
   .pipe(zip('android.zip'))
   .pipe(gulp.dest('builds/packed'));
 });
-gulp.task('android-install', function () {
+gulp.task('android-apk', function () {
   return gulp.src('')
   .pipe(shell([
     'cordova platform add android',
@@ -264,7 +264,7 @@ gulp.task('android-install', function () {
     cwd: 'builds/TDM'
   }));
 });
-gulp.task('android-packager', function () {
+gulp.task('android-run', function () {
   return gulp.src('')
   .pipe(wait(1000))
   .pipe(shell([
@@ -337,8 +337,8 @@ gulp.task('firefox-install', function () {
   }))
 });
 /* */
-gulp.task('android', (callback) => runSequence('clean', 'android-build', 'android-pack', 'android-install', callback));
-gulp.task('android-travis', (callback) => runSequence('clean', 'android-build', 'android-pack', callback));
+gulp.task('android', (callback) => runSequence('clean', 'android-build', 'android-pack', 'android-run', callback));
+gulp.task('android-travis', (callback) => runSequence('clean', 'android-build', 'android-pack', 'android-apk', callback));
 gulp.task('chrome', (callback) => runSequence('clean', 'chrome-build', 'chrome-install', callback));
 gulp.task('chrome-travis', (callback) => runSequence('clean', 'chrome-build', callback));
 gulp.task('opera', (callback) => runSequence('clean', 'opera-build', callback));

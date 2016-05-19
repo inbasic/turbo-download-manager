@@ -377,7 +377,6 @@ app.fileSystem.file.md5 = function (file) {
 };
 // internals
 document.addEventListener('deviceready', function () {
-  return;
   let admobid = {};
   if ('AdMob' in window && /(android)/i.test(navigator.userAgent)) {
     admobid = {
