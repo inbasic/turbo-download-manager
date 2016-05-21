@@ -29,7 +29,7 @@ document.addEventListener('click', function (e) {
           elem.textContent = 'Link';
         }
       });
-      latest = req.response.filter(obj => obj.prerelease = false);
+      latest = req.response.filter(obj => obj.prerelease === false);
       if (latest && latest.length) {
         latest = latest[0];
         latest.assets.forEach(function (obj) {

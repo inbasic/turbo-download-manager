@@ -1,7 +1,6 @@
 'use strict';
 // electron
 var electron = require('electron');
-var Menu = require('menu');
 var BrowserWindow = electron.BrowserWindow;
 var ipcMain = require('electron').ipcMain;
 var dialog = require('electron').dialog;
@@ -526,7 +525,7 @@ function createWindow () {
 electron.app.on('ready', createWindow);
 
 function createMenu () {
-  Menu.setApplicationMenu(Menu.buildFromTemplate([
+  electron.Menu.setApplicationMenu(electron.Menu.buildFromTemplate([
     {
       label: 'Turbo Download Manager',
       submenu: [
@@ -612,7 +611,6 @@ exports.webRequest = (function () {
   let callbacks = {
     media: function () {}
   };
-  exports.extract.receive('media', (obj) => console.error(obj));
   exports.extract.receive('media', (obj) => callbacks.media(obj));
   return {
     media: (c) => callbacks.media = c
