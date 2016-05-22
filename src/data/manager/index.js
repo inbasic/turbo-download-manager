@@ -169,7 +169,7 @@ var get = function (id) {
   };
 };
 // add && info
-(function (add, loader, iframe) {
+var actions = (function (add, loader, iframe) {
   (function (blank) {
     loader.addEventListener('click', e => iframe.contains(e.target) ? '' : blank());
     background.receive('hide', blank, false);
@@ -183,10 +183,7 @@ var get = function (id) {
       iframe.src = 'about:blank';
     }
   });
-  add.addEventListener('click', function () {
-    loader.dataset.visible = true;
-    iframe.src = '../add/index.html';
-  }, false);
+  add.addEventListener('click', () => actions.add(), false);
   background.receive('info', function (id) {
     loader.dataset.visible = true;
     iframe.src = '../info/index.html?id=' + id;
@@ -208,6 +205,13 @@ var get = function (id) {
     url = 'http://add0n.com/gmail-notifier.html?type=context';
     iframe.src = `../extract/index.html?url=${encodeURIComponent(url)}`;
   });
+
+  return {
+    add: function (link) {
+      loader.dataset.visible = true;
+      iframe.src = '../add/index.html' + (link ? '?url=' + link : '');
+    }
+  };
 })(document.getElementById('add'), document.getElementById('loader'), document.querySelector('#loader iframe'));
 
 // items
@@ -333,6 +337,28 @@ document.addEventListener('click', function (e) {
     });
   }
 });
+/* drag & drop */
+var dd = {
+  drop: function (e) {
+    e.preventDefault();
+    // Get the id of the target and add the moved element to the target's DOM
+    let link = e.dataTransfer.getData('text/uri-list');
+    if (link) {
+      actions.add(link);
+    }
+  },
+  dragover: function (e) {
+    let types = Array.from(e.dataTransfer.types);
+    let allow = types.indexOf('text/uri-list') !== -1;
+    if (allow) {
+      e.preventDefault();
+    }
+    e.dataTransfer.dropEffect = allow ? 'link' : 'none';
+  }
+};
+document.body.addEventListener('drop', dd.drop);
+document.body.addEventListener('dragover', dd.dragover);
+
 // manifest
 document.body.dataset.open = manifest.open;
 document.body.dataset.developer = manifest.developer;

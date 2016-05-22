@@ -565,15 +565,15 @@ exports.OS = (function () {
     [data.url('./add/firefox/firefox.js'), data.url('./add/index.js')]
   );
   exports.info = attach(
-    data.url('info/index.html') + '*',
+    data.url('info/index.html'),
     [data.url('./info/showdown.js'), data.url('./info/firefox/firefox.js'), data.url('./info/index.js')]
   );
   exports.modify = attach(
-    data.url('modify/index.html') + '*',
+    data.url('modify/index.html'),
     [data.url('./modify/firefox/firefox.js'), data.url('./modify/index.js')]
   );
   exports.triggers = attach(
-    data.url('triggers/index.html') + '*',
+    data.url('triggers/index.html'),
     [data.url('./triggers/firefox/firefox.js'), data.url('./triggers/index.js')]
   );
   exports.about = attach(
@@ -581,13 +581,13 @@ exports.OS = (function () {
     [data.url('./about/firefox/firefox.js'), data.url('./about/index.js')]
   );
   exports.extract = attach(
-    data.url('extract/index.html') + '*',
+    data.url('extract/index.html'),
     [data.url('./extract/firefox/firefox.js'), data.url('./extract/index.js')]
   );
 })(function (include, contentScriptFile) {
   let workers = [], contentScripts = [];
   pageMod.PageMod({
-    include: include,
+    include: [include, include + '*'],
     contentScriptFile: contentScriptFile,
     contentScriptWhen: 'ready',
     attachTo: ['top', 'existing', 'frame'],

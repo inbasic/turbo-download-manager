@@ -1,6 +1,9 @@
 /* globals background, manifest */
 'use strict';
 
+var link = /url\=([^\&]+)/.exec(document.location.search);
+link = link && link.length ? link[1] : null;
+
 document.querySelector('form').addEventListener('submit', function (e) {
   let folder = document.querySelector('[data-id=folder]').value;
   if (!folder && manifest.folder) {
@@ -52,7 +55,6 @@ document.addEventListener('click', function (e) {
     }
   }
 });
-
 background.receive('init', function (obj) {
   for (let name in obj.settings) {
     let elem = document.querySelector('[data-id="' + name + '"]');
@@ -60,7 +62,7 @@ background.receive('init', function (obj) {
       elem.value = obj.settings[name];
     }
   }
-  document.querySelector('[data-id=url]').value = obj.clipboard;
+  document.querySelector('[data-id=url]').value = link || obj.clipboard;
   let e = document.createEvent('HTMLEvents');
   e.initEvent('keyup', false, true);
   document.querySelector('[data-id=url]').dispatchEvent(e);
