@@ -42,7 +42,8 @@ var xhr = {
 
 exports.globals = {
   browser: 'firefox',
-  referrer: true
+  referrer: true,
+  open: true
 };
 
 exports.Promise = function (callback) {
@@ -125,7 +126,8 @@ exports.fetch = function (url, props) {
   req.onload = function () {
     resolve();
   };
-  req.ontimeout = req.onerror = (e) => d.reject(e);
+  req.ontimeout = () => d.reject(new Error('XMLHttpRequest timeout'));
+  req.onerror = () => d.reject(new Error('XMLHttpRequest internal error'));
   req.send();
   return d.promise;
 };
@@ -273,10 +275,15 @@ exports.tab = {
     return resolve(tab);
   }
 };
-unload.when(function () {
-  exports.tab.list().then(function (tabs) {
-    tabs.filter(t => t && t.url.indexOf(data.url('')) === 0).forEach(t => t.close());
-  });
+unload.when(function (e) {
+  if (e === 'shutdown') {
+    return;
+  }
+  for (let tab of tabs) {
+    if (tab && tab.url && tab.url.startsWith(data.url(''))) {
+      tab.close();
+    }
+  }
 });
 
 exports.menu = function (label, ...items) {
@@ -437,7 +444,8 @@ exports.fileSystem = {
       }
       return d.promise;
     },
-    close: () => resolve()
+    close: () => resolve(),
+    toURL: (file) => resolve(Services.io.newFileURI(file).spec)
   },
   root: {
     internal: () => reject(),
@@ -583,6 +591,10 @@ exports.OS = (function () {
   exports.extract = attach(
     data.url('extract/index.html'),
     [data.url('./extract/firefox/firefox.js'), data.url('./extract/index.js')]
+  );
+  exports.extract = attach(
+    data.url('preview/index.html'),
+    [data.url('./preview/firefox/firefox.js'), data.url('./preview/index.js')]
   );
 })(function (include, contentScriptFile) {
   let workers = [], contentScripts = [];

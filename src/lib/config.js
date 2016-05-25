@@ -18,12 +18,16 @@ config.mwget = {
 };
 
 config.wget = {
-  'threads': 3,
+  'threads': 3, // int
   'timeout': 30, // seconds,
-  'retrie': 30,
+  'retries': 30, // int
   'update': 1, // second
-  'pause': 100, // milliseconds
-  'write-size': 200 * 1024 // bytes
+  'pause': 500, // milliseconds; called after a failed chunk
+  'short-pause': 10, // milliseconds; called after a successful chuck
+  'write-size': 200 * 1024, // bytes
+  'min-segment-size': 50 * 1024, // bytes
+  'max-segment-size': 100 * 1024 * 1024, // bytes
+  'max-size-md5': 500 * 1024 * 1024 // bytes
 };
 
 config.icon = {

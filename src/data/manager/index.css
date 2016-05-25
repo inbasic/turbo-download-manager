@@ -167,9 +167,46 @@ body[data-helper=false] li[data-role=helper] {
 }
 .item>span {
   font-size: 300%;
+  margin-left: 5px;
+  pointer-events: none;
+}
+.item[data-type=download]>span,
+.item[data-type=pause]>span,
+.item[data-type=done]>span {
+  cursor: pointer;
+  pointer-events: auto;
+}
+.item>span:hover {
+  background-color: rgba(0, 0, 0, 0.05);
+}
+.item>span:active {
+  background-color: rgba(0, 0, 0, 0.1);
 }
 .item>span:before {
   content: '\e805';
+}
+.item[data-mime=text]>span:before {
+  content: '\e820';
+}
+
+.item[data-mime=code]>span:before {
+  content: '\e81f';
+}
+
+.item[data-mime=image]>span:before {
+  content: '\e81e';
+}
+
+.item[data-mime=archive]>span:before {
+  content: '\e81d';
+}
+
+.item[data-mime=video]>span:before {
+  content: '\e81c';
+}
+
+.item[data-mime=audio]>span:before {
+  content: '\e81b';
 }
 .item>div {
   width: 100%;
@@ -208,7 +245,7 @@ item[data-type=done] div[data-type=partial]>div {
 /* done */
 .item[data-type=done]>span:before {
   color: green;
-  content: '\e808';
+  content: '\e80d';
 }
 .item[data-type=done] div[data-type=overal] {
   background-color: green;
@@ -249,13 +286,11 @@ item[data-type=done] div[data-type=partial]>div {
 .item[data-type=done] i[data-cmd=pause] {
   display: none;
 }
-.item i[data-cmd=open],
 .item i[data-cmd=use-native],
 .item i[data-cmd=native],
 .item i[data-cmd=trash] {
   display: none;
 }
-body[data-open=true] .item[data-type=done] i[data-cmd=open],
 .item[data-type=error] i[data-cmd=use-native],
 .item[data-type=error] i[data-cmd=native],
 .item[data-type=error] i[data-cmd=trash],
@@ -323,9 +358,6 @@ body[data-open=true] .item[data-type=done] i[data-cmd=open],
 }
 .item i[data-cmd=modify]:before {
   content: '\e809';
-}
-.item i[data-cmd=open]:before {
-  content: '\e80d';
 }
 /* add */
 #add {

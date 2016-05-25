@@ -1,0 +1,19 @@
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  margin: 0;
+  padding: 15px;
+  box-sizing: border-box;
+  overflow: auto;
+}
+body>div {
+  margin: auto;
+}
+body,
+table,
+input {
+  font-family: arial;
+  font-size: 12px;
+}

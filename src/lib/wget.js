@@ -14,11 +14,11 @@ var wget = typeof exports === 'undefined' ? {} : exports;
 // @param  {[type]} obj['auto-pause'] [auto-pause after retrieving file info]
 // @param  {[type]} obj.retries       [number of retries; 50]
 // @param  {[type]} obj.headers       [headers; {}]
-// @param  {[type]} obj.minByteSize   [minimum thread size; 50 KBytes]
-// @param  {[type]} obj.maxByteSize   [maximum thread size; 50 MBytes]
 // @param  {[type]} obj.pause         [delay in between multiple schedule calls; 100 mSecs]
 // @param  {[type]} obj.use-native    [use native method to find the actual downloadable url]
 // @param  {[type]} obj.writer        request writing to disk
+// @param  {[type]} obj['min-segment-size'] [minimum thread size; 50 KBytes]
+// @param  {[type]} obj['max-segment-size'] [maximum thread size; 50 MBytes]
 
 (function () {
   function xhr (obj, range) {
@@ -71,7 +71,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         throw new utils.CError(`expected 206 but got ${res.status}`, 1, {url: obj.urls[0]});
       }
       return process();
-    }).catch((e) => d.reject(Object.assign(e, {url: obj.urls[0]})));
+    }).catch((e) => d.reject(Object.assign(e, {code: 5, url: obj.urls[0]})));
 
     return utils.spy(d.promise, () => {
       dead = true;
@@ -147,13 +147,14 @@ var wget = typeof exports === 'undefined' ? {} : exports;
 
   function aget (obj) {
     obj.threads = obj.threads || 1;
-    obj.retries = obj.retries || 50;
+    obj.retries = obj.retries || 30;
     obj.alternatives = (obj.alternatives || []).filter(url => url);
     obj.urls = [];
 
     let event = new app.EventEmitter(), d = app.Promise.defer(), info, segments = [], lastCount = 0;
     let internals = {};
     let buffers = [];
+    let idSchedule;
 
     function writer (range, e) {
       let start = e.offset + range.start;
@@ -205,6 +206,11 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       }
       segments = [];
     }
+    function callSchedule (time) {
+      app.timer.clearTimeout(idSchedule);
+      idSchedule = app.timer.setTimeout(schedule, time || obj.pause || 500);
+    }
+    event.on('call-schedule', callSchedule);
     function schedule () {
       if (['error', 'pause', 'done'].indexOf(internals.status) !== -1) {
         return;
@@ -226,7 +232,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       }
       //
       if (c < obj.threads) {
-        app.timer.setTimeout(schedule, obj.pause || 100);
+        callSchedule();
       }
     }
     function fix (range) {
@@ -276,6 +282,8 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         id: '#' + Math.floor(Math.random() * 16777215).toString(16)
       };
       segments.push(tmp);
+      // reporting counts
+      count();
 
       e.on('progress', (function (oldPercent) {
         return function (obj) {
@@ -317,7 +325,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
           }
           tmp.status = status;
           after();
-          app.timer.setTimeout(schedule, obj.pause || 100);
+          callSchedule(obj['short-pause'] || 100);
         },
         function (e) {
           tmp.status = 'error';
@@ -341,12 +349,12 @@ var wget = typeof exports === 'undefined' ? {} : exports;
                   if (i.length !== info.length) {
                     omitURL(e.url);
                   }
-                }, () => omitURL(e.url)).then(schedule);
+                }, () => omitURL(e.url)).then(callSchedule);
               }
               // server is not supporting ranging; still there are other sources
               else if (obj.urls.length > 1 && e.url && e.code === 1) {
                 omitURL(e.url);
-                schedule();
+                callSchedule();
               }
               // server is not supporting ranging and there is no other source
               else if (obj.urls.length === 1 && e.code === 1) {
@@ -362,15 +370,15 @@ var wget = typeof exports === 'undefined' ? {} : exports;
                   info['multi-thread'] = false;
                   event.emit('info', info);
                   event.emit('add-log', 'resuming with one thread', {type: 'warning'});
-                  app.timer.setTimeout(schedule, obj.pause || 100);
+                  callSchedule();
                 }
                 else {
                   // wait a bit longer before trying again as server requested reset
-                  app.timer.setTimeout(schedule, (obj.pause || 100) * 10);
+                  callSchedule((obj.pause || 500) * 4);
                 }
               }
               else { // there is no alternative mirror; just try with this one
-                app.timer.setTimeout(schedule, obj.pause || 100);
+                callSchedule();
               }
             }
             else {
@@ -431,8 +439,8 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         event.emit('add-log', '\`info.encoding\` is not null', {type: 'warning'});
       }
       (function (len) {
-        len = Math.max(len, obj.minByteSize ||  50 * 1024);
-        len = Math.min(len, obj.maxByteSize || 20 * 1024 * 1024);
+        len = Math.max(len, obj['min-segment-size'] || 50 * 1024);
+        len = Math.min(len, obj['max-segment-size'] || 100 * 1024 * 1024);
         len = Math.min(info.length, len);
 
         let threads = Math.floor(info.length / len);
@@ -459,6 +467,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         disposition: info.disposition
       }, obj));
       event.emit('name', internals.name);
+      event.emit('mime', info.mime);
       internals.file = new io.File({
         name: internals.name,
         mime: info.mime,
@@ -607,7 +616,12 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       return app.Promise.all(buffers.map(b => internals.file.write(b.start, b.segments)))
         .then(() => buffers = [])
         .then(() => internals.file.flush())
-        .then(() => internals.file.md5())
+        .then(function () {
+          if (info.length > (obj['max-size-md5'] || 500 * 1024 * 1024)) {
+            return 'MD5 calculation is skipped';
+          }
+          return internals.file.md5();
+        })
         .then(function (md5) {
           internals.md5 = md5;
           event.emit('md5', md5);
@@ -663,6 +677,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
   /* handling speed measurement */
   function cget (obj) {
     let b = bget(obj), id, stats = [0];
+    let zeroReport = false;
     obj.update = obj.update || 1000;
 
     function done () {
@@ -676,6 +691,21 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       b.event.emit('speed', speed());
       stats.push(0);
       stats = stats.slice(-5);
+      if (stats.filter(s => s).length === 0) {
+        if (b.internals.status === 'download' && zeroReport) {
+          zeroReport = false;
+          b.event.emit('add-log', 'Server seems to be done', {type: 'warning'});
+          app.timer.setTimeout(function () {
+            if (stats.filter(s => s).length === 0 && b.internals.status === 'download') {
+              b.event.emit('call-schedule');
+              b.event.emit('add-log', 'Requesting a new thread', {type: 'warning'});
+            }
+          }, obj.timeout);
+        }
+      }
+      else {
+        zeroReport = true;
+      }
     }
     function start () {
       app.timer.clearInterval(id);

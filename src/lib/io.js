@@ -109,4 +109,7 @@ io.File.prototype.remove = function () {
 io.File.prototype.close = function () {
   return app.fileSystem.file.close(this.file);
 };
+io.File.prototype.toURL = function () {
+  return app.fileSystem.file.toURL(this.file);
+};
 

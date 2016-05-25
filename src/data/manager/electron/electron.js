@@ -65,7 +65,6 @@ ipcRenderer.on('_update', (event, obj) => {
 });
 
 var manifest = { // jshint ignore:line
-  open: true,
   developer: true,
   helper: false
 };

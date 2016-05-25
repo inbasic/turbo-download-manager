@@ -85,7 +85,8 @@ var mainWindow;
 
 exports.globals = {
   browser: 'electron',
-  referrer: true
+  referrer: true,
+  open: true
 };
 
 exports.Promise = Promise;
@@ -95,13 +96,13 @@ exports.fetch = function (uri, props) {
   let d = Promise.defer();
   let ppp, buffers = [];
   let status;
-  let loaded = 0, total = 0;
 
   if (props.referrer) {
     props.headers.referer = props.referrer;
   }
   let req = request({
     uri,
+    gzip: true,
     method: 'GET',
     headers: props.headers
   });
@@ -143,21 +144,23 @@ exports.fetch = function (uri, props) {
   })();
 
   req.on('error', (e) => d.reject(e));
-  req.on('response', function (response) {
-    status = response.statusCode;
-    total = +response.headers['content-length'];
-  });
+  req.on('response', (response) => status = response.statusCode);
   req.on('data', function (chunk) {
     if (chunk.byteLength) {
-      loaded += chunk.byteLength;
       buffers.push({
         value: chunk,
-        done: loaded === total
+        done: false
       });
     }
     resolve();
   });
-  req.on('end', () => resolve());
+  req.on('end', function () {
+    buffers.push({
+      value: new ArrayBuffer(0),
+      done: true
+    });
+    resolve();
+  });
   req.end();
 
   return d.promise;
@@ -315,6 +318,19 @@ exports.extract = {
   })
 };
 
+// preview
+exports.preview = {
+  send: (id, data) => mainWindow.webContents.send(id + '@pr', {
+    url: 'background.html',
+    data
+  }),
+  receive: (id, callback) => ipcMain.on(id + '@pr', function (event, arg) {
+    if (arg &&  arg.url === 'preview/index.html') {
+      callback(arg.data);
+    }
+  })
+};
+
 exports.fileSystem = {
   file: {
     exists: function (root, name) {
@@ -394,16 +410,8 @@ exports.fileSystem = {
         });
       });
     },
-    launch: function (file) {
-      return new Promise(function () {
-        return shell.openItem(file.path);
-      });
-    },
-    reveal: function (file) {
-      return new Promise(function () {
-        return shell.showItemInFolder(file.path);
-      });
-    },
+    launch: (file) => Promise.resolve(shell.openItem(file.path)),
+    reveal: (file) => Promise.resolve(shell.showItemInFolder(file.path)),
     close: function (file) {
       return new Promise(function (resolve) {
         fs.close(file.fd, function (err) {
@@ -413,7 +421,8 @@ exports.fileSystem = {
         });
         resolve();
       });
-    }
+    },
+    toURL: (file) => Promise.resolve(file.path)
   },
   root: {
     internal: () => new Promise.reject(),

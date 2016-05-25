@@ -117,6 +117,7 @@ var get = function (id) {
 
   return {
     set percent (p) { // jshint ignore: line
+      p = p || 0;
       overal.style.width = p + '%';
       percent.textContent = p.toFixed(1) + '%';
     },
@@ -128,6 +129,9 @@ var get = function (id) {
     },
     set name (n) {
       name.textContent = n || name.textContent;
+    },
+    set mime (n) { // jshint ignore: line
+      parent.dataset.mime = n.split('/')[0];
     },
     set threads (n) { // jshint ignore: line
       threads.textContent = n;
@@ -205,6 +209,10 @@ var actions = (function (add, loader, iframe) {
     url = 'http://add0n.com/gmail-notifier.html?type=context';
     iframe.src = `../extract/index.html?url=${encodeURIComponent(url)}`;
   });
+  background.receive('preview', function (obj) {
+    loader.dataset.visible = true;
+    iframe.src = `../preview/index.html?url=${encodeURIComponent(obj.url)}&mime=${obj.mime}`;
+  });
 
   return {
     add: function (link) {
@@ -236,9 +244,11 @@ background.receive('add', function (obj) {
   item.size = obj.size;
   item.threads = obj.threads;
   item.name = obj.name;
+  item.mime = obj.mime;
   item.status = obj.status;
   item.speed = obj.speed;
   item.retries = obj.retries;
+  console.error(obj.mime);
   item.chunkable = obj.chunkable;
   for (let id in obj.stats) {
     let stat = obj.stats[id];
@@ -265,6 +275,12 @@ background.receive('name', function (obj) {
   let item = get(obj.id);
   if (item) {
     item.name = obj.name;
+  }
+});
+background.receive('mime', function (obj) {
+  let item = get(obj.id);
+  if (item) {
+    item.mime = obj.mime;
   }
 });
 background.receive('size', function (obj) {
@@ -360,6 +376,5 @@ document.body.addEventListener('drop', dd.drop);
 document.body.addEventListener('dragover', dd.dragover);
 
 // manifest
-document.body.dataset.open = manifest.open;
 document.body.dataset.developer = manifest.developer;
 document.body.dataset.helper = manifest.helper;

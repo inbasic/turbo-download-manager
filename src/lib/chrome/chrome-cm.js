@@ -5,7 +5,8 @@ var app = new utils.EventEmitter();
 
 app.globals = {
   browser: 'chrome',
-  extension: false
+  extension: false,
+  open: false
 };
 
 if (!Promise.defer) {
@@ -191,6 +192,21 @@ app.extract = (function () {
     }),
     receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
       if (id + '@ex' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
+  };
+})();
+
+// preview
+app.preview = (function () {
+  return {
+    send: (id, data) => chrome.runtime.sendMessage({
+      method: id + '@pr',
+      data
+    }),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@pr' === message.method && sender.url !== document.location.href) {
         callback.call(sender.tab, message.data);
       }
     })

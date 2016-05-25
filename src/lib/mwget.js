@@ -92,6 +92,7 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
       });
       instance.event.on('log', (c) => callbacks.logs.forEach(d => d(index, c)));
       instance.event.on('name', (c) => callbacks.details.forEach(d => d(index, 'name', c)));
+      instance.event.on('mime', (c) => callbacks.details.forEach(d => d(index, 'mime', c)));
       instance.event.on('status', function (c) {
         callbacks.details.forEach(d => d(index, 'status', c));
         //instance.threads === 0; download has not been initialized yet

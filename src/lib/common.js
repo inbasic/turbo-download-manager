@@ -25,10 +25,14 @@ var actions = {
     obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
     obj.update = obj.update * 1000 || config.wget.update * 1000;
     obj.pause = obj.pause || config.wget.pause;
+    obj['short-pause'] = obj['short-pause'] || config.wget['short-pause'];
     obj['use-native'] = obj['use-native'] || false;
     obj['write-size'] = obj['write-size'] || config.wget['write-size'];
-    obj.retries = obj.retries || config.wget.retrie;
+    obj['max-size-md5'] = obj['max-size-md5'] || config.wget['max-size-md5'];
+    obj.retries = obj.retries || config.wget.retries;
     obj.folder = obj.folder || app.storage.read('add-directory');
+    obj['min-segment-size'] = obj['min-segment-size'] || config.wget['min-segment-size'];
+    obj['max-segment-size'] = obj['max-segment-size'] || config.wget['max-segment-size'];
 
     // pause trigger
     obj['auto-pause'] = obj['auto-pause'] ||
@@ -53,6 +57,7 @@ var actions = {
     developer: () => app.developer.console(),
     triggers: () => app.manager.send('triggers'),
     extract: (url) => app.manager.send('extract', url),
+    preview: (obj) => app.manager.send('preview', obj),
     about: () => app.manager.send('about')
   }
 };
@@ -105,6 +110,9 @@ mwget.addEventListener('add', (id) => app.manager.send('new', id));
 mwget.addEventListener('details', function (id, type, value) {
   if (type === 'name') {
     app.manager.send('name', {id, name: value});
+  }
+  if (type === 'mime') {
+    app.manager.send('mime', {id, mime: value});
   }
   if (type === 'status') {
     app.manager.send('status', {id, status: value});
@@ -166,6 +174,7 @@ app.manager.receive('init', function () {
     app.manager.send('add', {
       'id': id,
       'name': instance.internals.name,
+      'mime': instance.info ? instance.info.mime : '',
       'size': instance.info ? instance.info.length : 0,
       'percent': instance.info ? (instance.info.length - instance.remained) / instance.info.length * 100 : 0,
       'chunkable': instance.info ? instance.info['multi-thread'] : false,
@@ -211,7 +220,21 @@ app.manager.receive('cmd', function (obj) {
     }));
   }
   if (obj.cmd === 'open') {
-    mwget.get(obj.id).internals.file.launch();
+    let instance = mwget.get(obj.id);
+    let file = instance.internals.file;
+    if (!file) {
+      return app.notification('Preview is not available. Please try again later.');
+    }
+    if (instance.status === 'done' && app.globals.open) {
+      return instance.internals.file.launch();
+    }
+    if (instance.status !== 'error') {
+      console.error(instance.info.mime);
+      actions.open.preview({
+        url: file.toURL(),
+        mime: instance.info.mime
+      });
+    }
   }
   if (obj.cmd === 'download') {
     actions.download(obj);
