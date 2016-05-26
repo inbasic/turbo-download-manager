@@ -86,7 +86,8 @@ var mainWindow;
 exports.globals = {
   browser: 'electron',
   referrer: true,
-  open: true
+  open: true,
+  folder: true
 };
 
 exports.Promise = Promise;
@@ -178,10 +179,7 @@ exports.storage = (function () {
   let store = new Storage(path.resolve(process.env.HOME || process.env.USERPROFILE, '.tdm', 'storage'));
   let callbacks = {};
   return {
-    read: (id) => {
-      let val = store.get(id);
-      return (val || !isNaN(val)) ? val + '' : val;
-    },
+    read: (id) => store.get(id),
     write: (id, data) => {
       if (store.get(id) !== data) {
         store.put(id, data);

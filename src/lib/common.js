@@ -30,7 +30,7 @@ var actions = {
     obj['write-size'] = obj['write-size'] || config.wget['write-size'];
     obj['max-size-md5'] = obj['max-size-md5'] || config.wget['max-size-md5'];
     obj.retries = obj.retries || config.wget.retries;
-    obj.folder = obj.folder || app.storage.read('add-directory');
+    obj.folder = obj.folder || config.wget.directory;
     obj['min-segment-size'] = obj['min-segment-size'] || config.wget['min-segment-size'];
     obj['max-segment-size'] = obj['max-segment-size'] || config.wget['max-segment-size'];
 
@@ -39,13 +39,9 @@ var actions = {
       (config.triggers.pause.enabled && mwget.count() >= config.triggers.pause.value);
 
     // on Android and Opera, there is no directory selection
-    if (
-      !obj.folder &&
-      !app.storage.read('notice-download') &&
-      ['android', 'opera'].indexOf(app.globals.browser) === -1
-    ) {
+    if (!obj.folder && config.wget['notice-download'] && app.globals.folder) {
       app.notification('Saving in the default download directory. Add a new job from manager to change the directory.');
-      app.storage.write('notice-download', 'shown');
+      config.wget['notice-download'] = false;
     }
     mwget.download(obj);
   },
@@ -245,22 +241,22 @@ app.manager.receive('open', app.emit.bind(app, 'open'));
 app.add.receive('download', function (obj) {
   app.manager.send('hide');
   if (obj.threads) {
-    app.storage.write('add-threads', obj.threads);
+    config.wget.threads = obj.threads;
   }
   if (obj.timeout) {
-    app.storage.write('add-timeout', obj.timeout);
+    config.wget.timeout = obj.timeout;
   }
   actions.download(obj);
 });
 app.add.receive('cmd', function (obj) {
   if (obj.cmd === 'browse') {
-    app.disk.browse().then(function (folder) {
-      app.storage.write('add-directory', folder);
-      app.add.send('folder', folder);
+    app.disk.browse().then(function (directory) {
+      config.wget.directory = directory;
+      app.add.send('folder', directory);
     }, function () {});
   }
   if (obj.cmd === 'empty') {
-    app.storage.write('add-directory', '');
+    config.wget.directory = '';
   }
 });
 app.add.receive('init', function () {
@@ -269,9 +265,9 @@ app.add.receive('init', function () {
     let isValid = clipboard.split(/\s*\,\s*/).map(utils.validate).reduce((p, c) => p && c, true);
     app.add.send('init', {
       settings: {
-        threads: app.storage.read('add-threads'),
-        timeout: app.storage.read('add-timeout'),
-        folder: app.storage.read('add-directory')
+        threads: config.wget.threads,
+        timeout: config.wget.timeout,
+        folder: config.wget.directory
       },
       clipboard: isValid ? clipboard : ''
     });
@@ -322,6 +318,7 @@ app.modify.receive('modified', function (obj) {
   }
 });
 /* triggers ui */
+console.error(config.triggers.pause.value)
 app.triggers.receive('init', function () {
   app.triggers.send('init', {
     pause: {

@@ -4,6 +4,7 @@
 /* app.globals */
 app.globals.browser = 'opera';
 app.globals.extension = true;
+app.globals.folder = false;
 /* app.canvas */
 app.canvas = () => document.createElement('canvas');
 /* app.button */

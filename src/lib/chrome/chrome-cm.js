@@ -1,4 +1,4 @@
-/* globals CryptoJS, utils */
+/* globals CryptoJS, utils, config */
 'use strict';
 
 var app = new utils.EventEmitter();
@@ -6,7 +6,8 @@ var app = new utils.EventEmitter();
 app.globals = {
   browser: 'chrome',
   extension: false,
-  open: false
+  open: false,
+  folder: true
 };
 
 if (!Promise.defer) {
@@ -326,7 +327,7 @@ app.fileSystem = {
     external: function () {
       return new Promise(function (resolve, reject) {
         chrome.storage.local.get(null, function (storage) {
-          if (storage.folder && storage['add-directory']) {
+          if (storage.folder && config.wget.directory) {
             try {
               chrome.fileSystem.restoreEntry(storage.folder, function (root) {
                 if (root) {
@@ -342,7 +343,7 @@ app.fileSystem = {
             }
           }
           else {
-            reject(new Error('either storage.folder or storage["add-directory"] is undefined'));
+            reject(new Error('either storage.folder or config.wget.directory is undefined'));
           }
         });
       });

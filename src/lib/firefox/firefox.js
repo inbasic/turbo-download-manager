@@ -43,7 +43,8 @@ var xhr = {
 exports.globals = {
   browser: 'firefox',
   referrer: true,
-  open: true
+  open: true,
+  folder: true
 };
 
 exports.Promise = function (callback) {
@@ -215,21 +216,8 @@ exports.button = (function () {
 })();
 
 exports.storage = {
-  read: function (id) {
-    return (prefs[id] || prefs[id] + '' === 'false' || !isNaN(prefs[id])) ? (prefs[id] + '') : null;
-  },
-  write: function (id, data) {
-    data = data + '';
-    if (data === 'true' || data === 'false') {
-      prefs[id] = data === 'true' ? true : false;
-    }
-    else if (parseInt(data) + '' === data) {
-      prefs[id] = parseInt(data);
-    }
-    else {
-      prefs[id] = data + '';
-    }
-  },
+  read: id => prefs[id],
+  write: (id, data) => prefs[id] = data,
   on: function (name, callback) {
     sp.on(name, callback);
   }

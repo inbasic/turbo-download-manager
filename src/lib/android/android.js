@@ -112,6 +112,8 @@ if (!Array.from) {
 /* app.globals */
 app.globals.browser = 'android';
 app.globals.referrer = false;
+app.globals.folder = false;
+
 /* app.tab */
 app.tab.open = (url) => window.open(url, '_system');
 /* app.notification */
