@@ -318,7 +318,6 @@ app.modify.receive('modified', function (obj) {
   }
 });
 /* triggers ui */
-console.error(config.triggers.pause.value)
 app.triggers.receive('init', function () {
   app.triggers.send('init', {
     pause: {

@@ -69,10 +69,14 @@ config.define = (function () {
   };
 })();
 config.defineInt = function (name, value, min, max) {
-  var setter = v => Math.max(+v, min || 1);
-  if (max) {
-    setter = v => Math.min(Math.max(+v, min), max);
+  function setter (value) {
+    let tmp = Math.max(+value, min || 1);
+    if (max) {
+      tmp = Math.min(tmp, max);
+    }
+    return isNaN(tmp) ? value : tmp;
   }
+
   config.define(name, value, setter);
 };
 config.get = function (name) {
