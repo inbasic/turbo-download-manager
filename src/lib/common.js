@@ -360,7 +360,8 @@ app.triggers.receive('change', function (obj) {
 app.about.receive('init', function () {
   app.version().then(version => app.about.send('init', {
     version,
-    platform: app.platform()
+    platform: app.platform(),
+    url: config.urls.updates
   }));
 });
 app.about.receive('open', url => app.tab.open(url));

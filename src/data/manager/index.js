@@ -380,9 +380,7 @@ var dd = {
   dragover: function (e) {
     let types = Array.from(e.dataTransfer.types);
     let allow = types.indexOf('text/uri-list') !== -1;
-    if (allow) {
-      e.preventDefault();
-    }
+    e.preventDefault();
     e.dataTransfer.dropEffect = allow ? 'link' : 'none';
   }
 };

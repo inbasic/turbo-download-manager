@@ -19,13 +19,13 @@ var diskspace = require('diskspace');
 var optimist = require('optimist');
 // internals
 var utils = require('../utils');
+var config = require('../config');
 var self = require('../../package.json');
-var userAgant =  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36';
 
 var XMLHttpRequest = function () { // jshint ignore:line
   let method = 'GET', uri, readyState = 2;
   let headers = {
-    'User-Agent': userAgant
+    'User-Agent': config.electron['user-agent']
   };
   let onload = function () {};
   let onreadystatechange = function () {};
@@ -47,10 +47,10 @@ var XMLHttpRequest = function () { // jshint ignore:line
       method = m || method;
       uri = u;
     },
-    set onload (c) {onload = c;},
-    set onerror (c) {onerror = c;},
-    set onprogress (c) {onprogress = c;},
-    set onreadystatechange (c) {onreadystatechange = c;},
+    set onload (c) {onload = c;}, // jshint ignore:line
+    set onerror (c) {onerror = c;}, // jshint ignore:line
+    set onprogress (c) {onprogress = c;}, // jshint ignore:line
+    set onreadystatechange (c) {onreadystatechange = c;}, // jshint ignore:line
     setRequestHeader: (id, val) => headers[id] = val,
     getResponseHeader: (id) => response.headers[id.toLowerCase()] || null,
     getAllResponseHeaders: () => response.headers,
@@ -172,11 +172,11 @@ exports.timer = {setTimeout, clearTimeout, setInterval, clearInterval};
 exports.URL = require('url').parse;
 
 exports.storage = (function () {
-  let dir = path.resolve(process.env.HOME || process.env.USERPROFILE, '.tdm');
+  let dir = path.resolve(config.electron.storgage || process.env.HOME || process.env.USERPROFILE, '.tdm');
   if (!fs.existsSync(dir)) {  // node-storage is not creating the directory if it does not exist
     fs.mkdirSync(dir);
   }
-  let store = new Storage(path.resolve(process.env.HOME || process.env.USERPROFILE, '.tdm', 'storage'));
+  let store = new Storage(path.resolve(dir, 'storage'));
   let callbacks = {};
   return {
     read: (id) => store.get(id),
@@ -215,13 +215,11 @@ exports.menu = function () {};
 exports.notification = (message) => mainWindow.webContents.send('_notification', message);
 
 exports.version = () => Promise.resolve(self.version);
-exports.platform = () => `io.js ${process.version} & Electron ${process.versions['electron']} on ${process.platform}`;
+exports.platform = () => `io.js ${process.version} & Electron ${process.versions.electron} on ${process.platform}`;
 
 exports.OS = {
   clipboard: {
-    get: function () {
-      return Promise.resolve(clipboard.readText());
-    }
+    get: () => Promise.resolve(clipboard.readText())
   }
 };
 
@@ -584,7 +582,7 @@ function createMenu () {
 electron.app.on('ready', createMenu);
 
 electron.app.on('window-all-closed', function () {
-  if (process.platform !== 'darwin') {
+  if (config.electron['exit-on-close']) {
     electron.app.quit();
   }
 });
@@ -597,10 +595,10 @@ electron.app.on('activate', function () {
 /* update checker */
 exports.on('ready', function () {
   request({
-    uri: 'https://api.github.com/repos/inbasic/turbo-download-manager/releases',
+    uri: config.urls.updates,
     method: 'GET',
     headers: {
-      'User-Agent': userAgant
+      'User-Agent': config.electron['user-agent']
     }
   }, function (error, response, body) {
     if (!error && response.statusCode === 200) {
@@ -612,11 +610,11 @@ exports.on('ready', function () {
           .filter(v => v.indexOf('alpha') === -1 && v.indexOf('beta') === -1);
         if (versions.length) {
           let version = versions.shift();
-          let url = `https://github.com/inbasic/turbo-download-manager/releases/download/${version}/tdm-${process.platform}-${os.arch()}.7z`;
+          let url = `${config.urls.releases}download/${version}/tdm-${process.platform}-${os.arch()}.7z`;
           mainWindow.webContents.send('_update', {
             title: `New version of "Turbo Download Manager" is available (${version}). Would you like to update?`,
             url,
-            referrer: 'https://github.com/inbasic/turbo-download-manager/releases/'
+            referrer: config.urls.releases
           });
         }
       }

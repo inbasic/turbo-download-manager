@@ -87,6 +87,7 @@ background.receive('init', function (list) {
   list
   .filter(obj => ['string', 'boolean', 'number'].indexOf(obj.type) !== -1)
   .filter(obj => !obj.name.startsWith('defaults.'))
+  .sort((a, b) => a.name < b.name ? -1 : +1)
   .forEach(function (obj) {
     let tr = document.createElement('tr');
     let td1 = document.createElement('td');

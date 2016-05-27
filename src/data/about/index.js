@@ -1,23 +1,10 @@
 /* globals background */
 'use strict';
 
-background.receive('init', function (obj) {
-  document.querySelector('[data-id=version]').textContent = obj.version;
-  document.querySelector('[data-id=platform]').textContent = obj.platform;
-});
-background.send('init');
-
-document.addEventListener('click', function (e) {
-  let url = e.target.href;
-  if (url) {
-    e.preventDefault();
-    background.send('open', url);
-  }
-});
 /* generating links */
-(function () {
+function updates (url) {
   let req = new XMLHttpRequest();
-  req.open('GET', 'https://api.github.com/repos/inbasic/turbo-download-manager/releases', true);
+  req.open('GET', url, true);
   req.responseType = 'json';
   req.onload = function () {
     try {
@@ -44,4 +31,19 @@ document.addEventListener('click', function (e) {
     catch (e) {}
   };
   req.send();
-})();
+}
+
+background.receive('init', function (obj) {
+  document.querySelector('[data-id=version]').textContent = obj.version;
+  document.querySelector('[data-id=platform]').textContent = obj.platform;
+  updates(obj.url);
+});
+background.send('init');
+
+document.addEventListener('click', function (e) {
+  let url = e.target.href;
+  if (url) {
+    e.preventDefault();
+    background.send('open', url);
+  }
+});
