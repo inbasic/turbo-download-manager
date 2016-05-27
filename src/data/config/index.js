@@ -15,7 +15,7 @@ var edit = (function () {
     if (e.keyCode === 27) {
       parent.style.display = 'none';
     }
-  });
+  }, false);
   parent.querySelector('form').addEventListener('submit', function (e) {
     background.send('pref', {
       name,
@@ -38,6 +38,7 @@ var edit = (function () {
     input.value = target.dataset.value;
     parent.style.display = 'flex';
     input.focus();
+    input.select();
   };
 })();
 

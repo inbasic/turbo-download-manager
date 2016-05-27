@@ -10,14 +10,14 @@ document.querySelector('form').addEventListener('submit', function (e) {
     return background.send('no-folder');
   }
   background.send('download', {
-    url: document.querySelector('[data-id=url]').value,
-    referrer: document.querySelector('[data-id=referrer]').value,
-    alternatives: [].map.call(document.querySelectorAll('[data-id=alternative'), e => e.value),
-    name: document.querySelector('[data-id=name]').value,
-    description: document.querySelector('[data-id=description]').value,
-    timeout: +document.querySelector('[data-id=timeout]').value,
-    threads: +document.querySelector('[data-id=threads]').value,
-    folder: document.querySelector('[data-id=folder]').value,
+    'url': document.querySelector('[data-id=url]').value,
+    'referrer': document.querySelector('[data-id=referrer]').value,
+    'alternatives': [].map.call(document.querySelectorAll('[data-id=alternative'), e => e.value),
+    'name': document.querySelector('[data-id=name]').value,
+    'description': document.querySelector('[data-id=description]').value,
+    'timeout': +document.querySelector('[data-id=timeout]').value,
+    'threads': +document.querySelector('[data-id=threads]').value,
+    'folder': document.querySelector('[data-id=folder]').value,
     'auto-pause': document.querySelector('[data-id="auto-pause"]').checked,
     'use-native': document.querySelector('[data-id="use-native"]').checked
   });
@@ -27,9 +27,9 @@ document.querySelector('form').addEventListener('submit', function (e) {
 });
 
 document.querySelector('[data-id=url]').addEventListener('keyup', function () {
-  let length = this.value.split(/\s*\,\s*/).length;
+  let length = this.value.split(/\s*\,\s*http/).length;
   document.body.dataset.batch = length > 1;
-});
+}, false);
 
 background.receive('folder', function (folder) {
   document.querySelector('[data-id=folder]').value = folder;

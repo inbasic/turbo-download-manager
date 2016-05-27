@@ -175,11 +175,21 @@ var get = function (id) {
 // add && info
 var actions = (function (add, loader, iframe) {
   (function (blank) {
-    loader.addEventListener('click', e => iframe.contains(e.target) ? '' : blank());
+    loader.addEventListener('click', function (e) {
+      if (e.target === this) {
+        blank();
+      }
+    });
     background.receive('hide', blank, false);
     window.top.document.addEventListener('backbutton', (e) => {
       e.preventDefault();
       blank();
+    }, false);
+    document.addEventListener('keyup', function (e) {
+      console.error(e)
+      if (e.keyCode === 27) {
+        blank();
+      }
     }, false);
   })(function () {
     if (loader.dataset.visible === 'true') {

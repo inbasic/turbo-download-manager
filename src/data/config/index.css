@@ -50,7 +50,7 @@ table tbody tr:hover {
 table tr {
   height: 22px;
 }
-table tr.selected {
+table tbody tr.selected {
   background-color: #0095dd !important;
   font-weight: bold;
   color: #fff;
@@ -60,7 +60,8 @@ table td {
   -moz-user-select: none;
   white-space: nowrap;
   overflow: hidden;
-  text-overflow: ellipsis
+  text-overflow: ellipsis;
+  text-indent: 3px;
 }
 
 input {
@@ -73,6 +74,9 @@ input {
 input[type=submit],
 input[type=button] {
   cursor: pointer;
+}
+input[type=text] {
+  outline: 0;
 }
 input:focus{
   border-color: rgba(0, 0, 0, 0.2);
