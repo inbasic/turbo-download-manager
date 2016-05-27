@@ -213,6 +213,10 @@ var actions = (function (add, loader, iframe) {
     loader.dataset.visible = true;
     iframe.src = `../preview/index.html?url=${encodeURIComponent(obj.url)}&mime=${obj.mime}`;
   });
+  background.receive('config', function () {
+    loader.dataset.visible = true;
+    iframe.src = '../config/index.html';
+  });
 
   return {
     add: function (link) {

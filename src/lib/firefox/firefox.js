@@ -580,9 +580,13 @@ exports.OS = (function () {
     data.url('extract/index.html'),
     [data.url('./extract/firefox/firefox.js'), data.url('./extract/index.js')]
   );
-  exports.extract = attach(
+  exports.preview = attach(
     data.url('preview/index.html'),
     [data.url('./preview/firefox/firefox.js'), data.url('./preview/index.js')]
+  );
+  exports.config = attach(
+    data.url('config/index.html'),
+    [data.url('./config/firefox/firefox.js'), data.url('./config/index.js')]
   );
 })(function (include, contentScriptFile) {
   let workers = [], contentScripts = [];

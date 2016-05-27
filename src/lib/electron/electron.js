@@ -329,6 +329,19 @@ exports.preview = {
   })
 };
 
+// config
+exports.config = {
+  send: (id, data) => mainWindow.webContents.send(id + '@cf', {
+    url: 'background.html',
+    data
+  }),
+  receive: (id, callback) => ipcMain.on(id + '@cf', function (event, arg) {
+    if (arg &&  arg.url === 'config/index.html') {
+      callback(arg.data);
+    }
+  })
+};
+
 exports.fileSystem = {
   file: {
     exists: function (root, name) {

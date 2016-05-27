@@ -32,6 +32,7 @@ config.define = (function () {
     }, config);
 
     Object.defineProperty(obj, name, {
+      enumerable: true,
       get: function () {
         let value = cache[pref];
         if (value === undefined) {
@@ -81,6 +82,38 @@ config.defineInt = function (name, value, min, max) {
 };
 config.get = function (name) {
   return name.split('.').reduce((p, c) => p[c], config);
+};
+config.set = function (pref, value) {
+  let root = pref.split('.');
+  let name = root.pop();
+  let obj = root.reduce((p, c) => {
+    if (p[c]) {
+      return p[c];
+    }
+    p[c] = {};
+    return p[c];
+  }, config);
+  obj[name] = value;
+};
+config.list = function () {
+  let list = [];
+  function step (object, prefix) {
+    Object.keys(object).forEach(function (key) {
+      let pr = prefix ? prefix + '.' : '';
+      if (typeof object[key] === 'object') {
+        step(object[key], pr + key);
+      }
+      else {
+        list.push({
+          name: pr + key,
+          value: object[key],
+          type: typeof object[key]
+        });
+      }
+    });
+    return list;
+  }
+  return step(config);
 };
 
 /* config.urls */

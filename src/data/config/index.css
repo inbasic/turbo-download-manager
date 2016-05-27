@@ -1,0 +1,137 @@
+body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  margin: 0;
+  overflow: auto;
+}
+body,
+table,
+input {
+  font-family: arial;
+  font-size: 11px;
+  color: #333;
+}
+table {
+  width: 100%;
+  border-spacing: 0;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+table thead {
+  border-top: solid 1px #c1c1c1;
+  border-bottom: solid 1px #c1c1c1;
+  background-color: #ebebeb;
+  color: #808080;
+  height: 28px;
+  text-align: left;
+  text-indent: 8px;
+}
+table th {
+  font-weight: normal;
+  position: relative;
+}
+table th:not(:first-child):before {
+  content: " ";
+  display: block;
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 1px;
+  border-left: solid 1px #c1c1c1;
+}
+table tr:nth-child(even) {
+  background-color: #F4F4F4;
+}
+table tbody tr:hover {
+  background-color: #bfe4f6;
+}
+table tr {
+  height: 22px;
+}
+table tr.selected {
+  background-color: #0095dd !important;
+  font-weight: bold;
+  color: #fff;
+}
+table td {
+  user-select: none;
+  -moz-user-select: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis
+}
+
+input {
+  background: #fff;
+  border: solid 1px rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+  padding: 0 5px;
+  height: 28px;
+}
+input[type=submit],
+input[type=button] {
+  cursor: pointer;
+}
+input:focus{
+  border-color: rgba(0, 0, 0, 0.2);
+}
+input:active{
+  border-color: rgba(0, 0, 0, 0.3);
+}
+body>div {
+  display: flex;
+  margin: auto;
+  width: 100%;
+  box-sizing: border-box;
+}
+#search {
+  display: flex;
+  align-items: center;
+  padding: 8px;
+}
+#search input {
+  height: 32px;
+  margin-left: 5px;
+  flex: 1;
+}
+#content {
+  flex: 1;
+  overflow: auto;
+}
+
+#edit {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+#edit>form {
+  width: 300px;
+  max-width: 80%;
+  height: 100px;
+  max-height: 90%;
+  border: solid 2px #c1c1c1;
+  background-color: #fff;
+  display: flex;
+  justify-content: space-between;
+  flex-direction: column;
+  padding: 10px;
+}
+#edit>form>div {
+  display: flex;
+  justify-content: flex-end;
+}
+#edit input {
+  width: 100%;
+}
+#edit>form>div input{
+  width: 80px;
+  text-align: center;
+  margin-left: 2px;
+}

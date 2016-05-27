@@ -37,10 +37,10 @@ app.storage = (function () {
     app.emit('load');
   });
   return {
-    read: (id) => (objs[id] || !isNaN(objs[id])) ? objs[id] + '' : objs[id],
+    read: (id) => objs[id],
     write: function (id, data) {
       objs[id] = data;
-      var tmp = {};
+      let tmp = {};
       tmp[id] = data;
       chrome.storage.local.set(tmp, function () {});
     },
@@ -208,6 +208,21 @@ app.preview = (function () {
     }),
     receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
       if (id + '@pr' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
+  };
+})();
+
+// config
+app.config = (function () {
+  return {
+    send: (id, data) => chrome.runtime.sendMessage({
+      method: id + '@cf',
+      data
+    }),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@cf' === message.method && sender.url !== document.location.href) {
         callback.call(sender.tab, message.data);
       }
     })

@@ -54,6 +54,7 @@ var actions = {
     triggers: () => app.manager.send('triggers'),
     extract: (url) => app.manager.send('extract', url),
     preview: (obj) => app.manager.send('preview', obj),
+    config: () => app.manager.send('config'),
     about: () => app.manager.send('about')
   }
 };
@@ -367,6 +368,22 @@ app.about.receive('open', url => app.tab.open(url));
 if (app.webRequest) {
   app.webRequest.media(obj => app.extract.send('media', obj));
 }
+/* config ui */
+app.config.receive('init', function () {
+  app.config.send('init', config.list());
+});
+app.config.receive('pref', function (obj) {
+  try {
+    config.set(obj.name, obj.value);
+  }
+  catch (e) {
+    app.notification(e.message);
+  }
+  app.config.send('pref', {
+    name: obj.name,
+    value: config.get(obj.name)
+  });
+});
 /* startup */
 app.startup(function () {
   // FAQs page
