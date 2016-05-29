@@ -222,15 +222,17 @@ app.manager.receive('cmd', function (obj) {
     if (!file) {
       return app.notification('Preview is not available. Please try again later.');
     }
-    if (instance.status === 'done' && app.globals.open) {
+    if (instance.status === 'done' && app.globals.open && config.manager['launch-if-done']) {
       return instance.internals.file.launch();
     }
     if (instance.status !== 'error') {
-      console.error(instance.info.mime);
-      actions.open.preview({
-        url: file.toURL(),
-        mime: instance.info.mime
-      });
+      file.toURL().then(
+        url => actions.open.preview({
+          url,
+          mime: instance.info.mime
+        }),
+        (e) => app.notification(e.message)
+      );
     }
   }
   if (obj.cmd === 'download') {

@@ -31,7 +31,7 @@ itdmanager uses [GulpJS](http://gulpjs.com/) to build executable files for all p
   2. Preparing plugins:
     1. `cca plugin remove plugin-name`
     2. `cca plugin add path-to-plugin`
-    3.  `../../plugins/android/Toast-PhoneGap-Plugin-master/`, `cordova-plugin-admobpro`, `../../plugins/android/cordova-plugin-binaryfilewriter`, `https://github.com/VersoSolutions/CordovaClipboard`, `https://github.com/fastrde/phonegap-md5.git`, `https://github.com/whiteoctober/cordova-plugin-app-version.git`
+    3.  `../../plugins/android/Toast-PhoneGap-Plugin-master/`, `cordova-plugin-admobpro`, `../../plugins/android/cordova-plugin-binaryfilewriter`, `https://github.com/VersoSolutions/CordovaClipboard`, `https://github.com/fastrde/phonegap-md5.git`, `https://github.com/whiteoctober/cordova-plugin-app-version.git`, `cordova-plugin-fileopener`
   3. Creating a new project: `cca create TDM --link-to=path/to/manifest.json`
   4. Installing to a device: `cca run android --device` or `cca run android --emulator`
   5. Android submission:

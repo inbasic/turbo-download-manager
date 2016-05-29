@@ -4,10 +4,26 @@
     <title>Preview - Turbo Download Manager</title>
     <link rel="stylesheet" href="index.css">
     <meta name=viewport content="width=device-width, initial-scale=1">
+    <!-- video js -->
+    <link href="videojs/video-js.css" rel="stylesheet">
   </head>
   <body>
-    <div>
-      <h1>Preview</h1>
+    <div id="video">
+      <video
+        id="video-player"
+        class="video-js vjs-default-skin vjs-big-play-centered" controls preload="metadata" data-setup="{}">
+      </video>
+    </div>
+    <div id="audio">
+      <audio controls></audio>
+    </div>
+    <div id="image">
+      <img>
+    </div>
+    <div id="not-supported">
+      No preview is available for this file type
+      <br>
+      <p><a href="https://github.com/inbasic/turbo-download-manager/" target="_blank">Help us</a> extending preview support for more file types.</p>
     </div>
     <script src="shadow_index.js"></script>
   </body>

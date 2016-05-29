@@ -113,6 +113,7 @@ if (!Array.from) {
 app.globals.browser = 'android';
 app.globals.referrer = false;
 app.globals.folder = false;
+app.globals.open = true;
 
 /* app.tab */
 app.tab.open = (url) => window.open(url, '_system');
@@ -131,7 +132,10 @@ app.storage = (function () {
   let storage = window.localStorage;
 
   return {
-    read: (id) => storage.getItem(id),
+    read: function (id) {
+      let tmp = storage.getItem(id);
+      return tmp === null ? undefined : tmp;
+    },
     write: function (id, data) {
       storage.setItem(id, data);
       if (id in callbacks) {
@@ -377,10 +381,20 @@ app.fileSystem.file.md5 = function (file) {
     window.md5chksum.file(file, resolve, reject);
   });
 };
+app.fileSystem.file.toURL = (file) => Promise.resolve(file.toURL());
+app.fileSystem.file.launch = function (file) {
+  let url = file.toURL();
+  return new Promise(function (resolve, reject) {
+    cordova.plugins.FileOpener.canOpenFile(url, function () {
+      cordova.plugins.FileOpener.openFile(url, resolve, reject);
+    }, reject);
+  });
+};
+
 // internals
 document.addEventListener('deviceready', function () {
   let admobid = {};
-  if ('AdMob' in window && /(android)/i.test(navigator.userAgent)) {
+  if ('AdMob' in window && /(android)/i.test(navigator.userAgent) && false) {
     admobid = {
       banner: 'ca-app-pub-8474379789882900/4565165323'
     };

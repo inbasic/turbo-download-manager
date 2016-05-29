@@ -36,6 +36,7 @@ var edit = (function () {
     type = parent.querySelector('[data-id=type]').textContent = target.dataset.type;
     name = parent.querySelector('[data-id=name]').textContent = target.dataset.name;
     input.value = target.dataset.value;
+    input.type = target.dataset.type === 'number' ? 'number' : 'text';
     parent.style.display = 'flex';
     input.focus();
     input.select();
@@ -50,11 +51,15 @@ document.addEventListener('click', function (e) {
       selected.classList.remove('selected');
     }
     target.classList.add('selected');
+    document.getElementById('open-editor').disabled = false;
   }
 });
 
 (function (callback) {
   document.addEventListener('dblclick', (e) => callback(e.target.parentNode));
+  document.getElementById('open-editor').addEventListener('click',
+    () => callback(document.querySelector('.selected'))
+  );
   document.addEventListener('keypress', function (e) {
     if (e.keyCode === 13) {
       let selected = document.querySelector('.selected');
@@ -63,6 +68,7 @@ document.addEventListener('click', function (e) {
       }
     }
   });
+
 })(function (target) {
   if (target.localName === 'tr') {
     if (target.dataset.type === 'boolean') {

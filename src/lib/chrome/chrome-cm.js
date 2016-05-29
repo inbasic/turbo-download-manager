@@ -319,7 +319,12 @@ app.fileSystem = {
     },
     launch: () => Promise.reject(new Error('not implemented')),
     reveal: () => Promise.reject(new Error('not implemented')),
-    close: () => Promise.resolve()
+    close: () => Promise.resolve(),
+    toURL: (file) => {
+      return new Promise(function (resolve, reject) {
+        file.file(f => resolve(URL.createObjectURL(f)), (e) => reject(e));
+      });
+    }
   },
   root: {
     internal: function (bytes) {

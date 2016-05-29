@@ -262,7 +262,6 @@ background.receive('add', function (obj) {
   item.status = obj.status;
   item.speed = obj.speed;
   item.retries = obj.retries;
-  console.error(obj.mime);
   item.chunkable = obj.chunkable;
   for (let id in obj.stats) {
     let stat = obj.stats[id];

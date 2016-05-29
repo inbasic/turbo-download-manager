@@ -389,7 +389,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       );
     }
     function guess (obj) {
-      let url = obj.urls[0], name = obj.name, mime = obj.mime.split(';').shift(), disposition = obj.disposition;
+      let url = obj.urls[0], name = obj.name, mime = (obj.mime || '').split(';').shift(), disposition = obj.disposition;
       if (!name && disposition) {
         let tmp = /filename\=([^\;]*)/.exec(disposition);
         if (tmp && tmp.length) {

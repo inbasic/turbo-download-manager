@@ -49,10 +49,14 @@ function json (clean) {
 function shadow (browser) {
   let c1 = `    <script src="${browser}/${browser}.js"></script>\n    <script src="index.js"></script>`;
   let c2 = `    <script src="showdown.js"></script>\n    <script src="${browser}/${browser}.js"></script>\n    <script src="index.js"></script>`;
-  return gulpif(f => f.relative.endsWith('.html'), gulpif(f => f.relative.endsWith('info/index.html'),
+  let c3 = `    <script src="videojs/video.js"></script>\n    <script src="${browser}/${browser}.js"></script>\n    <script src="index.js"></script>`;
+  return gulpif(f => f.relative.endsWith('info/index.html'),
     change(content => content.replace(/.*shadow_index\.js.*/, c2)),
-    change(content => content.replace(/.*shadow_index\.js.*/, c1))
-  ));
+    gulpif(f => f.relative.endsWith('preview/index.html'),
+      change(content => content.replace(/.*shadow_index\.js.*/, c3)),
+      gulpif(f => f.relative.endsWith('.html'), change(content => content.replace(/.*shadow_index\.js.*/, c1)))
+    )
+  )
 }
 
 /* electron build */
@@ -236,7 +240,7 @@ gulp.task('android-build', function () {
   .pipe(json())
   .pipe(shadow('android'))
   .pipe(gulpif(function (f) {
-    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1 && f.relative.indexOf('EventEmitter.js') === -1;
+    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1 && f.relative.indexOf('EventEmitter.js') === -1 && f.relative.indexOf('video.js') === -1;
   }, babel({
     presets: ['es2015']
   })))
@@ -259,6 +263,7 @@ gulp.task('android-apk', function () {
     'cordova plugin add https://github.com/whiteoctober/cordova-plugin-app-version.git',
     'cordova plugin add ../../plugins/android/cordova-plugin-binaryfilewriter/',
     'cordova plugin add cordova-plugin-x-toast',
+    'cordova plugin add cordova-plugin-fileopener',
     'openssl aes-256-cbc -k $ENCRYPTION_PASSWORD -in ../packed/keys.p12.enc -d -a -out platforms/android/keys.p12',
     'printf "storeFile=keys.p12\\nkeyAlias=ReleaseKey\\nkeyPassword=$ENCRYPTION_PASSWORD\\nstorePassword=$ENCRYPTION_PASSWORD" > platforms/android/release-signing.properties',
     'cordova build --release'

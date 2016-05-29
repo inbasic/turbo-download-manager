@@ -433,7 +433,11 @@ exports.fileSystem = {
       return d.promise;
     },
     close: () => resolve(),
-    toURL: (file) => resolve(Services.io.newFileURI(file).spec)
+    toURL: function (file) {
+      let res = Services.io.getProtocolHandler('resource').QueryInterface(Ci.nsIResProtocolHandler);
+      res.setSubstitution(self.name, Services.io.newURI(Services.io.newFileURI(file).spec, null, null));
+      return resolve('resource://' + self.name);
+    }
   },
   root: {
     internal: () => reject(),
@@ -582,7 +586,7 @@ exports.OS = (function () {
   );
   exports.preview = attach(
     data.url('preview/index.html'),
-    [data.url('./preview/firefox/firefox.js'), data.url('./preview/index.js')]
+    [data.url('./preview/videojs/video.js'), data.url('./preview/firefox/firefox.js'), data.url('./preview/index.js')]
   );
   exports.config = attach(
     data.url('config/index.html'),

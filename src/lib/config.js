@@ -42,7 +42,7 @@ config.define = (function () {
               value = +value;
             }
             if (types[pref] === 'boolean') {
-              value = value === 'false' ? false : true;
+              value = value === 'false' || value === false ? false : true;
             }
           }
         }
@@ -98,7 +98,9 @@ config.set = function (pref, value) {
 config.list = function () {
   let list = [];
   function step (object, prefix) {
-    Object.keys(object).forEach(function (key) {
+    Object.keys(object)
+    .filter((key) => object[key] !== null)
+    .forEach(function (key) {
       let pr = prefix ? prefix + '.' : '';
       if (typeof object[key] === 'object') {
         step(object[key], pr + key);
@@ -163,6 +165,9 @@ config.define('triggers.play-combined.enabled', true);
 config.define('welcome.version', '');
 config.define('welcome.show', true);
 config.welcome.timeout = 3;
+
+/* config.manager */
+config.define('manager.launch-if-done', true);
 
 /* config.electron */
 config.define('electron.exit-on-close', true);

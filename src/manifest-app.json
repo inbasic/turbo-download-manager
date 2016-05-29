@@ -12,6 +12,7 @@
     "clipboardRead",
     "unlimitedStorage",
     "webview",
+    "fullscreen",
     {"fileSystem": ["write", "retainEntries", "directory"]}
   ],
   "app": {
