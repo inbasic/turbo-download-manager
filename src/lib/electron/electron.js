@@ -11,6 +11,7 @@ var path = require('path');
 var fs = require('fs');
 var crypt = require('crypto');
 var os = require('os');
+var execFile = require('child_process').execFile;
 // community libs
 var Storage = require('node-storage');
 var request = require('request');
@@ -23,14 +24,16 @@ var config = require('../config');
 var self = require('../../package.json');
 
 var XMLHttpRequest = function () { // jshint ignore:line
-  let method = 'GET', uri, readyState = 2;
+  let method = 'GET', uri, readyState = 2, responseText = '';
   let headers = {
     'User-Agent': config.electron['user-agent']
   };
   let onload = function () {};
   let onreadystatechange = function () {};
   let onerror = function () {};
-  let onprogress = function () {};
+  let onprogress = function (data) {
+    responseText += data;
+  };
   let req, response;
 
   return {
@@ -42,6 +45,9 @@ var XMLHttpRequest = function () { // jshint ignore:line
     },
     get response () {
       return response;
+    },
+    get responseText () {
+      return responseText;
     },
     open: (m, u) => {
       method = m || method;
@@ -469,6 +475,21 @@ exports.disk = {
   }
 };
 
+exports.process = function (path, file, args) {
+  args.push(file.file.path);
+  return new Promise(function (resolve, reject) {
+    fs.exists(path, function (bol) {
+      if (bol) {
+        execFile(path, args);
+        resolve();
+      }
+      else {
+        reject(new Error(`Cannot find ${path}`));
+      }
+    });
+  });
+};
+
 // native downloader
 exports.download = (obj) => shell.openExternal(obj.url);
 
@@ -604,10 +625,11 @@ exports.on('ready', function () {
     if (!error && response.statusCode === 200) {
       try {
         let json = JSON.parse(body);
-        let versions = json.map(o => o.tag_name);
-        versions = versions
-          .filter(v => semver.compare(v, self.version) > 0)
-          .filter(v => v.indexOf('alpha') === -1 && v.indexOf('beta') === -1);
+        let versions = json
+          .filter(obj => obj.prerelease === false || config.electron.update === 'prerelease')
+          .map(o => o.tag_name)
+          .filter(v => semver.compare(v, self.version) > 0);
+
         if (versions.length) {
           let version = versions.shift();
           let url = `${config.urls.releases}download/${version}/tdm-${process.platform}-${os.arch()}.7z`;

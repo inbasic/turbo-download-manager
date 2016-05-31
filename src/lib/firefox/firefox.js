@@ -731,6 +731,18 @@ exports.sandbox = (function () {
     return d.promise;
   };
 })();
+
+// process
+exports.process = function (path, itd, args) {
+  return new Promise(function (resolve) {
+    let file = new FileUtils.File(path);
+    args.push(itd.file.path);
+    let process = Cc['@mozilla.org/process/util;1'].createInstance(Ci.nsIProcess);
+    process.init(file);
+    process.run(false, args, args.length);
+    resolve();
+  });
+};
 /*
 var {WebRequest} = Cu.import('resource://gre/modules/WebRequest.jsm');
 exports.webRequest = (function () {

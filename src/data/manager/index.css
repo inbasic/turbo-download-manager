@@ -253,7 +253,6 @@ item[data-type=done] div[data-type=partial]>div {
 /* pause */
 .item[data-type=pause]>span:before {
   color: #EAC500;
-  content: '\e800';
 }
 .item[data-type=pause] div[data-type=overal] div {
   background-color: #EAC500;

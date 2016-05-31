@@ -19,45 +19,61 @@ app.button.onCommand(function () {
 });
 
 /* - */
-var actions = {
-  download: function (obj) {
-    obj.threads = obj.threads || config.wget.threads;
-    obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
-    obj.update = obj.update * 1000 || config.wget.update * 1000;
-    obj.pause = obj.pause || config.wget.pause;
-    obj['short-pause'] = obj['short-pause'] || config.wget['short-pause'];
-    obj['use-native'] = obj['use-native'] || false;
-    obj['write-size'] = obj['write-size'] || config.wget['write-size'];
-    obj['max-size-md5'] = obj['max-size-md5'] || config.wget['max-size-md5'];
-    obj.retries = obj.retries || config.wget.retries;
-    obj.folder = obj.folder || config.wget.directory;
-    obj['min-segment-size'] = obj['min-segment-size'] || config.wget['min-segment-size'];
-    obj['max-segment-size'] = obj['max-segment-size'] || config.wget['max-segment-size'];
+var actions = {};
+actions.download = function (obj) {
+  obj.threads = obj.threads || config.wget.threads;
+  obj.timeout = obj.timeout * 1000 || config.wget.timeout * 1000;
+  obj.update = obj.update * 1000 || config.wget.update * 1000;
+  obj.pause = obj.pause || config.wget.pause;
+  obj['short-pause'] = obj['short-pause'] || config.wget['short-pause'];
+  obj['use-native'] = obj['use-native'] || false;
+  obj['write-size'] = obj['write-size'] || config.wget['write-size'];
+  obj['max-size-md5'] = obj['max-size-md5'] || config.wget['max-size-md5'];
+  obj.retries = obj.retries || config.wget.retries;
+  obj.folder = obj.folder || config.wget.directory;
+  obj['min-segment-size'] = obj['min-segment-size'] || config.wget['min-segment-size'];
+  obj['max-segment-size'] = obj['max-segment-size'] || config.wget['max-segment-size'];
 
-    // pause trigger
-    obj['auto-pause'] = obj['auto-pause'] ||
-      (config.triggers.pause.enabled && mwget.count() >= config.triggers.pause.value);
+  // pause trigger
+  obj['auto-pause'] = obj['auto-pause'] ||
+    (config.triggers.pause.enabled && mwget.count() >= config.triggers.pause.value);
 
-    // on Android and Opera, there is no directory selection
-    if (!obj.folder && config.wget['notice-download'] && app.globals.folder) {
-      app.notification('Saving in the default download directory. Add a new job from manager to change the directory.');
-      config.wget['notice-download'] = false;
-    }
-    mwget.download(obj);
-  },
-  open: {
-    bug: () => app.tab.open(config.urls.bug),
-    faq: () => app.tab.open(config.urls.faq),
-    helper: () => app.tab.open(config.urls.helper),
-    sourceforge: () => app.tab.open(config.urls.sourceforge),
-    developer: () => app.developer.console(),
-    triggers: () => app.manager.send('triggers'),
-    extract: (url) => app.manager.send('extract', url),
-    preview: (obj) => app.manager.send('preview', obj),
-    config: () => app.manager.send('config'),
-    about: () => app.manager.send('about')
+  // on Android and Opera, there is no directory selection
+  if (!obj.folder && config.wget['notice-download'] && app.globals.folder) {
+    app.notification('Saving in the default download directory. Add a new job from manager to change the directory.');
+    config.wget['notice-download'] = false;
   }
+  mwget.download(obj);
 };
+actions.open = {
+  bug: () => app.tab.open(config.urls.bug),
+  faq: () => app.tab.open(config.urls.faq),
+  helper: () => app.tab.open(config.urls.helper),
+  sourceforge: () => app.tab.open(config.urls.sourceforge),
+  developer: () => app.developer.console(),
+  triggers: () => app.manager.send('triggers'),
+  extract: (url) => app.manager.send('extract', url),
+  preview: (obj) => app.manager.send('preview', obj),
+  config: () => app.manager.send('config'),
+  about: () => app.manager.send('about')
+};
+actions.update = (function () {
+  function fetch (url) {
+    return new app.Promise(function (resolve, reject) {
+      let req = new app.XMLHttpRequest();
+      req.open('GET', url, true);
+      req.onload = () => resolve(JSON.parse(req.responseText));
+      req.onerror = (e) => reject(e);
+      req.send();
+    });
+  }
+  return {
+    release: () => fetch(config.urls.updates)
+      .then(response => response.filter(obj => obj.prerelease === false).shift()),
+    latest: () => fetch(config.urls.latest)
+  };
+})();
+
 // supporting comma separated or array of urls
 (function (pointer) {
   actions.download = function (obj) {
@@ -226,11 +242,17 @@ app.manager.receive('cmd', function (obj) {
       return instance.internals.file.launch();
     }
     if (instance.status !== 'error') {
+      let mime = instance.info.mime;
+      let type = mime.split('/')[0];
+      if (['audio', 'video', 'image'].indexOf(type) !== -1) {
+        let path = config.preview.external[type].path;
+        if (path) {
+          let args = config.preview.external[type].args.split(/\s+/).filter(a => a);
+          return app.process(path, file, args).catch(e => app.notification(e.message || e));
+        }
+      }
       file.toURL().then(
-        url => actions.open.preview({
-          url,
-          mime: instance.info.mime
-        }),
+        url => actions.open.preview({url, mime}),
         (e) => app.notification(e.message)
       );
     }
@@ -362,9 +384,10 @@ app.triggers.receive('change', function (obj) {
 app.about.receive('init', function () {
   app.version().then(version => app.about.send('init', {
     version,
-    platform: app.platform(),
-    url: config.urls.updates
+    platform: app.platform()
   }));
+  actions.update.release().then(obj => app.about.send('release', obj));
+  actions.update.latest().then(obj => app.about.send('latest', obj));
 });
 app.about.receive('open', url => app.tab.open(url));
 /* extract ui */
@@ -387,6 +410,8 @@ app.config.receive('pref', function (obj) {
     value: config.get(obj.name)
   });
 });
+/* preview ui */
+app.preview.receive('open', url => app.tab.open(url));
 /* startup */
 app.startup(function () {
   // FAQs page

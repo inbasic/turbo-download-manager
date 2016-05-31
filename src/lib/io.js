@@ -85,10 +85,10 @@ io.File.prototype.flush = function () {
   return d.promise;
 };
 io.File.prototype.launch = function () {
-  return app.fileSystem.file.launch(this.file).then().catch(app.notification);
+  app.fileSystem.file.launch(this.file).then().catch(e => app.notification(e.message || e));
 };
 io.File.prototype.reveal = function () {
-  return app.fileSystem.file.reveal(this.file).then().catch(app.notification);
+  app.fileSystem.file.reveal(this.file).then().catch(e => app.notification(e.message || e));
 };
 io.File.prototype.rename = function (name) {
   let me = this;

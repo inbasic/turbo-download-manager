@@ -370,6 +370,8 @@ app.fileSystem = {
     }
   }
 };
+/* app.process */
+app.process = () => Promise.reject('not supported');
 /* app.webRequest */
 app.webRequest = (function () {
   let callbacks = {

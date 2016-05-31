@@ -1,3 +1,4 @@
+/* globals background */
 'use strict';
 
 var url = /url\=([^\&]+)/.exec(document.location.search);
@@ -40,3 +41,11 @@ else if (mime.split('/')[0] === 'image' && url) {
 else {
   document.getElementById('not-supported').style.display = 'flex';
 }
+
+document.addEventListener('click', function (e) {
+  let url = e.target.href;
+  if (url && e.which === 1) {
+    e.preventDefault();
+    background.send('open', url);
+  }
+});

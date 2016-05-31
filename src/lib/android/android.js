@@ -158,135 +158,6 @@ app.OS = {
     }
   }
 };
-/* app.File */
-app.File = function (obj) { // {name, path, mime, length}
-  window.requestFileSystem  = window.requestFileSystem || window.webkitRequestFileSystem;
-  let fileEntry, postponed, length = 0;
-
-  let tmp = {
-    open: function () {
-      let d = Promise.defer();
-
-      function allocate (fileEntry, start, length, success, fail) {
-        fileEntry.createWriter(function (fileWriter) {
-          fileWriter.onwrite = function () {
-            fileEntry.file(function (file) {
-              if (file.size === length + start) {
-                success();
-              }
-              else {
-                fail('Cannot allocate');
-              }
-            }, (e) => fail(e));
-          };
-          fileWriter.onerror = (e) => fail(e);
-          let b = new Blob([new Uint8Array(length)], {type: 'application/octet-stream'});
-          fileWriter.seek(start);
-          fileWriter.write(b);
-        }, (e) => fail(e));
-      }
-
-      window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory + 'Download', function (download) {
-        download.getFile(
-          Math.floor(Math.random() * 16777215).toString(16),  // a unique name
-          {create: true, exclusive: false},
-          function (fe) {
-            fileEntry = fe;
-
-            let start = 0;
-            let size = 5 * 1024 * 1024;
-            // Since there is no truncate function for fileWriter, we are allocating space with 5Mbyte write requests
-            function doOne () {
-              let a = Math.min(obj.length - start, size);
-              if (a) {
-                allocate(fe, start, a, function () {
-                  start += a;
-                  doOne();
-                }, (e) => d.reject(e));
-              }
-              else {
-                d.resolve();
-              }
-            }
-            doOne();
-          },
-          (e) => d.reject(e)
-        );
-      }, (e) => d.reject(e));
-
-      return d.promise;
-    },
-    write: function (offset, arr) {
-      let d = Promise.defer();
-      fileEntry.createWriter(function (fileWriter) {
-        let blob = new Blob(arr, {type: 'application/octet-stream'});
-        arr = [];
-        fileWriter.onerror = (e) => d.reject(e);
-        fileWriter.onwrite = function (e) {
-          length += blob.size; // length += e.loaded
-          d.resolve();
-          if (postponed && length === obj.length) {
-            postponed.resolve();
-          }
-          blob = '';
-        };
-        fileWriter.seek(offset);
-        let reader = new FileReader();
-        reader.onloadend = function () {
-          fileWriter.writeBinaryArray(reader.result);
-        };
-        reader.readAsBinaryString(blob);
-      }, (e) => d.reject(e));
-      return d.promise;
-    },
-    md5: function () {
-      let d = Promise.defer();
-      window.md5chksum.file(fileEntry, d.resolve, d.reject);
-      return d.promise;
-    },
-    flush: function () {
-      let d = Promise.defer();
-      function copy (file, index) {
-        let name = obj.name;
-        if (index) {
-          name = name.replace(/((\.[^\.]{1,3}){0,1}\.[^\.]+)$/, '-' + index + '$1');
-        }
-        window.resolveLocalFileSystemURL(cordova.file.externalRootDirectory + 'Download/' + name,
-          () => copy(file, (index || 0) + 1),
-          function () {
-            fileEntry.getParent(function (dir) {
-              fileEntry.moveTo(dir, name, () => d.resolve(name), e => d.reject(e));
-            }, e => d.reject(e));
-          }
-        );
-      }
-      fileEntry.file(file => copy(file), (e) => d.reject(e));
-      return d.promise;
-    },
-    remove: function () {
-      let d = Promise.defer();
-      if (fileEntry) {
-        fileEntry.remove(() => d.resolve(), (e) => d.reject(e));
-      }
-      else {
-        d.resolve();
-      }
-      return d.promise;
-    },
-    launch: function () {},
-    reveal: function () {},
-    rename: function (name) {
-      if (name) {
-        obj.name = name || obj.name;
-        return Promise.resolve();
-      }
-      else {
-        return Promise.reject();
-      }
-    }
-  };
-  return tmp;
-};
 /* app.download */
 app.download = function (obj) {
   window.open(obj.url, '_system');
@@ -390,6 +261,8 @@ app.fileSystem.file.launch = function (file) {
     }, reject);
   });
 };
+
+app.process = (path, file) => app.fileSystem.file.launch(file.file);
 
 // internals
 document.addEventListener('deviceready', function () {

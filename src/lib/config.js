@@ -125,7 +125,8 @@ config.urls = {
   helper: 'https://chrome.google.com/webstore/detail/turbo-download-manager-he/gnaepfhefefonbijmhcmnfjnchlcbnfc',
   sourceforge: 'https://sourceforge.net/projects/turbo-download-manager/files/?source=navbar',
   releases: 'https://github.com/inbasic/turbo-download-manager/releases/',
-  updates: 'https://api.github.com/repos/inbasic/turbo-download-manager/releases'
+  updates: 'https://api.github.com/repos/inbasic/turbo-download-manager/releases',
+  latest: 'https://api.github.com/repos/inbasic/turbo-download-manager/releases/latest'
 };
 
 /* config.mwget */
@@ -173,3 +174,12 @@ config.define('manager.launch-if-done', true);
 config.define('electron.exit-on-close', true);
 config.define('electron.user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36');
 config.define('electron.storage', '');
+config.define('electron.update', 'release');
+
+/* config.preview */
+config.define('preview.external.image.path', '');
+config.define('preview.external.image.args', '');
+config.define('preview.external.audio.path', '');
+config.define('preview.external.audio.args', '');
+config.define('preview.external.video.path', '');
+config.define('preview.external.video.args', '');
