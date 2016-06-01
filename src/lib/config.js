@@ -125,8 +125,10 @@ config.urls = {
   helper: 'https://chrome.google.com/webstore/detail/turbo-download-manager-he/gnaepfhefefonbijmhcmnfjnchlcbnfc',
   sourceforge: 'https://sourceforge.net/projects/turbo-download-manager/files/?source=navbar',
   releases: 'https://github.com/inbasic/turbo-download-manager/releases/',
-  updates: 'https://api.github.com/repos/inbasic/turbo-download-manager/releases',
-  latest: 'https://api.github.com/repos/inbasic/turbo-download-manager/releases/latest'
+  api: {
+    latest: 'https://api.github.com/repos/inbasic/turbo-download-manager/releases/latest',
+    list: 'https://api.github.com/repos/inbasic/turbo-download-manager/releases'
+  }
 };
 
 /* config.mwget */

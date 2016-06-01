@@ -616,7 +616,7 @@ electron.app.on('activate', function () {
 /* update checker */
 exports.on('ready', function () {
   request({
-    uri: config.urls.updates,
+    uri: config.urls.api.list,
     method: 'GET',
     headers: {
       'User-Agent': config.electron['user-agent']

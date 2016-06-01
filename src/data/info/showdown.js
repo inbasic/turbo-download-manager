@@ -1,4 +1,4 @@
-;/*! showdown 02-01-2016 */
+;/*! showdown 17-05-2016 */
 (function(){
 /**
  * Created by Tivie on 13-07-2015.
@@ -882,12 +882,13 @@ showdown.Converter = function (converterOptions) {
    * @param {string} evtName Event name
    * @param {string} text Text
    * @param {{}} options Converter Options
+   * @param {{}} globals
    * @returns {string}
    */
-  this._dispatch = function dispatch (evtName, text, options) {
+  this._dispatch = function dispatch (evtName, text, options, globals) {
     if (listeners.hasOwnProperty(evtName)) {
       for (var ei = 0; ei < listeners[evtName].length; ++ei) {
-        var nText = listeners[evtName][ei](evtName, text, this, options);
+        var nText = listeners[evtName][ei](evtName, text, this, options, globals);
         if (nText && typeof nText !== 'undefined') {
           text = nText;
         }
@@ -929,7 +930,8 @@ showdown.Converter = function (converterOptions) {
       hashLinkCounts:  {},
       langExtensions:  langExtensions,
       outputModifiers: outputModifiers,
-      converter:       this
+      converter:       this,
+      ghCodeBlocks:    []
     };
 
     // attacklab: Replace ~ with ~T
@@ -962,6 +964,7 @@ showdown.Converter = function (converterOptions) {
     });
 
     // run the sub parsers
+    text = showdown.subParser('hashPreCodeTags')(text, options, globals);
     text = showdown.subParser('githubCodeBlocks')(text, options, globals);
     text = showdown.subParser('hashHTMLBlocks')(text, options, globals);
     text = showdown.subParser('hashHTMLSpans')(text, options, globals);
@@ -1086,7 +1089,7 @@ showdown.Converter = function (converterOptions) {
 showdown.subParser('anchors', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('anchors.before', text, options);
+  text = globals.converter._dispatch('anchors.before', text, options, globals);
 
   var writeAnchorTag = function (wholeMatch, m1, m2, m3, m4, m5, m6, m7) {
     if (showdown.helper.isUndefined(m7)) {
@@ -1210,14 +1213,14 @@ showdown.subParser('anchors', function (text, options, globals) {
    */
   text = text.replace(/(\[([^\[\]]+)])()()()()()/g, writeAnchorTag);
 
-  text = globals.converter._dispatch('anchors.after', text, options);
+  text = globals.converter._dispatch('anchors.after', text, options, globals);
   return text;
 });
 
 showdown.subParser('autoLinks', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('autoLinks.before', text, options);
+  text = globals.converter._dispatch('autoLinks.before', text, options, globals);
 
   var simpleURLRegex  = /\b(((https?|ftp|dict):\/\/|www\.)[^'">\s]+\.[^'">\s]+)(?=\s|$)(?!["<>])/gi,
       delimUrlRegex   = /<(((https?|ftp|dict):\/\/|www\.)[^'">\s]+)>/gi,
@@ -1239,7 +1242,7 @@ showdown.subParser('autoLinks', function (text, options, globals) {
     return showdown.subParser('encodeEmailAddress')(unescapedStr);
   }
 
-  text = globals.converter._dispatch('autoLinks.after', text, options);
+  text = globals.converter._dispatch('autoLinks.after', text, options, globals);
 
   return text;
 });
@@ -1251,7 +1254,7 @@ showdown.subParser('autoLinks', function (text, options, globals) {
 showdown.subParser('blockGamut', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('blockGamut.before', text, options);
+  text = globals.converter._dispatch('blockGamut.before', text, options, globals);
 
   // we parse blockquotes first so that we can have headings and hrs
   // inside blockquotes
@@ -1275,7 +1278,7 @@ showdown.subParser('blockGamut', function (text, options, globals) {
   text = showdown.subParser('hashHTMLBlocks')(text, options, globals);
   text = showdown.subParser('paragraphs')(text, options, globals);
 
-  text = globals.converter._dispatch('blockGamut.after', text, options);
+  text = globals.converter._dispatch('blockGamut.after', text, options, globals);
 
   return text;
 });
@@ -1283,7 +1286,7 @@ showdown.subParser('blockGamut', function (text, options, globals) {
 showdown.subParser('blockQuotes', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('blockQuotes.before', text, options);
+  text = globals.converter._dispatch('blockQuotes.before', text, options, globals);
   /*
    text = text.replace(/
    (								// Wrap whole match in $1
@@ -1324,7 +1327,7 @@ showdown.subParser('blockQuotes', function (text, options, globals) {
     return showdown.subParser('hashBlock')('<blockquote>\n' + bq + '\n</blockquote>', options, globals);
   });
 
-  text = globals.converter._dispatch('blockQuotes.after', text, options);
+  text = globals.converter._dispatch('blockQuotes.after', text, options, globals);
   return text;
 });
 
@@ -1334,7 +1337,7 @@ showdown.subParser('blockQuotes', function (text, options, globals) {
 showdown.subParser('codeBlocks', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('codeBlocks.before', text, options);
+  text = globals.converter._dispatch('codeBlocks.before', text, options, globals);
   /*
    text = text.replace(text,
    /(?:\n\n|^)
@@ -1375,7 +1378,7 @@ showdown.subParser('codeBlocks', function (text, options, globals) {
   // attacklab: strip sentinel
   text = text.replace(/~0/, '');
 
-  text = globals.converter._dispatch('codeBlocks.after', text, options);
+  text = globals.converter._dispatch('codeBlocks.after', text, options, globals);
   return text;
 });
 
@@ -1407,7 +1410,7 @@ showdown.subParser('codeBlocks', function (text, options, globals) {
 showdown.subParser('codeSpans', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('codeSpans.before', text, options);
+  text = globals.converter._dispatch('codeSpans.before', text, options, globals);
 
   /*
    text = text.replace(/
@@ -1431,7 +1434,7 @@ showdown.subParser('codeSpans', function (text, options, globals) {
     }
   );
 
-  text = globals.converter._dispatch('codeSpans.after', text, options);
+  text = globals.converter._dispatch('codeSpans.after', text, options, globals);
   return text;
 });
 
@@ -1621,13 +1624,14 @@ showdown.subParser('githubCodeBlocks', function (text, options, globals) {
     return text;
   }
 
-  text = globals.converter._dispatch('githubCodeBlocks.before', text, options);
+  text = globals.converter._dispatch('githubCodeBlocks.before', text, options, globals);
 
   text += '~0';
 
   text = text.replace(/(?:^|\n)```(.*)\n([\s\S]*?)\n```/g, function (wholeMatch, language, codeblock) {
     var end = (options.omitExtraWLInCodeBlocks) ? '' : '\n';
 
+    // First parse the github code block
     codeblock = showdown.subParser('encodeCode')(codeblock);
     codeblock = showdown.subParser('detab')(codeblock);
     codeblock = codeblock.replace(/^\n+/g, ''); // trim leading newlines
@@ -1635,15 +1639,18 @@ showdown.subParser('githubCodeBlocks', function (text, options, globals) {
 
     codeblock = '<pre><code' + (language ? ' class="' + language + ' language-' + language + '"' : '') + '>' + codeblock + end + '</code></pre>';
 
-    return showdown.subParser('hashBlock')(codeblock, options, globals);
+    codeblock = showdown.subParser('hashBlock')(codeblock, options, globals);
+
+    // Since GHCodeblocks can be false positives, we need to
+    // store the primitive text and the parsed text in a global var,
+    // and then return a token
+    return '\n\n~G' + (globals.ghCodeBlocks.push({text: wholeMatch, codeblock: codeblock}) - 1) + 'G\n\n';
   });
 
   // attacklab: strip sentinel
   text = text.replace(/~0/, '');
 
-  text = globals.converter._dispatch('githubCodeBlocks.after', text, options);
-
-  return text;
+  return globals.converter._dispatch('githubCodeBlocks.after', text, options, globals);
 });
 
 showdown.subParser('hashBlock', function (text, options, globals) {
@@ -1767,10 +1774,26 @@ showdown.subParser('unhashHTMLSpans', function (text, config, globals) {
   return text;
 });
 
+/**
+ * Hash span elements that should not be parsed as markdown
+ */
+showdown.subParser('hashPreCodeTags', function (text, config, globals) {
+  'use strict';
+
+  var repFunc = function (wholeMatch, match, left, right) {
+    // encode html entities
+    var codeblock = left + showdown.subParser('encodeCode')(match) + right;
+    return '\n\n~G' + (globals.ghCodeBlocks.push({text: wholeMatch, codeblock: codeblock}) - 1) + 'G\n\n';
+  };
+
+  text = showdown.helper.replaceRecursiveRegExp(text, repFunc, '^(?: |\\t){0,3}<pre\\b[^>]*>\\s*<code\\b[^>]*>', '^(?: |\\t){0,3}</code>\\s*</pre>', 'gim');
+  return text;
+});
+
 showdown.subParser('headers', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('headers.before', text, options);
+  text = globals.converter._dispatch('headers.before', text, options, globals);
 
   var prefixHeader = options.prefixHeaderId,
       headerLevelStart = (isNaN(parseInt(options.headerLevelStart))) ? 1 : parseInt(options.headerLevelStart),
@@ -1839,7 +1862,7 @@ showdown.subParser('headers', function (text, options, globals) {
     return title;
   }
 
-  text = globals.converter._dispatch('headers.after', text, options);
+  text = globals.converter._dispatch('headers.after', text, options, globals);
   return text;
 });
 
@@ -1849,7 +1872,7 @@ showdown.subParser('headers', function (text, options, globals) {
 showdown.subParser('images', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('images.before', text, options);
+  text = globals.converter._dispatch('images.before', text, options, globals);
 
   var inlineRegExp    = /!\[(.*?)]\s?\([ \t]*()<?(\S+?)>?(?: =([*\d]+[A-Za-z%]{0,4})x([*\d]+[A-Za-z%]{0,4}))?[ \t]*(?:(['"])(.*?)\6[ \t]*)?\)/g,
       referenceRegExp = /!\[(.*?)][ ]?(?:\n[ ]*)?\[(.*?)]()()()()()/g;
@@ -1917,14 +1940,14 @@ showdown.subParser('images', function (text, options, globals) {
   // Next, handle inline images:  ![alt text](url =<width>x<height> "optional title")
   text = text.replace(inlineRegExp, writeImageTag);
 
-  text = globals.converter._dispatch('images.after', text, options);
+  text = globals.converter._dispatch('images.after', text, options, globals);
   return text;
 });
 
 showdown.subParser('italicsAndBold', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('italicsAndBold.before', text, options);
+  text = globals.converter._dispatch('italicsAndBold.before', text, options, globals);
 
   if (options.literalMidWordUnderscores) {
     //underscores
@@ -1941,7 +1964,7 @@ showdown.subParser('italicsAndBold', function (text, options, globals) {
     text = text.replace(/(\*|_)(?=\S)([^\r]*?\S)\1/g, '<em>$2</em>');
   }
 
-  text = globals.converter._dispatch('italicsAndBold.after', text, options);
+  text = globals.converter._dispatch('italicsAndBold.after', text, options, globals);
   return text;
 });
 
@@ -1951,7 +1974,7 @@ showdown.subParser('italicsAndBold', function (text, options, globals) {
 showdown.subParser('lists', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('lists.before', text, options);
+  text = globals.converter._dispatch('lists.before', text, options, globals);
   /**
    * Process the contents of a single ordered or unordered list, splitting it
    * into individual list items.
@@ -1988,7 +2011,7 @@ showdown.subParser('lists', function (text, options, globals) {
     // attacklab: add sentinel to emulate \z
     listStr += '~0';
 
-    var rgx = /(\n)?(^[ \t]*)([*+-]|\d+[.])[ \t]+((\[(x| )?])?[ \t]*[^\r]+?(\n{1,2}))(?=\n*(~0|\2([*+-]|\d+[.])[ \t]+))/gm,
+    var rgx = /(\n)?(^[ \t]*)([*+-]|\d+[.])[ \t]+((\[(x|X| )?])?[ \t]*[^\r]+?(\n{1,2}))(?=\n*(~0|\2([*+-]|\d+[.])[ \t]+))/gm,
         isParagraphed = (/\n[ \t]*\n(?!~0)/.test(listStr));
 
     listStr = listStr.replace(rgx, function (wholeMatch, m1, m2, m3, m4, taskbtn, checked) {
@@ -1999,7 +2022,7 @@ showdown.subParser('lists', function (text, options, globals) {
       // Support for github tasklists
       if (taskbtn && options.tasklists) {
         bulletStyle = ' class="task-list-item" style="list-style-type: none;"';
-        item = item.replace(/^[ \t]*\[(x| )?]/m, function () {
+        item = item.replace(/^[ \t]*\[(x|X| )?]/m, function () {
           var otp = '<input type="checkbox" disabled style="margin: 0px 0.35em 0.25em -1.6em; vertical-align: middle;"';
           if (checked) {
             otp += ' checked';
@@ -2106,7 +2129,7 @@ showdown.subParser('lists', function (text, options, globals) {
   // attacklab: strip sentinel
   text = text.replace(/~0/, '');
 
-  text = globals.converter._dispatch('lists.after', text, options);
+  text = globals.converter._dispatch('lists.after', text, options, globals);
   return text;
 });
 
@@ -2132,7 +2155,7 @@ showdown.subParser('outdent', function (text) {
 showdown.subParser('paragraphs', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('paragraphs.before', text, options);
+  text = globals.converter._dispatch('paragraphs.before', text, options, globals);
   // Strip leading and trailing lines:
   text = text.replace(/^\n+/g, '');
   text = text.replace(/\n+$/g, '');
@@ -2143,11 +2166,10 @@ showdown.subParser('paragraphs', function (text, options, globals) {
 
   for (var i = 0; i < end; i++) {
     var str = grafs[i];
-
     // if this is an HTML marker, copy it
-    if (str.search(/~K(\d+)K/g) >= 0) {
+    if (str.search(/~(K|G)(\d+)\1/g) >= 0) {
       grafsOut.push(str);
-    } else if (str.search(/\S/) >= 0) {
+    } else {
       str = showdown.subParser('spanGamut')(str, options, globals);
       str = str.replace(/^([ \t]*)/g, '<p>');
       str += '</p>';
@@ -2158,17 +2180,40 @@ showdown.subParser('paragraphs', function (text, options, globals) {
   /** Unhashify HTML blocks */
   end = grafsOut.length;
   for (i = 0; i < end; i++) {
-    var blockText = '';
+    var blockText = '',
+        grafsOutIt = grafsOut[i],
+        codeFlag = false;
     // if this is a marker for an html block...
-    while (grafsOut[i].search(/~K(\d+)K/) >= 0) {
-      blockText = globals.gHtmlBlocks[RegExp.$1];
-      blockText = blockText.replace(/\$/g, '$$$$'); // Escape any dollar signs
-      grafsOut[i] = grafsOut[i].replace(/~K\d+K/, blockText);
-    }
-  }
+    while (grafsOutIt.search(/~(K|G)(\d+)\1/) >= 0) {
+      var delim = RegExp.$1,
+          num   = RegExp.$2;
 
-  text = globals.converter._dispatch('paragraphs.after', text, options);
-  return grafsOut.join('\n\n');
+      if (delim === 'K') {
+        blockText = globals.gHtmlBlocks[num];
+      } else {
+        // we need to check if ghBlock is a false positive
+        if (codeFlag) {
+          // use encoded version of all text
+          blockText = showdown.subParser('encodeCode')(globals.ghCodeBlocks[num].text);
+        } else {
+          blockText = globals.ghCodeBlocks[num].codeblock;
+        }
+      }
+      blockText = blockText.replace(/\$/g, '$$$$'); // Escape any dollar signs
+
+      grafsOutIt = grafsOutIt.replace(/(\n\n)?~(K|G)\d+\2(\n\n)?/, blockText);
+      // Check if grafsOutIt is a pre->code
+      if (/^<pre\b[^>]*>\s*<code\b[^>]*>/.test(grafsOutIt)) {
+        codeFlag = true;
+      }
+    }
+    grafsOut[i] = grafsOutIt;
+  }
+  text = grafsOut.join('\n\n');
+  // Strip leading and trailing lines:
+  text = text.replace(/^\n+/g, '');
+  text = text.replace(/\n+$/g, '');
+  return globals.converter._dispatch('paragraphs.after', text, options, globals);
 });
 
 /**
@@ -2199,7 +2244,7 @@ showdown.subParser('runExtension', function (ext, text, options, globals) {
 showdown.subParser('spanGamut', function (text, options, globals) {
   'use strict';
 
-  text = globals.converter._dispatch('spanGamut.before', text, options);
+  text = globals.converter._dispatch('spanGamut.before', text, options, globals);
   text = showdown.subParser('codeSpans')(text, options, globals);
   text = showdown.subParser('escapeSpecialCharsWithinTagAttributes')(text, options, globals);
   text = showdown.subParser('encodeBackslashEscapes')(text, options, globals);
@@ -2220,7 +2265,7 @@ showdown.subParser('spanGamut', function (text, options, globals) {
   // Do hard breaks:
   text = text.replace(/  +\n/g, ' <br />\n');
 
-  text = globals.converter._dispatch('spanGamut.after', text, options);
+  text = globals.converter._dispatch('spanGamut.after', text, options, globals);
   return text;
 });
 
@@ -2228,9 +2273,9 @@ showdown.subParser('strikethrough', function (text, options, globals) {
   'use strict';
 
   if (options.strikethrough) {
-    text = globals.converter._dispatch('strikethrough.before', text, options);
+    text = globals.converter._dispatch('strikethrough.before', text, options, globals);
     text = text.replace(/(?:~T){2}([\s\S]+?)(?:~T){2}/g, '<del>$1</del>');
-    text = globals.converter._dispatch('strikethrough.after', text, options);
+    text = globals.converter._dispatch('strikethrough.after', text, options, globals);
   }
 
   return text;
@@ -2313,164 +2358,129 @@ showdown.subParser('stripLinkDefinitions', function (text, options, globals) {
 showdown.subParser('tables', function (text, options, globals) {
   'use strict';
 
-  var table = function () {
-
-    var tables = {},
-        filter;
-
-    tables.th = function (header, style) {
-      var id = '';
-      header = header.trim();
-      if (header === '') {
-        return '';
-      }
-      if (options.tableHeaderId) {
-        id = ' id="' + header.replace(/ /g, '_').toLowerCase() + '"';
-      }
-      header = showdown.subParser('spanGamut')(header, options, globals);
-      if (!style || style.trim() === '') {
-        style = '';
-      } else {
-        style = ' style="' + style + '"';
-      }
-      return '<th' + id + style + '>' + header + '</th>';
-    };
-
-    tables.td = function (cell, style) {
-      var subText = showdown.subParser('spanGamut')(cell.trim(), options, globals);
-      if (!style || style.trim() === '') {
-        style = '';
-      } else {
-        style = ' style="' + style + '"';
-      }
-      return '<td' + style + '>' + subText + '</td>';
-    };
-
-    tables.ths = function () {
-      var out = '',
-          i = 0,
-          hs = [].slice.apply(arguments[0]),
-          style = [].slice.apply(arguments[1]);
-
-      for (i; i < hs.length; i += 1) {
-        out += tables.th(hs[i], style[i]) + '\n';
-      }
-
-      return out;
-    };
-
-    tables.tds = function () {
-      var out = '',
-          i = 0,
-          ds = [].slice.apply(arguments[0]),
-          style = [].slice.apply(arguments[1]);
-
-      for (i; i < ds.length; i += 1) {
-        out += tables.td(ds[i], style[i]) + '\n';
-      }
-      return out;
-    };
-
-    tables.thead = function () {
-      var out,
-          hs = [].slice.apply(arguments[0]),
-          style = [].slice.apply(arguments[1]);
-
-      out = '<thead>\n';
-      out += '<tr>\n';
-      out += tables.ths.apply(this, [hs, style]);
-      out += '</tr>\n';
-      out += '</thead>\n';
-      return out;
-    };
-
-    tables.tr = function () {
-      var out,
-        cs = [].slice.apply(arguments[0]),
-        style = [].slice.apply(arguments[1]);
-
-      out = '<tr>\n';
-      out += tables.tds.apply(this, [cs, style]);
-      out += '</tr>\n';
-      return out;
-    };
-
-    filter = function (text) {
-      var i = 0,
-        lines = text.split('\n'),
-        line,
-        hs,
-        out = [];
-
-      for (i; i < lines.length; i += 1) {
-        line = lines[i];
-        // looks like a table heading
-        if (line.trim().match(/^[|].*[|]$/)) {
-          line = line.trim();
-
-          var tbl = [],
-              align = lines[i + 1].trim(),
-              styles = [],
-              j = 0;
-
-          if (align.match(/^[|][-=|: ]+[|]$/)) {
-            styles = align.substring(1, align.length - 1).split('|');
-            for (j = 0; j < styles.length; ++j) {
-              styles[j] = styles[j].trim();
-              if (styles[j].match(/^[:][-=| ]+[:]$/)) {
-                styles[j] = 'text-align:center;';
-
-              } else if (styles[j].match(/^[-=| ]+[:]$/)) {
-                styles[j] = 'text-align:right;';
-
-              } else if (styles[j].match(/^[:][-=| ]+$/)) {
-                styles[j] = 'text-align:left;';
-              } else {
-                styles[j] = '';
-              }
-            }
-          }
-          tbl.push('<table>');
-          hs = line.substring(1, line.length - 1).split('|');
-
-          if (styles.length === 0) {
-            for (j = 0; j < hs.length; ++j) {
-              styles.push('text-align:left');
-            }
-          }
-          tbl.push(tables.thead.apply(this, [hs, styles]));
-          line = lines[++i];
-          if (!line.trim().match(/^[|][-=|: ]+[|]$/)) {
-            // not a table rolling back
-            line = lines[--i];
-          } else {
-            line = lines[++i];
-            tbl.push('<tbody>');
-            while (line.trim().match(/^[|].*[|]$/)) {
-              line = line.trim();
-              tbl.push(tables.tr.apply(this, [line.substring(1, line.length - 1).split('|'), styles]));
-              line = lines[++i];
-            }
-            tbl.push('</tbody>');
-            tbl.push('</table>');
-            // we are done with this table and we move along
-            out.push(tbl.join('\n'));
-            continue;
-          }
-        }
-        out.push(line);
-      }
-      return out.join('\n');
-    };
-    return {parse: filter};
-  };
-
-  if (options.tables) {
-    text = globals.converter._dispatch('tables.before', text, options);
-    var tableParser = table();
-    text = tableParser.parse(text);
-    text = globals.converter._dispatch('tables.after', text, options);
+  if (!options.tables) {
+    return text;
   }
+
+  var tableRgx = /^[ \t]{0,3}\|?.+\|.+\n[ \t]{0,3}\|?[ \t]*:?[ \t]*(?:-|=){2,}[ \t]*:?[ \t]*\|[ \t]*:?[ \t]*(?:-|=){2,}[^]+?(?:\n\n|~0)/gm;
+
+  function parseStyles(sLine) {
+    if (/^:[ \t]*--*$/.test(sLine)) {
+      return ' style="text-align:left;"';
+    } else if (/^--*[ \t]*:[ \t]*$/.test(sLine)) {
+      return ' style="text-align:right;"';
+    } else if (/^:[ \t]*--*[ \t]*:$/.test(sLine)) {
+      return ' style="text-align:center;"';
+    } else {
+      return '';
+    }
+  }
+
+  function parseHeaders(header, style) {
+    var id = '';
+    header = header.trim();
+    if (options.tableHeaderId) {
+      id = ' id="' + header.replace(/ /g, '_').toLowerCase() + '"';
+    }
+    header = showdown.subParser('spanGamut')(header, options, globals);
+
+    return '<th' + id + style + '>' + header + '</th>\n';
+  }
+
+  function parseCells(cell, style) {
+    var subText = showdown.subParser('spanGamut')(cell, options, globals);
+    return '<td' + style + '>' + subText + '</td>\n';
+  }
+
+  function buildTable(headers, cells) {
+    var tb = '<table>\n<thead>\n<tr>\n',
+        tblLgn = headers.length;
+
+    for (var i = 0; i < tblLgn; ++i) {
+      tb += headers[i];
+    }
+    tb += '</tr>\n</thead>\n<tbody>\n';
+
+    for (i = 0; i < cells.length; ++i) {
+      tb += '<tr>\n';
+      for (var ii = 0; ii < tblLgn; ++ii) {
+        tb += cells[i][ii];
+      }
+      tb += '</tr>\n';
+    }
+    tb += '</tbody>\n</table>\n';
+    return tb;
+  }
+
+  text = globals.converter._dispatch('tables.before', text, options, globals);
+
+  text = text.replace(tableRgx, function (rawTable) {
+
+    var i, tableLines = rawTable.split('\n');
+
+    // strip wrong first and last column if wrapped tables are used
+    for (i = 0; i < tableLines.length; ++i) {
+      if (/^[ \t]{0,3}\|/.test(tableLines[i])) {
+        tableLines[i] = tableLines[i].replace(/^[ \t]{0,3}\|/, '');
+      }
+      if (/\|[ \t]*$/.test(tableLines[i])) {
+        tableLines[i] = tableLines[i].replace(/\|[ \t]*$/, '');
+      }
+    }
+
+    var rawHeaders = tableLines[0].split('|').map(function (s) { return s.trim();}),
+        rawStyles = tableLines[1].split('|').map(function (s) { return s.trim();}),
+        rawCells = [],
+        headers = [],
+        styles = [],
+        cells = [];
+
+    tableLines.shift();
+    tableLines.shift();
+
+    for (i = 0; i < tableLines.length; ++i) {
+      if (tableLines[i].trim() === '') {
+        continue;
+      }
+      rawCells.push(
+        tableLines[i]
+          .split('|')
+          .map(function (s) {
+            return s.trim();
+          })
+      );
+    }
+
+    if (rawHeaders.length < rawStyles.length) {
+      return rawTable;
+    }
+
+    for (i = 0; i < rawStyles.length; ++i) {
+      styles.push(parseStyles(rawStyles[i]));
+    }
+
+    for (i = 0; i < rawHeaders.length; ++i) {
+      if (showdown.helper.isUndefined(styles[i])) {
+        styles[i] = '';
+      }
+      headers.push(parseHeaders(rawHeaders[i], styles[i]));
+    }
+
+    for (i = 0; i < rawCells.length; ++i) {
+      var row = [];
+      for (var ii = 0; ii < headers.length; ++ii) {
+        if (showdown.helper.isUndefined(rawCells[i][ii])) {
+
+        }
+        row.push(parseCells(rawCells[i][ii], styles[ii]));
+      }
+      cells.push(row);
+    }
+
+    return buildTable(headers, cells);
+  });
+
+  text = globals.converter._dispatch('tables.after', text, options, globals);
 
   return text;
 });
@@ -2488,6 +2498,8 @@ showdown.subParser('unescapeSpecialChars', function (text) {
   return text;
 });
 
+var root = this;
+
 // CommonJS/nodeJS Loader
 if (typeof module !== 'undefined' && module.exports) {
   module.exports = showdown;
@@ -2501,7 +2513,7 @@ if (typeof module !== 'undefined' && module.exports) {
 
 // Regular Browser loader
 } else {
-  window.showdown = showdown;
+  root.showdown = showdown;
 }
 }).call(this);
 

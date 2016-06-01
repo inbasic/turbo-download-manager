@@ -68,9 +68,8 @@ actions.update = (function () {
     });
   }
   return {
-    release: () => fetch(config.urls.updates)
-      .then(response => response.filter(obj => obj.prerelease === false).shift()),
-    latest: () => fetch(config.urls.latest)
+    release: () => fetch(config.urls.api.latest),
+    latest: () => fetch(config.urls.api.list).then(response => response[0])
   };
 })();
 

@@ -1,7 +1,7 @@
 {
   "name": "itdmanager",
   "title": "Turbo Download Manager",
-  "version": "0.2.9-beta.6",
+  "version": "0.2.9",
   "description": "a download manager with multi-threading support",
   "scripts": {
   },
