@@ -8,7 +8,6 @@ background.receive('latest', function (latest) {
       let elem = document.querySelector(`[data-prerelease="${obj.name}"]`);
       if (elem) {
         elem.setAttribute('href', obj.browser_download_url);
-        elem.textContent = 'Link';
       }
     });
   }
@@ -19,7 +18,6 @@ background.receive('release', function (latest) {
       let elem = document.querySelector(`[data-release="${obj.name}"]`);
       if (elem) {
         elem.setAttribute('href', obj.browser_download_url);
-        elem.textContent = 'Link';
       }
     });
   }

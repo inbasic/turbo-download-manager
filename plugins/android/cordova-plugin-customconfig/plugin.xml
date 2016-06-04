@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0" id="com.add0n.customconfig" version="0.1.0">
+  <name>Custom Configuration</name>
+  <engines>
+    <engine name="cordova" version=">=3.4.0"/>
+  </engines>
+  <platform name="android">
+    <!-- sharing -->
+    <config-file target="AndroidManifest.xml" parent="application/activity">
+        <intent-filter name="a1">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="http" />
+            <data android:scheme="https" />
+        </intent-filter>
+        <intent-filter>
+            <action android:name="android.intent.action.SEND" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <data android:mimeType="text/*" />
+        </intent-filter>
+    </config-file>
+     <!--Support for multiwindow and popup Samsung -->
+     <config-file target="AndroidManifest.xml" parent="application/activity/intent-filter">
+          <category android:name="android.intent.category.MULTIWINDOW_LAUNCHER" />
+     </config-file>
+     <config-file target="AndroidManifest.xml" parent="application">
+          <uses-library android:required="false" android:name="com.sec.android.app.multiwindow"></uses-library>
+          <meta-data android:name="com.samsung.android.sdk.multiwindow.penwindow.enable" android:value="true"/>
+          <meta-data android:name="com.sec.android.support.multiwindow" android:value="true" />
+     </config-file>
+  </platform>
+</plugin>

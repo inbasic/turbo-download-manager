@@ -58,6 +58,7 @@ var confirm = (function (parent, ok, cancel, span) {
   button.addEventListener('click', function () {
     button.dataset.toggle = button.dataset.toggle === 'open' ? 'close' : 'open';
   });
+  document.addEventListener('menubutton', () => button.dataset.toggle = 'open');
   menu.addEventListener('click', function (e) {
     let target = e.target;
     let role = target.dataset.role;

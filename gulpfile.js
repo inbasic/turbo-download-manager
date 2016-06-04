@@ -65,7 +65,7 @@ gulp.task('electron-build', function () {
     'src/**/*'
   ])
   .pipe(gulpFilter(function (f) {
-    if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
+    if (f.relative.endsWith('.DS_Store') || f.relative.endsWith('Thumbs.db')) {
       return false;
     }
     if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('android') !== -1 || f.relative.indexOf('chrome') !== -1 || f.relative.indexOf('opera') !== -1) {
@@ -144,7 +144,7 @@ gulp.task('chrome-build', function () {
     'src/**/*'
   ])
   .pipe(gulpFilter(function (f) {
-    if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
+    if (f.relative.endsWith('.DS_Store') || f.relative.endsWith('Thumbs.db')) {
       return false;
     }
     if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('opera') !== -1 || f.relative.indexOf('android') !== -1 || f.relative.indexOf('electron') !== -1) {
@@ -182,7 +182,7 @@ gulp.task('opera-build', function () {
     'src/**/*'
   ])
   .pipe(gulpFilter(function (f) {
-    if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
+    if (f.relative.endsWith('.DS_Store') || f.relative.endsWith('Thumbs.db')) {
       return false;
     }
     if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('android') !== -1 || f.relative.indexOf('electron') !== -1) {
@@ -223,7 +223,7 @@ gulp.task('android-build', function () {
     'src/**/*'
   ])
   .pipe(gulpFilter(function (f) {
-    if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
+    if (f.relative.endsWith('.DS_Store') || f.relative.endsWith('Thumbs.db')) {
       return false;
     }
     if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('opera') !== -1 || f.relative.indexOf('electron') !== -1) {
@@ -240,7 +240,10 @@ gulp.task('android-build', function () {
   .pipe(json())
   .pipe(shadow('android'))
   .pipe(gulpif(function (f) {
-    return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1 && f.relative.indexOf('EventEmitter.js') === -1 && f.relative.indexOf('video.js') === -1;
+    return f.path.endsWith('.js') &&
+      !f.relative.endsWith('EventEmitter.js') &&
+      !f.relative.endsWith('video.js') &&
+      !f.relative.endsWith('showdown.js');
   }, babel({
     presets: ['es2015']
   })))
@@ -262,6 +265,8 @@ gulp.task('android-apk', function () {
     'cordova plugin add https://github.com/fastrde/phonegap-md5.git',
     'cordova plugin add https://github.com/whiteoctober/cordova-plugin-app-version.git',
     'cordova plugin add ../../plugins/android/cordova-plugin-binaryfilewriter/',
+    'cordova plugin add ../../plugins/android/cordova-plugin-customconfig/',
+    'cordova plugin add cordova-plugin-intent',
     'cordova plugin add cordova-plugin-x-toast',
     'cordova plugin add cordova-plugin-fileopener',
     'openssl aes-256-cbc -k $ENCRYPTION_PASSWORD -in ../packed/keys.p12.enc -d -a -out platforms/android/keys.p12',
@@ -287,7 +292,7 @@ gulp.task('firefox-build', function () {
     'src/**/*'
   ])
   .pipe(gulpFilter(function (f) {
-    if (f.relative.indexOf('.DS_Store') !== -1 || f.relative.indexOf('Thumbs.db') !== -1) {
+    if (f.relative.endsWith('.DS_Store') || f.relative.endsWith('Thumbs.db')) {
       return false;
     }
     if (f.relative.indexOf('chrome') !== -1 &&

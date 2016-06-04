@@ -280,3 +280,24 @@ document.addEventListener('deviceready', function () {
     });
   }
 }, false);
+
+// Intent
+document.addEventListener('deviceReady', function (){
+  window.plugins.intent.setNewIntentHandler(function (Intent) {
+    if (Intent.action === 'android.intent.action.VIEW') {
+      app.emit('command-line', {
+        url: Intent.data
+      });
+    }
+    if (Intent.action === 'android.intent.action.SEND') {
+      app.emit('command-line', {
+        url: Intent.clipItems.map(o => o.uri || o.text)
+      });
+    }
+  });
+});
+
+app.arguments = function (c) {
+  let callback = c || function () {};
+  app.on('command-line', (argv) => callback(argv));
+};
