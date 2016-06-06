@@ -16,9 +16,6 @@ var self          = require('sdk/self'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
     xpcom         = require('sdk/platform/xpcom'),
-    tUtils        = require('sdk/tabs/utils'),
-    wUtils        = require('sdk/window/utils'),
-    {viewFor}     = require('sdk/view/core'),
     {Page}        = require('sdk/page-worker'),
     {Class}       = require('sdk/core/heritage'),
     {all, defer, race, resolve, reject}  = require('sdk/core/promise'),
@@ -115,16 +112,20 @@ exports.fetch = function (url, props) {
     req.setRequestHeader('referer', props.referrer);
   }
 
-  req.onprogress = function (e) {
+  req.onprogress = function () {
     if (req.response.byteLength) {
       buffers.push({
         value: req.response,
-        done: e.loaded === e.total
+        done: false
       });
     }
     resolve();
   };
   req.onload = function () {
+    buffers.push({
+      value: new ArrayBuffer(0),
+      done: true
+    });
     resolve();
   };
   req.ontimeout = () => d.reject(new Error('XMLHttpRequest timeout'));
