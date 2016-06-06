@@ -3,7 +3,8 @@
 
 var url = /url\=([^\&]+)/.exec(document.location.search);
 if (url && url.length) {
-  url = decodeURIComponent(url[1]);
+  // Firefox cannot handle argument of type resource in a resource url
+  url = decodeURIComponent(url[1]).replace('resource---', 'resource://');
 }
 var mime = /mime\=([^\&]+)/.exec(document.location.search);
 if (mime && mime.length) {
