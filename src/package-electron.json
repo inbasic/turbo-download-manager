@@ -20,6 +20,8 @@
   "dependencies": {
     "node-storage": "*",
     "request": "*",
+    "socks5-http-client": "*",
+    "socks5-https-client": "*",
     "diskspace": "*",
     "optimist": "*",
     "semver": "*"

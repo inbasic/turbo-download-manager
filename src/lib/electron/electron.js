@@ -12,6 +12,10 @@ var fs = require('fs');
 var crypt = require('crypto');
 var os = require('os');
 var execFile = require('child_process').execFile;
+var Agent = {
+  http: require('socks5-http-client/lib/Agent'),
+  https: require('socks5-https-client/lib/Agent')
+};
 // community libs
 var Storage = require('node-storage');
 var request = require('request');
@@ -23,8 +27,10 @@ var utils = require('../utils');
 var config = require('../config');
 var self = require('../../package.json');
 
+var isScoks5 = () => config.network['socks5-host'] && config.network['socks5-port'];
+
 var XMLHttpRequest = function () { // jshint ignore:line
-  let method = 'GET', uri, readyState = 2, responseText = '';
+  let method = 'GET', uri, readyState = 2, responseText = '', timeout = 60000;
   let headers = {
     'User-Agent': config.electron['user-agent']
   };
@@ -57,11 +63,20 @@ var XMLHttpRequest = function () { // jshint ignore:line
     set onerror (c) {onerror = c;}, // jshint ignore:line
     set onprogress (c) {onprogress = c;}, // jshint ignore:line
     set onreadystatechange (c) {onreadystatechange = c;}, // jshint ignore:line
+    set timeout (int) {timeout = int}, // jshint ignore:line
     setRequestHeader: (id, val) => headers[id] = val,
     getResponseHeader: (id) => response.headers[id.toLowerCase()] || null,
     getAllResponseHeaders: () => response.headers,
     send: function () {
-      req = request({uri, method, headers});
+      let options = {uri, method, headers, timeout};
+      if (isScoks5()) {
+        options.agentClass = Agent[uri.startsWith('https') ? 'https' : 'http'];
+        options.agentOptions = {
+          socksHost: config.network['socks5-host'],
+          socksPort: config.network['socks5-port']
+        };
+      }
+      req = request(options);
       req.on('data', (chunk) => onprogress(chunk));
       req.on('response', function (r) {
         response = r;
@@ -107,12 +122,20 @@ exports.fetch = function (uri, props) {
   if (props.referrer) {
     props.headers.referer = props.referrer;
   }
-  let req = request({
+  let options = {
     uri,
     gzip: true,
     method: 'GET',
     headers: props.headers
-  });
+  };
+  if (isScoks5()) {
+    options.agentClass = Agent[uri.startsWith('https') ? 'https' : 'http'];
+    options.agentOptions = {
+      socksHost: config.network['socks5-host'],
+      socksPort: config.network['socks5-port']
+    };
+  }
+  let req = request(options);
 
   function send () {
     if (ppp && buffers.length) {

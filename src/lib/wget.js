@@ -140,7 +140,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     req.onerror = analyze;
     req.onload = analyze;
     req.onerror = req.ontimeout = (e) => d.reject(e);
-    req.timeout = 120000;
+    req.timeout = 60000;
     req.send();
     return d.promise;
   };

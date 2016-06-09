@@ -185,3 +185,7 @@ config.define('preview.external.audio.path', '');
 config.define('preview.external.audio.args', '');
 config.define('preview.external.video.path', '');
 config.define('preview.external.video.args', '');
+
+/* network */
+config.define('network.socks5-host', ''); // electron only; for changing socks host or port a restart is required; https://github.com/mattcg/socks5-http-client/issues/17
+config.define('network.socks5-port', 0);
