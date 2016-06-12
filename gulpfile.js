@@ -93,6 +93,11 @@ gulp.task('electron-build', function () {
   })))
   .pipe(shadow('electron'))
   .pipe(gulp.dest('builds/unpacked/electron'))
+});
+gulp.task('electron-pack', function () {
+  return gulp.src([
+    'builds/unpacked/electron/**/*'
+  ])
   .pipe(zip('electron.zip'))
   .pipe(gulp.dest('builds/packed'));
 });
@@ -360,5 +365,5 @@ gulp.task('opera', (callback) => runSequence('clean', 'opera-build', callback));
 gulp.task('opera-travis', (callback) => runSequence('clean', 'opera-build', callback));
 gulp.task('firefox', (callback) => runSequence('clean', 'firefox-build', 'firefox-pack', 'firefox-install', callback));
 gulp.task('firefox-travis', (callback) => runSequence('clean', 'firefox-build', 'firefox-pack', callback));
-gulp.task('electron', (callback) => runSequence('clean', 'electron-build', 'electron-install', callback));
-gulp.task('electron-travis', (callback) => runSequence('clean', 'electron-build', callback));
+gulp.task('electron', (callback) => runSequence('clean', 'electron-build', 'electron-pack', 'electron-install', callback));
+gulp.task('electron-travis', (callback) => runSequence('clean', 'electron-build', 'electron-pack', callback));
