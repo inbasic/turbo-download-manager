@@ -14,11 +14,6 @@ var listeners = {
 
 chrome.runtime = {
   getURL: (path) => '../..' + path,
-  getManifest: function () {
-    return {
-      version: '0.1.0'
-    };
-  },
   sendMessage: function (obj) {
     listeners.pagemod.forEach(function (c) {
       c(obj, {url: 'background.html'});

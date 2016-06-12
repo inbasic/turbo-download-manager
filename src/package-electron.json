@@ -2,9 +2,9 @@
   "name": "%name;",
   "version": "%version;",
   "description": "%description;",
-  "main": "lib/common.js",
+  "main": "lib/electron/starter.js",
   "scripts": {
-    "start": "electron main.js"
+    "start": "electron starter.js"
   },
   "repository": {
     "type": "git",
@@ -18,12 +18,10 @@
   },
   "homepage": "%homepage;",
   "dependencies": {
-    "node-storage": "*",
-    "request": "*",
-    "socks5-http-client": "*",
-    "socks5-https-client": "*",
     "diskspace": "*",
     "optimist": "*",
-    "semver": "*"
+    "semver": "*",
+    "node-persist": "*",
+    "electron-window-state": "*"
   }
 }

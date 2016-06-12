@@ -1,218 +1,18 @@
+/* globals electron, app, config */
 'use strict';
-// electron
-var electron = require('electron');
-var BrowserWindow = electron.BrowserWindow;
-var ipcMain = require('electron').ipcMain;
-var dialog = require('electron').dialog;
-var clipboard = require('electron').clipboard;
-var shell = require('electron').shell;
-// node
-var path = require('path');
-var fs = require('fs');
-var crypt = require('crypto');
-var os = require('os');
-var execFile = require('child_process').execFile;
-var Agent = {
-  http: require('socks5-http-client/lib/Agent'),
-  https: require('socks5-https-client/lib/Agent')
-};
-// community libs
-var Storage = require('node-storage');
-var request = require('request');
-var semver = require('semver');
-var diskspace = require('diskspace');
-var optimist = require('optimist');
-// internals
-var utils = require('../utils');
-var config = require('../config');
-var self = require('../../package.json');
 
-var isScoks5 = () => config.network['socks5-host'] && config.network['socks5-port'];
+app.globals.browser = 'electron';
+app.globals.referrer = false;
+app.globals.open = true;
 
-var XMLHttpRequest = function () { // jshint ignore:line
-  let method = 'GET', uri, readyState = 2, responseText = '', timeout = 60000;
-  let headers = {
-    'User-Agent': config.electron['user-agent']
-  };
-  let onload = function () {};
-  let onreadystatechange = function () {};
-  let onerror = function () {};
-  let onprogress = function (data) {
-    responseText += data;
-  };
-  let req, response;
-
-  return {
-    get responseURL() {
-      return req.uri.href;
-    },
-    get readyState () {
-      return readyState;
-    },
-    get response () {
-      return response;
-    },
-    get responseText () {
-      return responseText;
-    },
-    open: (m, u) => {
-      method = m || method;
-      uri = u;
-    },
-    set onload (c) {onload = c;}, // jshint ignore:line
-    set onerror (c) {onerror = c;}, // jshint ignore:line
-    set onprogress (c) {onprogress = c;}, // jshint ignore:line
-    set onreadystatechange (c) {onreadystatechange = c;}, // jshint ignore:line
-    set timeout (int) {timeout = int}, // jshint ignore:line
-    setRequestHeader: (id, val) => headers[id] = val,
-    getResponseHeader: (id) => response.headers[id.toLowerCase()] || null,
-    getAllResponseHeaders: () => response.headers,
-    send: function () {
-      let options = {uri, method, headers, timeout};
-      if (isScoks5()) {
-        options.agentClass = Agent[uri.startsWith('https') ? 'https' : 'http'];
-        options.agentOptions = {
-          socksHost: config.network['socks5-host'],
-          socksPort: config.network['socks5-port']
-        };
-      }
-      req = request(options);
-      req.on('data', (chunk) => onprogress(chunk));
-      req.on('response', function (r) {
-        response = r;
-        readyState = 3;
-        onreadystatechange();
-      });
-      req.on('end', function () {
-        readyState = 4;
-        onreadystatechange();
-        onload();
-      });
-      req.on('error', onerror);
-      req.end();
-    },
-    abort: () => req.abort()
-  };
-};
-
-var mainWindow;
-
-(function (e) {
-  exports.on = e.on.bind(e);
-  exports.once = e.once.bind(e);
-  exports.emit = e.emit.bind(e);
-  exports.removeListener = e.removeListener.bind(e);
-})(new utils.EventEmitter());
-
-exports.globals = {
-  browser: 'electron',
-  referrer: true,
-  open: true,
-  folder: true
-};
-
-exports.Promise = Promise;
-exports.XMLHttpRequest = XMLHttpRequest;
-
-exports.fetch = function (uri, props) {
-  let d = Promise.defer();
-  let ppp, buffers = [];
-  let status;
-
-  if (props.referrer) {
-    props.headers.referer = props.referrer;
-  }
-  let options = {
-    uri,
-    gzip: true,
-    method: 'GET',
-    headers: props.headers
-  };
-  if (isScoks5()) {
-    options.agentClass = Agent[uri.startsWith('https') ? 'https' : 'http'];
-    options.agentOptions = {
-      socksHost: config.network['socks5-host'],
-      socksPort: config.network['socks5-port']
-    };
-  }
-  let req = request(options);
-
-  function send () {
-    if (ppp && buffers.length) {
-      ppp(buffers.shift());
-      ppp = null;
-    }
-  }
-
-  let resolve = (function () {
-    let resolved = false;
-    return function () {
-      if (!resolved) {
-        d.resolve({
-          ok: status >= 200 && status < 300,
-          get status () {
-            return status;
-          },
-          body: {
-            getReader: function () {
-              return {
-                read: function () {
-                  let d = Promise.defer();
-                  ppp = d.resolve;
-                  send();
-                  return d.promise;
-                },
-                cancel: () => req.abort()
-              };
-            }
-          }
-        });
-      }
-      resolved = true;
-      send();
-    };
-  })();
-
-  req.on('error', (e) => d.reject(e));
-  req.on('response', (response) => status = response.statusCode);
-  req.on('data', function (chunk) {
-    if (chunk.byteLength) {
-      buffers.push({
-        value: chunk,
-        done: false
-      });
-    }
-    resolve();
-  });
-  req.on('end', function () {
-    buffers.push({
-      value: new ArrayBuffer(0),
-      done: true
-    });
-    resolve();
-  });
-  req.end();
-
-  return d.promise;
-};
-
-exports.EventEmitter = utils.EventEmitter;
-exports.timer = {setTimeout, clearTimeout, setInterval, clearInterval};
-exports.URL = require('url').parse;
-
-exports.storage = (function () {
-  let dir = path.resolve(config.electron.storgage || process.env.HOME || process.env.USERPROFILE, '.tdm');
-  if (!fs.existsSync(dir)) {  // node-storage is not creating the directory if it does not exist
-    fs.mkdirSync(dir);
-  }
-  let store = new Storage(path.resolve(dir, 'storage'));
+app.storage = (function () {
   let callbacks = {};
   return {
-    read: (id) => store.get(id),
+    read: (id) => electron.storage.getItem(id),
     write: (id, data) => {
-      if (store.get(id) !== data) {
-        store.put(id, data);
-        (callbacks[id] || []).forEach(c => c());
+      if (electron.storage.getItem(id) !== data) {
+        electron.storage.setItem(id, data);
+        (callbacks[id] || []).forEach(c => c(data));
       }
     },
     on: function (id, callback) {
@@ -222,175 +22,62 @@ exports.storage = (function () {
   };
 })();
 
-exports.canvas = () => null;
+app.tab.open = electron.shell.openExternal;
 
-exports.button = {
-  onCommand: function () {},
-},
+app.version = () => Promise.resolve(electron.self.version);
 
-exports.getURL = (p) => 'file://' + path.resolve('data/', p);
+app.platform = () => `io.js ${electron.process.version} & Electron ${electron.process.versions.electron} on ${electron.process.platform}`;
 
-exports.mimes = require('../../data/assets/mime.json');
+app.startup = (c) => document.addEventListener('load', c);
 
-exports.tab = {
-  open: shell.openExternal,
-  list: () => Promise.resolve([]),
-  reload: function () {},
-  activate: function () {}
-};
-
-exports.menu = function () {};
-
-exports.notification = (message) => mainWindow.webContents.send('_notification', message);
-
-exports.version = () => Promise.resolve(self.version);
-exports.platform = () => `io.js ${process.version} & Electron ${process.versions.electron} on ${process.platform}`;
-
-exports.OS = {
+app.OS = {
   clipboard: {
-    get: () => Promise.resolve(clipboard.readText())
+    get: () => Promise.resolve(electron.clipboard.readText())
   }
 };
 
-// manager
-exports.manager = {
-  send: (id, data) => mainWindow.webContents.send(id + '@ui', {
-    url: 'background.html',
-    data
-  }),
-  receive: (id, callback) => ipcMain.on(id + '@ui', function (event, arg) {
-    if (arg &&  arg.url === 'manager/index.html') {
-      callback(arg.data);
-    }
-  })
+app.download = (obj) => electron.shell.openExternal(obj.url);
+
+app.developer = {
+  console: electron.developer
 };
 
-// add
-exports.add = {
-  send: (id, data) => mainWindow.webContents.send(id + '@ad', {
-    url: 'background.html',
-    data
-  }),
-  receive: (id, callback) => ipcMain.on(id + '@ad', function (event, arg) {
-    if (arg &&  arg.url === 'add/index.html') {
-      callback(arg.data);
+app.notification = (body) => new window.Notification('Turbo Download Manager', {
+  body,
+  icon: '../../data/icons/128.png'
+});
+
+app.disk.browse = function () {
+  return new Promise(function (resolve, reject) {
+    let dirs = electron.dialog();
+    if (dirs && dirs.length) {
+      resolve(dirs[0]);
     }
-  })
+    else {
+      reject();
+    }
+  });
 };
 
-// info
-exports.info = {
-  send: (id, data) => mainWindow.webContents.send(id + '@if', {
-    url: 'background.html',
-    data
-  }),
-  receive: (id, callback) => ipcMain.on(id + '@if', function (event, arg) {
-    if (arg &&  arg.url === 'info/index.html') {
-      callback(arg.data);
-    }
-  })
-};
-
-// modify
-exports.modify = {
-  send: (id, data) => mainWindow.webContents.send(id + '@md', {
-    url: 'background.html',
-    data
-  }),
-  receive: (id, callback) => ipcMain.on(id + '@md', function (event, arg) {
-    if (arg &&  arg.url === 'modify/index.html') {
-      callback(arg.data);
-    }
-  })
-};
-
-// triggers
-exports.triggers = {
-  send: (id, data) => mainWindow.webContents.send(id + '@tr', {
-    url: 'background.html',
-    data
-  }),
-  receive: (id, callback) => ipcMain.on(id + '@tr', function (event, arg) {
-    if (arg &&  arg.url === 'triggers/index.html') {
-      callback(arg.data);
-    }
-  })
-};
-
-// about
-exports.about = {
-  send: (id, data) => mainWindow.webContents.send(id + '@ab', {
-    url: 'background.html',
-    data
-  }),
-  receive: (id, callback) => ipcMain.on(id + '@ab', function (event, arg) {
-    if (arg &&  arg.url === 'about/index.html') {
-      callback(arg.data);
-    }
-  })
-};
-
-// extract
-exports.extract = {
-  send: (id, data) => mainWindow.webContents.send(id + '@ex', {
-    url: 'background.html',
-    data
-  }),
-  receive: (id, callback) => ipcMain.on(id + '@ex', function (event, arg) {
-    if (arg &&  arg.url === 'extract/index.html') {
-      callback(arg.data);
-    }
-  })
-};
-
-// preview
-exports.preview = {
-  send: (id, data) => mainWindow.webContents.send(id + '@pr', {
-    url: 'background.html',
-    data
-  }),
-  receive: (id, callback) => ipcMain.on(id + '@pr', function (event, arg) {
-    if (arg &&  arg.url === 'preview/index.html') {
-      callback(arg.data);
-    }
-  })
-};
-
-// config
-exports.config = {
-  send: (id, data) => mainWindow.webContents.send(id + '@cf', {
-    url: 'background.html',
-    data
-  }),
-  receive: (id, callback) => ipcMain.on(id + '@cf', function (event, arg) {
-    if (arg &&  arg.url === 'config/index.html') {
-      callback(arg.data);
-    }
-  })
-};
-
-exports.fileSystem = {
+app.fileSystem = {
   file: {
-    exists: function (root, name) {
-      return new Promise((resolve) => fs.exists(path.join(root, name), resolve));
-    },
-    create: function (root, name) {
-      return new Promise(function (resolve) {
-        // 'wx+' - Open file for reading and writing. It fails if path exists.
-        let url = path.join(root, name);
-        fs.open(url, 'wx+', function (err, fd) {
-          if (err) {
-            throw err;
-          }
-          resolve({fd, name, root, path: url});
-        });
+    exists: (root, name) => new Promise((resolve) => electron.fs.exists(electron.path.join(root, name), resolve)),
+    create: (root, name) => new Promise(function (resolve) {
+      // 'wx+' - Open file for reading and writing. It fails if path exists.
+      let url = electron.path.join(root, name);
+      electron.fs.open(url, 'wx+', function (err, fd) {
+        if (err) {
+          throw err;
+        }
+        resolve({fd, name, root, path: url});
       });
-    },
+    }),
     truncate: () => Promise.resolve(),
     write: function (file, offset, arr) {
-      function write (offset, buffer) {
+      function write (offset, ab) {
+        let buffer = electron.Buffer.from(ab);
         return new Promise(function (resolve, reject) {
-          fs.write(file.fd, buffer, 0, buffer.length, offset, function (err, written, buffer) {
+          electron.fs.write(file.fd, buffer, 0, buffer.length, offset, function (err, written, buffer) {
             if (err) {
               throw err;
             }
@@ -409,273 +96,128 @@ exports.fileSystem = {
       }
       return Promise.all(m);
     },
-    md5: function (file) {
-      return new Promise(function (resolve) {
-        fs.readFile(file.fd, function (err, buf) {
+    md5: (file) => new Promise(function (resolve) {
+      electron.fs.readFile(file.fd, function (err, buf) {
+        if (err) {
+          throw err;
+        }
+        let hash = electron.crypt.createHash('md5');
+        hash.update(buf);
+        resolve(hash.digest('hex'));
+      });
+    }),
+    rename: (file, root, name) => new Promise(function (resolve) {
+      let url = electron.path.join(root, name);
+      electron.fs.rename(file.path, url, (err) => {
+        if (err) {
+          throw err;
+        }
+        electron.fs.open(electron.path.join(root, name), 'r+', function (err, fd) {
           if (err) {
             throw err;
           }
-          let hash = crypt.createHash('md5');
-          hash.update(buf);
-          resolve(hash.digest('hex'));
+          resolve({fd, name, root, path: url});
+          electron.fs.close(file.fd);
         });
       });
-    },
-    rename: function (file, root, name) {
-      return new Promise(function (resolve) {
-        let url = path.join(root, name);
-        fs.rename(file.path, url, (err) => {
-          if (err) {
-            throw err;
-          }
-          fs.open(path.join(root, name), 'r+', function (err, fd) {
-            if (err) {
-              throw err;
-            }
-            resolve({fd, name, root, path: url});
-            fs.close(file.fd);
-          });
-        });
-      });
-    },
-    remove: function (file) {
-      return new Promise(function (resolve) {
-        fs.unlink(file.path, function (err) {
-          if (err) {
-            throw err;
-          }
-          resolve();
-        });
-      });
-    },
-    launch: (file) => Promise.resolve(shell.openItem(file.path)),
-    reveal: (file) => Promise.resolve(shell.showItemInFolder(file.path)),
-    close: function (file) {
-      return new Promise(function (resolve) {
-        fs.close(file.fd, function (err) {
-          if (err) {
-            throw err;
-          }
-        });
+    }),
+    remove: (file) => new Promise(function (resolve) {
+      electron.fs.unlink(file.path, function (err) {
+        if (err) {
+          throw err;
+        }
         resolve();
       });
-    },
+    }),
+    launch: (file) => Promise.resolve(electron.shell.openItem(file.path)),
+    reveal: (file) => Promise.resolve(electron.shell.showItemInFolder(file.path)),
+    close: (file) => new Promise(function (resolve) {
+      electron.fs.close(file.fd, function (err) {
+        if (err) {
+          throw err;
+        }
+      });
+      resolve();
+    }),
     toURL: (file) => Promise.resolve(file.path)
   },
   root: {
     internal: () => new Promise.reject(),
-    external: function (bytes, url) {
-      return new Promise(function (resolve, reject) {
-        let root = url ? url : path.resolve(process.env.HOME || process.env.USERPROFILE, 'Downloads');
-        diskspace.check(path.parse(root).root, function (err, total, free) {
-          if (err) {
-            throw err;
-          }
-          if (free < bytes) {
-            return reject(new Error(`cannot allocate space; available: ${free}, required: ${bytes}`));
-          }
-          resolve(root);
-        });
-      });
-    }
-  }
-};
-
-exports.disk = {
-  browse: function () {
-    return new Promise(function (resolve, reject) {
-      let dirs = dialog.showOpenDialog({
-        properties: ['openDirectory']
-      });
-      if (dirs && dirs.length) {
-        exports.storage.write('');
-        resolve(dirs[0]);
-      }
-      else {
-        reject();
-      }
-    });
-  }
-};
-
-exports.process = function (path, file, args) {
-  args.push(file.file.path);
-  return new Promise(function (resolve, reject) {
-    fs.exists(path, function (bol) {
-      if (bol) {
-        execFile(path, args);
-        resolve();
-      }
-      else {
-        reject(new Error(`Cannot find ${path}`));
-      }
-    });
-  });
-};
-
-// native downloader
-exports.download = (obj) => shell.openExternal(obj.url);
-
-exports.startup = function (c) {
-  let callback = c || function () {};
-  electron.app.on('ready', () => callback());
-};
-
-exports.arguments = function (c) {
-  let callback = c || function () {};
-  exports.once('ready', () => callback(optimist.parse(process.argv)));
-  exports.on('command-line', (argv) => callback(argv));
-};
-
-exports.developer = {
-  console: () => mainWindow.webContents.openDevTools()
-};
-
-exports.play = (src) => mainWindow.webContents.send('_sound', src);
-
-exports.sandbox = (function () {
-  let cache = {};
-  ipcMain.on('_sandbox', function (event, arg) {
-    if (cache[arg.id]) {
-      let url = arg.url;
-      cache[arg.id][url ? 'resolve' : 'reject'](url);
-    }
-  });
-
-  return function (url, options) {
-    let d = Promise.defer();
-    let id = Math.random();
-    cache[id] = d;
-    mainWindow.webContents.send('_sandbox', {url, id, options});
-    setTimeout(d.reject, options['no-response'], null);
-    return d.promise;
-  };
-})();
-
-/* internals */
-function createWindow () {
-  // single instance
-  let iShouldQuit = electron.app.makeSingleInstance(function (commandLine) {
-    if (mainWindow) {
-      if (mainWindow.isMinimized()) {
-        mainWindow.restore();
-      }
-      mainWindow.show();
-      mainWindow.focus();
-      exports.emit('command-line', optimist.parse(commandLine));
-    }
-    return true;
-  }) && !optimist.parse(process.argv).forced;
-
-  if (iShouldQuit) {
-    electron.app.quit();
-  }
-  else {
-    mainWindow = new BrowserWindow({
-      width: 800,
-      height: 700
-    });
-    mainWindow.loadURL('file://' + __dirname + '/../../data/manager/index.html');
-
-    mainWindow.on('closed', function () {
-      mainWindow = null;
-    });
-    exports.emit('ready');
-  }
-}
-
-electron.app.on('ready', createWindow);
-
-function createMenu () {
-  electron.Menu.setApplicationMenu(electron.Menu.buildFromTemplate([
-    {
-      label: 'Turbo Download Manager',
-      submenu: [
-        {label: 'About Application', click: exports.emit.bind(exports, 'open', 'about')},
-        {label: 'Check for Updates...', click: exports.emit.bind(exports, 'open', 'sourceforge')},
-        {type: 'separator'},
-        {label: 'Adjust Triggers', click: exports.emit.bind(exports, 'open', 'triggers')},
-        {type: 'separator'},
-        {label: 'Quit', accelerator: 'Command+Q', click: function () {
-          electron.app.quit();
-        }}
-      ]
-    },
-    {
-      label: 'Edit',
-      submenu: [
-        {label: 'Undo', accelerator: 'CmdOrCtrl+Z', selector: 'undo:'},
-        {label: 'Redo', accelerator: 'Shift+CmdOrCtrl+Z', selector: 'redo:'},
-        {type: 'separator'},
-        {label: 'Cut', accelerator: 'CmdOrCtrl+X', selector: 'cut:'},
-        {label: 'Copy', accelerator: 'CmdOrCtrl+C', selector: 'copy:'},
-        {label: 'Paste', accelerator: 'CmdOrCtrl+V', selector: 'paste:'},
-        {label: 'Select All', accelerator: 'CmdOrCtrl+A', selector: 'selectAll:'}
-      ]
-    },
-    {
-      label: 'Help',
-      submenu: [
-        {label: 'Open FAQs Page', click: exports.emit.bind(exports, 'open', 'faq')},
-        {label: 'Open Bug Reporter', click: exports.emit.bind(exports, 'open', 'bug')}
-      ]
-    }
-  ]));
-}
-
-electron.app.on('ready', createMenu);
-
-electron.app.on('window-all-closed', function () {
-  if (config.electron['exit-on-close']) {
-    electron.app.quit();
-  }
-});
-
-electron.app.on('activate', function () {
-  if (mainWindow === null) {
-    createWindow();
-  }
-});
-/* update checker */
-exports.on('ready', function () {
-  request({
-    uri: config.urls.api.list,
-    method: 'GET',
-    headers: {
-      'User-Agent': config.electron['user-agent']
-    }
-  }, function (error, response, body) {
-    if (!error && response.statusCode === 200) {
-      try {
-        let json = JSON.parse(body);
-        let versions = json
-          .filter(obj => obj.prerelease === false || config.electron.update === 'prerelease')
-          .map(o => o.tag_name)
-          .filter(v => semver.compare(v, self.version) > 0);
-
-        if (versions.length) {
-          let version = versions.shift();
-          let url = `${config.urls.releases}download/${version}/tdm-${process.platform}-${os.arch()}.7z`;
-          mainWindow.webContents.send('_update', {
-            title: `New version of "Turbo Download Manager" is available (${version}). Would you like to update?`,
-            url,
-            referrer: config.urls.releases
-          });
+    external: (bytes, url) => new Promise(function (resolve, reject) {
+      let root = url ? url : electron.constants.downloads;
+      electron.diskspace.check(electron.path.parse(root).root, function (err, total, free) {
+        if (err) {
+          throw err;
         }
-      }
-      catch (e) {
-        console.error(e);
-      }
+        if (free < bytes) {
+          return reject(new Error(`cannot allocate space; available: ${free}, required: ${bytes}`));
+        }
+        resolve(root);
+      });
+    })
+  }
+};
+
+app.sandbox = function (url, options) {
+  let d = Promise.defer();
+  let webview = document.createElement('webview');
+  webview.setAttribute('style', 'display:inline-flex; flex: 0 1; width: 0px; height: 0px;');
+  document.body.appendChild(webview);
+
+  function destroy () {
+    if (webview) {
+      webview.parentNode.removeChild(webview);
+      webview = null;
+    }
+  }
+
+  let id = window.setTimeout(d.reject, options['no-response'], null);
+  webview.addEventListener('did-get-redirect-request', function (e) {
+    if (e.isMainFrame) {
+      window.clearTimeout(id);
+      destroy();
+      d.resolve(e.newURL);
     }
   });
-});
+  webview.addEventListener('crashed', () => {
+    destroy();
+    d.reject();
+  });
+  webview.setAttribute('src', url);
+  console.error(url);
 
-exports.webRequest = (function () {
-  let callbacks = {
-    media: function () {}
+  return d.promise;
+};
+
+app.arguments = function (c) {
+  let callback = c || function () {};
+  callback(electron.arguments);
+  app.on('command-line', (argv) => callback(argv));
+};
+/* proxy */
+app.storage.on('pref.network.proxy-server', electron.proxy);
+electron.proxy(config.network['proxy-server']);
+
+/* check for updates */
+window.setTimeout(function () {
+  let req = new XMLHttpRequest();
+  req.open('GET', config.urls.api.list, true);
+  req.responseType = 'json';
+  req.onload = function () {
+    let versions = req.response
+      .filter(obj => obj.prerelease === false || config.electron.update === 'prerelease')
+      .map(o => o.tag_name)
+      .filter(v => electron.semver.compare(v, electron.self.version) > 0);
+
+    if (versions.length) {
+      let version = versions.shift();
+      let url = `${config.urls.releases}download/${version}/tdm-${electron.process.platform}-${electron.os.arch()}.7z`;
+      app.manager.send('electron:update', {
+        title: `New version of "Turbo Download Manager" is available (${version}). Would you like to update?`,
+        url,
+        referrer: config.urls.releases
+      });
+    }
   };
-  exports.extract.receive('media', (obj) => callbacks.media(obj));
-  return {
-    media: (c) => callbacks.media = c
-  };
-})();
+  req.send();
+}, 10000);

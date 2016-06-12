@@ -118,7 +118,7 @@ var get = function (id) {
 
   return {
     set percent (p) { // jshint ignore: line
-      p = p || 0;
+      p = Math.min(100, p || 0);
       overal.style.width = p + '%';
       percent.textContent = p.toFixed(1) + '%';
     },
@@ -187,7 +187,6 @@ var actions = (function (add, loader, iframe) {
       blank();
     }, false);
     document.addEventListener('keyup', function (e) {
-      console.error(e)
       if (e.keyCode === 27) {
         blank();
       }
@@ -386,6 +385,7 @@ var dd = {
 };
 document.body.addEventListener('drop', dd.drop);
 document.body.addEventListener('dragover', dd.dragover);
+/* context menu */
 
 // manifest
 document.body.dataset.developer = manifest.developer;

@@ -174,7 +174,7 @@ config.define('manager.launch-if-done', true);
 
 /* config.electron */
 config.define('electron.exit-on-close', true);
-config.define('electron.user-agent', 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_4) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.94 Safari/537.36');
+config.define('electron.user-agent', '');
 config.define('electron.storage', '');
 config.define('electron.update', 'release');
 
@@ -187,5 +187,4 @@ config.define('preview.external.video.path', '');
 config.define('preview.external.video.args', '');
 
 /* network */
-config.define('network.socks5-host', ''); // electron only; for changing socks host or port a restart is required; https://github.com/mattcg/socks5-http-client/issues/17
-config.define('network.socks5-port', 0);
+config.define('network.proxy-server', ''); // example: socks5://127.0.0.1:9999; electron only; for changing socks proxy a restart is required

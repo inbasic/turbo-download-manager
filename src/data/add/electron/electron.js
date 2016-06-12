@@ -1,10 +1,13 @@
 'use strict';
 
 var background = { // jshint ignore:line
-  receive: (id, callback) => window.top.register(id + '@ad', callback),
-  send: (id, data) => window.top.ipcRenderer.send(id + '@ad', {
-    url: 'add/index.html',
-    data
+  send: (id, data) => window.top.listeners.background.forEach(function (c) {
+    c({method: id + '@ad', data}, {url: 'add.html'});
+  }),
+  receive: (id, callback) => window.top.listeners.pagemod.push(function (request, sender) {
+    if (request.method === id + '@ad' && sender.url.indexOf('background') !== -1) {
+      callback(request.data);
+    }
   })
 };
 
@@ -12,5 +15,5 @@ var manifest = { // jshint ignore:line
   folder: false,
   support: true,
   sandbox: true,
-  referrer: true
+  referrer: false
 };

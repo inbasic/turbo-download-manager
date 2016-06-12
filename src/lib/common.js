@@ -50,6 +50,7 @@ actions.open = {
   faq: () => app.tab.open(config.urls.faq),
   helper: () => app.tab.open(config.urls.helper),
   sourceforge: () => app.tab.open(config.urls.sourceforge),
+  releases: () => app.tab.open(config.urls.releases),
   developer: () => app.developer.console(),
   triggers: () => app.manager.send('triggers'),
   extract: (url) => app.manager.send('extract', url),

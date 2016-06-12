@@ -68,7 +68,10 @@ gulp.task('electron-build', function () {
     if (f.relative.endsWith('.DS_Store') || f.relative.endsWith('Thumbs.db')) {
       return false;
     }
-    if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('android') !== -1 || f.relative.indexOf('chrome') !== -1 || f.relative.indexOf('opera') !== -1) {
+    if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('android') !== -1 || f.relative.indexOf('opera') !== -1) {
+      return false;
+    }
+    if (f.relative.indexOf('chrome') !== -1 && !f.relative.endsWith('electron/chrome-cm.js') && !f.relative.endsWith('electron/chrome-shim.js')) {
       return false;
     }
     if (f.relative.split('/').length === 1) {
@@ -86,7 +89,7 @@ gulp.task('electron-build', function () {
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
   }, change(function (content) {
-    return content.replace('firefox/firefox', 'electron/electron');
+    return content.replace('firefox/firefox', 'electron/starter');
   })))
   .pipe(shadow('electron'))
   .pipe(gulp.dest('builds/unpacked/electron'))
