@@ -187,4 +187,12 @@ config.define('preview.external.video.path', '');
 config.define('preview.external.video.args', '');
 
 /* network */
-config.define('network.proxy-server', ''); // example: socks5://127.0.0.1:9999; electron only; for changing socks proxy a restart is required
+config.define('network.proxy-server', '', function (proxy) { // example: socks5://127.0.0.1:9999; electron only; for changing socks proxy a restart is required
+  if (proxy) {
+    if (/.\:\d+$/.test(proxy)) {
+      return proxy;
+    }
+    app.notification('Format: socks5://host:port');
+  }
+  return '';
+});

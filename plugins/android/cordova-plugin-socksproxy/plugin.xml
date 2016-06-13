@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
+        id="cordova-plugin-socksproxy"
+        version="0.1.0">
+
+  <name>Socks Proxy API</name>
+
+  <engines>
+    <engine name="cordova" version=">=3.4.0"/>
+  </engines>
+
+  <asset src="www/proxy.js" target="js/proxy.js"/>
+
+  <js-module src="www/proxy.js" name="proxy">
+    <clobbers target="cordova.plugins.proxy" />
+  </js-module>
+
+  <platform name="android">
+    <config-file target="res/xml/config.xml" parent="/*">
+      <feature name="SocksProxy">
+        <param name="android-package" value="com.add0n.plugin.SocksProxy"/>
+      </feature>
+    </config-file>
+
+    <source-file src="src/android/SocksProxy.java" target-dir="src/com/add0n/plugin/"/>
+  </platform>
+</plugin>

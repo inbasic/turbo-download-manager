@@ -274,6 +274,7 @@ gulp.task('android-apk', function () {
     'cordova plugin add https://github.com/whiteoctober/cordova-plugin-app-version.git',
     'cordova plugin add ../../plugins/android/cordova-plugin-binaryfilewriter/',
     'cordova plugin add ../../plugins/android/cordova-plugin-customconfig/',
+    'cordova plugin add ../../plugins/android/cordova-plugin-socksproxy/',
     'cordova plugin add cordova-plugin-intent',
     'cordova plugin add cordova-plugin-x-toast',
     'cordova plugin add cordova-plugin-fileopener',

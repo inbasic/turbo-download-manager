@@ -1,4 +1,4 @@
-/* globals app, cordova */
+/* globals app, cordova, config */
 'use strict';
 
 if (!Object.assign) {
@@ -138,7 +138,7 @@ app.storage = (function () {
     write: function (id, data) {
       storage.setItem(id, data);
       if (id in callbacks) {
-        callbacks[id].forEach(c => c());
+        callbacks[id].forEach(c => c(data));
       }
     },
     on: (name, callback) => {
@@ -262,6 +262,30 @@ app.fileSystem.file.launch = function (file) {
 };
 
 app.process = (path, file) => app.fileSystem.file.launch(file.file);
+
+/* proxy */
+document.addEventListener('deviceready', function () {
+  function set (proxy) {
+    if (proxy) {
+      let tmp = /(([^\/]+)\:(\d+))/.exec(proxy);
+      if (tmp && tmp.length) {
+        cordova.plugins.proxy.set({
+          host: tmp[2],
+          port: tmp[3]
+        }, function () {}, (e) => app.notification(e.meesage || e));
+      }
+      else {
+        cordova.plugins.proxy.clear();
+        app.notification(`Cannot use "${proxy}" proxy server`);
+      }
+    }
+    else {
+      cordova.plugins.proxy.clear(function () {}, (e) => app.notification(e.meesage || e));
+    }
+  }
+  app.storage.on('pref.network.proxy-server', set);
+  set(config.network['proxy-server']);
+}, false);
 
 // internals
 document.addEventListener('deviceready', function () {
