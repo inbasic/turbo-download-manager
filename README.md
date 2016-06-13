@@ -1,7 +1,7 @@
 Turbo Download Manager (itdmanager) [![Build Status](https://travis-ci.org/inbasic/turbo-download-manager.svg?branch=master)](https://travis-ci.org/inbasic/turbo-download-manager)
 ===
 
-TDM is an open-source multi-platform download manager with multi-threading support
+Turbo Download Manager is an open-source multi-platform download manager with multi-threading support
 
 ![screen shot](https://cloud.githubusercontent.com/assets/351062/15116089/28ab9f5e-1617-11e6-8ceb-82c0e604593c.png)
 
