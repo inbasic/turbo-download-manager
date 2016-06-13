@@ -14,7 +14,6 @@ global.constants = {
   userData: electron.app.getPath('userData'),
   downloads: electron.app.getPath('downloads'),
   storage: path.join(electron.app.getPath('userData'), 'node-persist'),
-  argv: process.argv
 };
 // syncing storage
 storage.initSync({dir: global.constants.storage});
@@ -27,6 +26,7 @@ ipcMain.on('proxy', function (e, proxyRules) {
     console.error(`proxyRules is changed to "${proxyRules}"`);
   });
 });
+ipcMain.once('arguments', () => mainWindow.webContents.send('command-line', optimist.parse(process.argv)));
 
 /* internals */
 var contextmenu = (function () {
@@ -84,6 +84,10 @@ function createWindow () {
       mainWindow.show();
       mainWindow.focus();
       mainWindow.webContents.send('command-line', optimist.parse(commandLine));
+    }
+    else {
+      ipcMain.once('arguments', () => mainWindow.webContents.send('command-line', optimist.parse(commandLine)));
+      createWindow();
     }
     return true;
   }) && !optimist.parse(process.argv).forced;

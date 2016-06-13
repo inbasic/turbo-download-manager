@@ -194,7 +194,7 @@ app.sandbox = function (url, options) {
 
 app.arguments = function (c) {
   let callback = c || function () {};
-  callback(electron.arguments);
+  electron.arguments();
   app.on('command-line', (argv) => callback(argv));
 };
 /* proxy */

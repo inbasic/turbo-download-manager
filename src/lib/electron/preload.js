@@ -3,7 +3,6 @@
 
 // electron
 var {clipboard, shell, ipcRenderer, remote} = require('electron');
-var optimist = require('optimist');
 var storage = require('node-persist');
 storage.initSync({
   dir: remote.getGlobal('constants').storage,
@@ -18,7 +17,7 @@ process.once('loaded', () => {
     shell,
     process,
     storage,
-    arguments: optimist.parse(remote.getGlobal('constants').argv),
+    arguments: () => ipcRenderer.send('arguments'),
     self: require('../../package.json'),
     fs: require('fs'),
     os: require('os'),

@@ -414,7 +414,6 @@ app.config.receive('pref', function (obj) {
 app.preview.receive('open', url => app.tab.open(url));
 /* startup */
 app.startup(function () {
-  console.error(9)
   // FAQs page
   let version = config.welcome.version;
   app.version().then(function (v) {
