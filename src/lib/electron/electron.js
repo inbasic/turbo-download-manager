@@ -28,7 +28,7 @@ app.version = () => Promise.resolve(electron.self.version);
 
 app.platform = () => `io.js ${electron.process.version} & Electron ${electron.process.versions.electron} on ${electron.process.platform}`;
 
-app.startup = (c) => document.addEventListener('load', c);
+app.startup = (c) => c();
 
 app.OS = {
   clipboard: {
