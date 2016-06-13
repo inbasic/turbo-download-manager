@@ -111,7 +111,6 @@ if (!Array.from) {
 
 /* app.globals */
 app.globals.browser = 'android';
-app.globals.referrer = false;
 app.globals.folder = false;
 app.globals.open = true;
 

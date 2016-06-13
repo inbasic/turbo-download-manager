@@ -53,8 +53,8 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       }).catch(e => d.reject(e));
     }
     let options = {headers: obj.headers};
-    if (obj.referrer && app.globals.referrer) {
-      options.referrer = obj.referrer;
+    if (obj.referrer) {
+      options.headers[app.globals.referrer] = obj.referrer;
     }
     app.fetch(obj.urls[0], options).then(function (res) {
       if (res.body) {
@@ -103,8 +103,8 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     req.open(forced ? 'GET' : 'HEAD', obj.url, true);
     req.setRequestHeader('Cache-Control', 'max-age=0');
 
-    if (obj.referrer && app.globals.referrer) {
-      req.setRequestHeader('referer', obj.referrer);
+    if (obj.referrer) {
+      req.setRequestHeader(app.globals.referrer, obj.referrer);
     }
 
     function analyze () {
@@ -579,6 +579,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         if (obj['use-native']) {
           event.emit('add-log', 'waiting for native-method to catch download link ...');
           return app.sandbox(obj.url, {
+            'referrer': obj.referrer,
             'no-response': 40 * 1000
           }).then(function (url) {
             event.emit('add-log', `native-method returned ${url}`);

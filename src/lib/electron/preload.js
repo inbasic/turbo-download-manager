@@ -18,7 +18,7 @@ process.once('loaded', () => {
     shell,
     process,
     storage,
-    arguments: optimist.parse(process.argv),
+    arguments: optimist.parse(remote.getGlobal('constants').argv),
     self: require('../../package.json'),
     fs: require('fs'),
     os: require('os'),

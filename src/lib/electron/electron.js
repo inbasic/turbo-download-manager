@@ -2,7 +2,7 @@
 'use strict';
 
 app.globals.browser = 'electron';
-app.globals.referrer = false;
+app.globals.referrer = 'X-Referer';
 app.globals.open = true;
 
 app.storage = (function () {
@@ -161,7 +161,7 @@ app.fileSystem = {
 app.sandbox = function (url, options) {
   let d = Promise.defer();
   let webview = document.createElement('webview');
-  webview.setAttribute('style', 'display:inline-flex; flex: 0 1; width: 0px; height: 0px;');
+  webview.setAttribute('style', 'display: inline-flex; flex: 0 1; width: 0; height: 0;');
   document.body.appendChild(webview);
 
   function destroy () {
@@ -179,12 +179,15 @@ app.sandbox = function (url, options) {
       d.resolve(e.newURL);
     }
   });
+
   webview.addEventListener('crashed', () => {
     destroy();
     d.reject();
   });
+  if (options.referrer) {
+    webview.setAttribute('httpreferrer', options.referrer);
+  }
   webview.setAttribute('src', url);
-  console.error(url);
 
   return d.promise;
 };

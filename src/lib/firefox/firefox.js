@@ -39,7 +39,7 @@ var xhr = {
 
 exports.globals = {
   browser: 'firefox',
-  referrer: true,
+  referrer: 'referer',
   open: true,
   folder: true
 };
@@ -107,9 +107,6 @@ exports.fetch = function (url, props) {
     .forceAllowThirdPartyCookie = true;
   if (props.headers) {
     Object.keys(props.headers).forEach((k) => req.setRequestHeader(k, props.headers[k]));
-  }
-  if (props.referrer) {
-    req.setRequestHeader('referer', props.referrer);
   }
 
   req.onprogress = function () {

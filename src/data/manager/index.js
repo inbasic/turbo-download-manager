@@ -118,7 +118,7 @@ var get = function (id) {
 
   return {
     set percent (p) { // jshint ignore: line
-      p = Math.min(100, p || 0);
+      p = Math.min(100, Math.abs(p) || 0);
       overal.style.width = p + '%';
       percent.textContent = p.toFixed(1) + '%';
     },

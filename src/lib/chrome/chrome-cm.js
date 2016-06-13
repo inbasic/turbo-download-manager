@@ -7,7 +7,8 @@ app.globals = {
   browser: 'chrome',
   extension: false,
   open: false,
-  folder: true
+  folder: true,
+  referrer: 'X-Referer'
 };
 
 if (!Promise.defer) {

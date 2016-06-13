@@ -13,14 +13,15 @@ var storage = require('node-persist');
 global.constants = {
   userData: electron.app.getPath('userData'),
   downloads: electron.app.getPath('downloads'),
-  storage: path.join(electron.app.getPath('userData'), 'node-persist')
+  storage: path.join(electron.app.getPath('userData'), 'node-persist'),
+  argv: process.argv
 };
 // syncing storage
 storage.initSync({dir: global.constants.storage});
 
 var mainWindow;
 
-ipcMain.on('developer', () => mainWindow.webContents.openDevTools());
+ipcMain.on('developer', () => mainWindow.webContents.toggleDevTools());
 ipcMain.on('proxy', function (e, proxyRules) {
   mainWindow.webContents.session.setProxy({proxyRules}, function () {
     console.error(`proxyRules is changed to "${proxyRules}"`);
@@ -50,7 +51,7 @@ var contextmenu = (function () {
     {type: 'separator'},
     {label: 'Adjust Triggers', click: () => mainWindow.webContents.send('open', 'triggers')},
     {label: 'Configuration Editor', click: () => mainWindow.webContents.send('open', 'config')},
-    {label: 'Developer Tools', click: () => mainWindow.webContents.send('open', 'developer')},
+    {label: 'Developer Tools', accelerator: 'CmdOrCtrl+Shift+J', click: () => mainWindow.webContents.send('open', 'developer')},
     {type: 'separator'},
     {label: 'Quit', accelerator: 'Command+Q', click: function () {
       electron.app.quit();
@@ -126,6 +127,19 @@ electron.app.on('activate', function () {
 });
 
 electron.app.on('browser-window-created', (e, win) => contextmenu.edit(win));
+// supporting referer
+electron.app.on('browser-window-created', (e, win) => win.webContents.session.webRequest.onBeforeSendHeaders(
+  {urls: ['https://*', 'http://*']},
+  (details, callback) => {
+    let referer = details.requestHeaders['X-Referer'] || details.requestHeaders['x-referer'];
+    if (referer) {
+      details.requestHeaders.referer = referer;
+      delete details.requestHeaders['X-Referer'];
+      delete details.requestHeaders['x-referer'];
+    }
+    callback({requestHeaders: details.requestHeaders});
+  }
+));
 
 // Chrome Command Line Switches
 electron.app.on('ready', () => {
