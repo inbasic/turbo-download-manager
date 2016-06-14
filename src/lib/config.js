@@ -109,13 +109,39 @@ config.list = function () {
         list.push({
           name: pr + key,
           value: object[key],
-          type: typeof object[key]
+          type: typeof object[key],
+          title: config.titles[pr + key] || '-'
         });
       }
     });
     return list;
   }
   return step(config);
+};
+
+/* config.titles */
+config.titles = {
+  'wget.threads': 'number of concurrent threads for each job',
+  'wget.timeout': 'the number of seconds a request can take before automatically being terminated',
+  'wget.retries': 'total number of acceptable retries before a job status changed to paused',
+  'wget.update': 'the number of seconds for each job to report changes',
+  'wget.write-size': 'minimum number of bytes for triggering a disk write request',
+  'wget.min-segment-size': 'the minimum acceptable size in bytes during thread creation',
+  'wget.max-segment-size': 'the maximum acceptable size in bytes during thread creation',
+  'wget.max-size-md5': 'do not calculate MD5 hash if file size is greater than (in bytes)',
+  'icon.timeout': 'the number of seconds for the badge icon to display error or success (firefox, chrome, opera only)',
+  'welcome.show': 'display FAQs page on upgrades',
+  'manager.launch-if-done': 'open downloaded file with an external application (instead of using preview window) (firefox, android, electron only)',
+  'electron.exit-on-close': 'exit the downloader if close button is pressed',
+  'electron.user-agent': 'overwrite the default user-agent (electron only)',
+  'electron.update': 'notify user about the new versions. Acceptable values: release or prerelease.',
+  'preview.external.image.path': 'executable path for previewing image files',
+  'preview.external.video.path': 'executable path for previewing video files',
+  'preview.external.audio.path': 'executable path for previewing audio files',
+  'preview.external.image.args': 'pass these extra arguments to the executable',
+  'preview.external.video.args': 'pass these extra arguments to the executable',
+  'preview.external.audio.args': 'pass these extra arguments to the executable',
+  'network.proxy-server': 'socks5://host:port (electron, android only)'
 };
 
 /* config.urls */
@@ -175,8 +201,12 @@ config.define('manager.launch-if-done', true);
 /* config.electron */
 config.define('electron.exit-on-close', true);
 config.define('electron.user-agent', '');
-config.define('electron.storage', '');
-config.define('electron.update', 'release');
+config.define('electron.update', 'release', function (v) {
+  if (v === 'release' || v === 'prerelease') {
+    return v;
+  }
+  return 'release';
+});
 
 /* config.preview */
 config.define('preview.external.image.path', '');

@@ -341,7 +341,7 @@ background.send('init');
 /* user interaction */
 document.addEventListener('click', function (e) {
   let target = e.target;
-  if (target.dataset.cmd) {
+  if (target.dataset.cmd && e.which === 1) {
     [].filter.call(document.querySelectorAll('.item'), i => i.contains(target))
     .forEach(function (i) {
       if (target.dataset.cmd === 'pause') {
@@ -365,6 +365,15 @@ document.addEventListener('click', function (e) {
       }
     });
   }
+  if (e.which === 2) {
+    let cmd = target.dataset.cmd;
+    if (cmd === 'open') {
+      target.dataset.cmd = 'reveal';
+    }
+    if (cmd === 'reveal') {
+      target.dataset.cmd = 'open';
+    }
+  }
 });
 /* drag & drop */
 var dd = {
@@ -377,16 +386,24 @@ var dd = {
     }
   },
   dragover: function (e) {
-    let types = Array.from(e.dataTransfer.types);
-    let allow = types.indexOf('text/uri-list') !== -1;
     e.preventDefault();
-    e.dataTransfer.dropEffect = allow ? 'link' : 'none';
+    let types = Array.from(e.dataTransfer.types);
+    e.dataTransfer.dropEffect = types.indexOf('text/uri-list') !== -1 ? 'link' : 'none';
   }
 };
-document.body.addEventListener('drop', dd.drop);
-document.body.addEventListener('dragover', dd.dragover);
-/* context menu */
+document.body.addEventListener('drop', dd.drop, false);
+document.body.addEventListener('dragover', dd.dragover, false);
 
 // manifest
 document.body.dataset.developer = manifest.developer;
 document.body.dataset.helper = manifest.helper;
+
+// prevent redirection
+(function (callback) {
+  window.addEventListener('dragover', callback,false);
+  window.addEventListener('drop',callback, false);
+})(function (e) {
+  if (e.target.tagName !== 'INPUT') {
+    e.preventDefault();
+  }
+});

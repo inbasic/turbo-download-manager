@@ -131,6 +131,11 @@ electron.app.on('activate', function () {
 });
 
 electron.app.on('browser-window-created', (e, win) => contextmenu.edit(win));
+// do not allow redirection of the background page
+electron.app.on('browser-window-created', (e, win) => win.webContents.on('will-navigate',function (e) {
+  e.preventDefault();
+  return false;
+}));
 // supporting referer
 electron.app.on('browser-window-created', (e, win) => win.webContents.session.webRequest.onBeforeSendHeaders(
   {urls: ['https://*', 'http://*']},

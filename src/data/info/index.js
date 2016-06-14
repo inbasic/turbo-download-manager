@@ -70,3 +70,13 @@ if (id !== null) {
 }
 // manifest
 document.body.dataset.support = manifest.support;
+
+// prevent redirection
+(function (callback) {
+  window.addEventListener('dragover', callback,false);
+  window.addEventListener('drop',callback, false);
+})(function (e) {
+  if (e.target.tagName !== 'INPUT') {
+    e.preventDefault();
+  }
+});

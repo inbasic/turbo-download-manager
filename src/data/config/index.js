@@ -1,6 +1,20 @@
 /* globals background */
 'use strict';
 
+(function (search) {
+  function filter (e) {
+    Array.from(document.querySelectorAll('tbody tr')).forEach(function (tr) {
+      if (e.target.value && tr.textContent.indexOf(e.target.value) === -1) {
+        tr.classList.add('hide');
+      }
+      else {
+        tr.classList.remove('hide');
+      }
+    });
+  }
+  search.addEventListener('input', filter, false);
+})(document.getElementById('search'));
+
 var edit = (function () {
   let parent = document.getElementById('edit');
   let input = parent.querySelector('[data-id=value]');
@@ -33,6 +47,7 @@ var edit = (function () {
     if (parent.style.display === 'flex') {
       return;
     }
+    parent.querySelector('[data-id=description]').textContent = target.title;
     type = parent.querySelector('[data-id=type]').textContent = target.dataset.type;
     name = parent.querySelector('[data-id=name]').textContent = target.dataset.name;
     input.value = target.dataset.value;
@@ -92,7 +107,7 @@ background.receive('pref', function (obj) {
 background.receive('init', function (list) {
   list
   .filter(obj => ['string', 'boolean', 'number'].indexOf(obj.type) !== -1)
-  .filter(obj => !obj.name.startsWith('defaults.'))
+  .filter(obj => !obj.name.startsWith('defaults.') && !obj.name.startsWith('titles.'))
   .sort((a, b) => a.name < b.name ? -1 : +1)
   .forEach(function (obj) {
     let tr = document.createElement('tr');
@@ -102,6 +117,7 @@ background.receive('init', function (list) {
     tr.dataset.name = td1.textContent = obj.name;
     tr.dataset.type = td2.textContent = obj.type;
     tr.dataset.value = td3.textContent = obj.value;
+    tr.title = obj.title;
     tr.appendChild(td1);
     tr.appendChild(td2);
     tr.appendChild(td3);
@@ -109,3 +125,13 @@ background.receive('init', function (list) {
   });
 });
 background.send('init');
+
+// prevent redirection
+(function (callback) {
+  window.addEventListener('dragover', callback,false);
+  window.addEventListener('drop',callback, false);
+})(function (e) {
+  if (e.target.tagName !== 'INPUT') {
+    e.preventDefault();
+  }
+});

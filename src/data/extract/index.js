@@ -85,3 +85,13 @@ if (home) {
   top.document.body.appendChild(iframe);
   iframe.setAttribute('src', home);
 }
+
+// prevent redirection
+(function (callback) {
+  window.addEventListener('dragover', callback,false);
+  window.addEventListener('drop',callback, false);
+})(function (e) {
+  if (e.target.tagName !== 'INPUT') {
+    e.preventDefault();
+  }
+});

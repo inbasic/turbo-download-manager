@@ -4,6 +4,7 @@
 app.globals.browser = 'electron';
 app.globals.referrer = 'X-Referer';
 app.globals.open = true;
+app.globals.reveal = true;
 
 app.storage = (function () {
   let callbacks = {};

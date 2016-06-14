@@ -257,6 +257,13 @@ app.manager.receive('cmd', function (obj) {
       );
     }
   }
+  if (obj.cmd === 'reveal') {
+    let instance = mwget.get(obj.id);
+    if (app.globals.reveal) {
+      return instance.internals.file.reveal();
+    }
+    app.notification('Opening container folder is not supported in this platform');
+  }
   if (obj.cmd === 'download') {
     actions.download(obj);
   }

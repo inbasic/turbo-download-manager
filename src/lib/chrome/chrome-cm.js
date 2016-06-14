@@ -7,6 +7,7 @@ app.globals = {
   browser: 'chrome',
   extension: false,
   open: false,
+  reveal: false,
   folder: true,
   referrer: 'X-Referer'
 };

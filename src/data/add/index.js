@@ -78,3 +78,12 @@ if (manifest.referrer) {
   input.disabled = false;
   input.placeholder = 'http(s)://the-referring-page';
 }
+// prevent redirection
+(function (callback) {
+  window.addEventListener('dragover', callback,false);
+  window.addEventListener('drop',callback, false);
+})(function (e) {
+  if (e.target.tagName !== 'INPUT') {
+    e.preventDefault();
+  }
+});

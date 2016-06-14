@@ -27,3 +27,13 @@ background.receive('init', function (obj) {
 background.send('init', id);
 // autofocus is not working on Firefox
 window.setTimeout(() => document.querySelector('[data-id=url]').focus(), 500);
+
+// prevent redirection
+(function (callback) {
+  window.addEventListener('dragover', callback,false);
+  window.addEventListener('drop',callback, false);
+})(function (e) {
+  if (e.target.tagName !== 'INPUT') {
+    e.preventDefault();
+  }
+});

@@ -41,6 +41,9 @@ table th:not(:first-child):before {
   width: 1px;
   border-left: solid 1px #c1c1c1;
 }
+table tr.hide {
+  display: none;
+}
 table tr:nth-child(even) {
   background-color: #F4F4F4;
 }
@@ -122,7 +125,6 @@ body>div {
 #edit>form {
   width: 300px;
   max-width: 80%;
-  height: 100px;
   max-height: 90%;
   border: solid 2px #c1c1c1;
   background-color: #fff;
@@ -135,8 +137,10 @@ body>div {
   display: flex;
   justify-content: flex-end;
 }
-#edit input {
+#edit input[type=number],
+#edit input[type=text] {
   width: 100%;
+  margin-bottom: 8px;
 }
 #edit>form>div input{
   width: 80px;

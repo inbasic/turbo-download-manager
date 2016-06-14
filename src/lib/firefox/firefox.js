@@ -41,6 +41,7 @@ exports.globals = {
   browser: 'firefox',
   referrer: 'referer',
   open: true,
+  reveal: true,
   folder: true
 };
 

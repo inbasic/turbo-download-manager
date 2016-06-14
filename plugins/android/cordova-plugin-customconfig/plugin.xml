@@ -7,7 +7,7 @@
   <platform name="android">
     <!-- sharing -->
     <config-file target="AndroidManifest.xml" parent="application/activity">
-        <intent-filter name="a1">
+        <intent-filter>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
