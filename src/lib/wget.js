@@ -466,7 +466,6 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         mime: info.mime,
         disposition: info.disposition
       }, obj));
-      event.emit('name', internals.name);
       event.emit('mime', info.mime);
       internals.file = new io.File({
         name: internals.name,
@@ -474,9 +473,10 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         path: obj.folder,
         length: info.length
       });
-      event.emit('add-log', 'Allocating space ...');
+      event.emit('name', 'Allocating space ...');
 
       internals.file.open().then(function (name) {
+        event.emit('name', internals.name);
         // sync the names
         if (name && name !== internals.name) {
           internals.name = name;

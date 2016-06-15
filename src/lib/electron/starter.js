@@ -10,15 +10,26 @@ var optimist = require('optimist');
 var windowState = require('electron-window-state');
 var storage = require('node-persist');
 
+var mainWindow;
+
 global.constants = {
   userData: electron.app.getPath('userData'),
   downloads: electron.app.getPath('downloads'),
   storage: path.join(electron.app.getPath('userData'), 'node-persist'),
 };
+// local shortcuts
+(function (register, release) {
+  electron.app.on('ready', register);
+  electron.app.on('will-quit', release);
+  electron.app.on('browser-window-blur', release);
+  electron.app.on('browser-window-focus', register);
+})(
+  () => electron.globalShortcut.register('CmdOrCtrl+Shift+J', () => mainWindow.webContents.toggleDevTools()),
+  () => electron.globalShortcut.unregisterAll()
+);
+
 // syncing storage
 storage.initSync({dir: global.constants.storage});
-
-var mainWindow;
 
 ipcMain.on('developer', () => mainWindow.webContents.toggleDevTools());
 ipcMain.on('proxy', function (e, proxyRules) {
