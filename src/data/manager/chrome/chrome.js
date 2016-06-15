@@ -17,3 +17,7 @@ var manifest = { // jshint ignore:line
   developer: false,
   helper: true
 };
+
+window.onbeforeunload = function (e) {
+  console.error(e);
+};

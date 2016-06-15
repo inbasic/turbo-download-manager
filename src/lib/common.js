@@ -417,6 +417,13 @@ app.config.receive('pref', function (obj) {
     value: config.get(obj.name)
   });
 });
+app.config.receive('reset', function (name) {
+  config.reset(name);
+  app.config.send('pref', {
+    name,
+    value: config.get(name)
+  });
+});
 /* preview ui */
 app.preview.receive('open', url => app.tab.open(url));
 /* startup */
@@ -435,6 +442,7 @@ app.startup(function () {
     }
   });
 });
+
 /* command line */
 app.arguments(function (argv) {
   // Download on init (currently only for electron build)

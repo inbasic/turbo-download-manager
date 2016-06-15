@@ -15,6 +15,7 @@ var self          = require('sdk/self'),
     runtime       = require('sdk/system/runtime'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
+    events        = require('sdk/system/events'),
     xpcom         = require('sdk/platform/xpcom'),
     {Page}        = require('sdk/page-worker'),
     {Class}       = require('sdk/core/heritage'),
@@ -742,6 +743,27 @@ exports.process = function (path, itd, args) {
     resolve();
   });
 };
+
+// runtime
+exports.runtime = (function () {
+  let observerService = Cc['@mozilla.org/observer-service;1'].getService(Ci.nsIObserverService);
+  let listen = {
+    observe: function (aSubject) {
+      aSubject.QueryInterface(Ci.nsISupportsPRBool);
+      let bol = Services.prompt.confirm(null, 'Turbo Download Manager', 'There are still some unfinished jobs that cannot be resumed after closing Firefox. Are you sure you want to exit Firefox?');
+      aSubject.data = !bol;
+    }
+  };
+  unload.when(() => observerService.removeObserver(listen, 'quit-application-requested'));
+
+  return {
+    suspend: {
+      watch: () => observerService.addObserver(listen, 'quit-application-requested', false),
+      release: () => observerService.removeObserver(listen, 'quit-application-requested')
+    }
+  };
+})();
+
 /*
 var {WebRequest} = Cu.import('resource://gre/modules/WebRequest.jsm');
 exports.webRequest = (function () {

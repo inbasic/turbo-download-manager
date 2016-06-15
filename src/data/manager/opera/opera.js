@@ -1,4 +1,4 @@
-/* globals chrome */
+/* globals chrome, app */
 'use strict';
 
 var background = { // jshint ignore:line

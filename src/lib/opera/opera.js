@@ -81,3 +81,10 @@ app.download = (obj) => chrome.downloads.download({
 });
 /* app.sandbox */
 app.sandbox =  () => Promise.reject();
+/* app.runtime */
+app.runtime = {
+  suspend: {
+    watch: function () {},
+    release: function () {}
+  }
+};

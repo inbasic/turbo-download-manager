@@ -263,6 +263,20 @@ app.fileSystem.file.launch = function (file) {
 
 app.process = (path, file) => app.fileSystem.file.launch(file.file);
 
+app.runtime = (function () {
+  document.addEventListener('deviceready', () => cordova.plugins.backgroundMode.setDefaults({
+      title:  'Turbo Download Manager',
+      text:   'Still downloading ...'
+    })
+  );
+  return {
+    suspend: {
+      watch: () => cordova.plugins.backgroundMode.enable(),
+      release: () => cordova.plugins.backgroundMode.disable()
+    }
+  };
+})();
+
 /* proxy */
 document.addEventListener('deviceready', function () {
   function set (proxy) {

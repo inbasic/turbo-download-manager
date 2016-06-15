@@ -32,6 +32,21 @@ app.platform = function () {
 app.runtime = (function () {
   chrome.app.runtime.onLaunched.addListener(() => app.runtime.launch());
   let isInstalled = false;
+
+  app.manager.receive('chrome:exit', function () {
+    chrome.app.window.getAll()[0].close();
+    app.runtime.suspend.release();
+  });
+
+  function listen () {
+    app.runtime.launch(function () {
+      window.setTimeout(() => app.manager.send('confirm', {
+        msg: 'Turbo Download Manager was about to be suspended. There are still some unfinished jobs that cannot be resumed after suspension. Are you sure you want to close the manager?',
+        cmd: 'chrome:exit'
+      }), 1000);
+    });
+  }
+
   return {
     id: 'gnaepfhefefonbijmhcmnfjnchlcbnfc',
     get isInstalled () {
@@ -40,14 +55,18 @@ app.runtime = (function () {
     set isInstalled (val) {
       isInstalled = val;
     },
-    launch: function () {
+    launch: function (callback) {
       chrome.app.window.create('data/manager/index.html', {
         id: 'tdm-manager',
         bounds: {
           width: 800,
-          height: 800
+          height: 700
         }
-      });
+      }, callback);
+    },
+    suspend: {
+      watch: () => chrome.runtime.onSuspend.addListener(listen),
+      release: () => chrome.runtime.onSuspend.removeListener(listen)
     }
   };
 })();

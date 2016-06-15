@@ -67,6 +67,7 @@ document.addEventListener('click', function (e) {
     }
     target.classList.add('selected');
     document.getElementById('open-editor').disabled = false;
+    document.getElementById('reset').disabled = false;
   }
 });
 
@@ -83,7 +84,6 @@ document.addEventListener('click', function (e) {
       }
     }
   });
-
 })(function (target) {
   if (target.localName === 'tr') {
     if (target.dataset.type === 'boolean') {
@@ -97,6 +97,9 @@ document.addEventListener('click', function (e) {
     }
   }
 });
+document.getElementById('reset').addEventListener('click',
+  () => background.send('reset', document.querySelector('.selected').dataset.name)
+);
 
 background.receive('pref', function (obj) {
   let tr = document.querySelector(`[data-name="${obj.name}"]`);

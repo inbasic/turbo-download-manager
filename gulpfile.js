@@ -269,6 +269,7 @@ gulp.task('android-apk', function () {
   .pipe(shell([
     'cordova platform add android',
     'cordova plugin add cordova-plugin-admobpro',
+    'cordova plugin add cordova-plugin-background-mode',
     'cordova plugin add https://github.com/VersoSolutions/CordovaClipboard',
     'cordova plugin add https://github.com/fastrde/phonegap-md5.git',
     'cordova plugin add https://github.com/whiteoctober/cordova-plugin-app-version.git',

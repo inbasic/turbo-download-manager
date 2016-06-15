@@ -198,6 +198,27 @@ app.arguments = function (c) {
   electron.arguments();
   app.on('command-line', (argv) => callback(argv));
 };
+
+app.confirm = window.confirm;
+
+app.runtime = (function () {
+  function warn (e) {
+    console.error(e);
+    if (!window.confirm('There are still some unfinished jobs that cannot be resumed if Turbo Download Manager is closed. Are you sure you want to exit?')) {
+      e.preventDefault();
+      return 'true';
+    }
+  }
+
+  return {
+    suspend: {
+      watch: () => window.onbeforeunload = warn,
+      release: ()=> window.onbeforeunload = null
+    }
+  };
+})();
+
+
 /* proxy */
 app.storage.on('pref.network.proxy-server', electron.proxy);
 electron.proxy(config.network['proxy-server']);

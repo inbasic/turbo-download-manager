@@ -83,6 +83,10 @@ config.defineInt = function (name, value, min, max) {
 config.get = function (name) {
   return name.split('.').reduce((p, c) => p[c], config);
 };
+config.reset = function (pref) {
+  let value = pref.split('.').reduce((p, c) => p[c], config.defaults);
+  config.set(pref, value);
+};
 config.set = function (pref, value) {
   let root = pref.split('.');
   let name = root.pop();
@@ -132,15 +136,15 @@ config.titles = {
   'icon.timeout': 'the number of seconds for the badge icon to display error or success (firefox, chrome, opera only)',
   'welcome.show': 'display FAQs page on upgrades',
   'manager.launch-if-done': 'open downloaded file with an external application (instead of using preview window) (firefox, android, electron only)',
-  'electron.exit-on-close': 'exit the downloader if close button is pressed',
+  'electron.exit-on-close': 'exit the downloader if close button is pressed (electron only)',
   'electron.user-agent': 'overwrite the default user-agent (electron only)',
-  'electron.update': 'notify user about the new versions. Acceptable values: release or prerelease.',
-  'preview.external.image.path': 'executable path for previewing image files',
-  'preview.external.video.path': 'executable path for previewing video files',
-  'preview.external.audio.path': 'executable path for previewing audio files',
-  'preview.external.image.args': 'pass these extra arguments to the executable',
-  'preview.external.video.args': 'pass these extra arguments to the executable',
-  'preview.external.audio.args': 'pass these extra arguments to the executable',
+  'electron.update': 'notify user about the new versions. Acceptable values: release or prerelease (electron only)',
+  'preview.external.image.path': 'executable path for previewing image files (firefox, electron only)',
+  'preview.external.video.path': 'executable path for previewing video files (firefox, electron only)',
+  'preview.external.audio.path': 'executable path for previewing audio files (firefox, electron only)',
+  'preview.external.image.args': 'pass these extra arguments to the executable (firefox, electron only)',
+  'preview.external.video.args': 'pass these extra arguments to the executable (firefox, electron only)',
+  'preview.external.audio.args': 'pass these extra arguments to the executable (firefox, electron only)',
   'network.proxy-server': 'socks5://host:port (electron, android only)'
 };
 
@@ -170,8 +174,8 @@ config.defineInt('wget.pause', 500, 100); // milliseconds; called after a failed
 config.defineInt('wget.short-pause', 100); // milliseconds; called after a successful chuck
 config.defineInt('wget.write-size', 200 * 1024, 1024); // bytes
 config.defineInt('wget.min-segment-size', 50 * 1024, 1024); // bytes
-config.defineInt('wget.max-segment-size', 100 * 1024 * 1024); // bytes
-config.defineInt('wget.max-size-md5', 500 * 1024 * 1024, 500 * 1024 * 1024); // bytes
+config.defineInt('wget.max-segment-size', 100 * 1024 * 1024, 100 * 1024); // bytes
+config.defineInt('wget.max-size-md5', 500 * 1024 * 1024, 1, 500 * 1024 * 1024); // bytes
 config.define('wget.directory', '');
 config.define('wget.notice-download', true);
 

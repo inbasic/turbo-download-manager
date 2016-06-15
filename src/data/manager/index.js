@@ -27,18 +27,18 @@ function intervalToTime (sec) {
 }
 
 var confirm = (function (parent, ok, cancel, span) {
-  let callback = function () {};
+  let success = function () {};
   ok.addEventListener('click', function () {
     parent.dataset.visible = false;
-    callback();
+    success();
   });
   cancel.addEventListener('click', function () {
     parent.dataset.visible = false;
   });
-  return (msg, c) => {
+  return (msg, s) => {
     span.textContent = msg;
     parent.dataset.visible = true;
-    callback = c;
+    success = s || success;
   };
 })(
   document.getElementById('confirm'),
@@ -393,7 +393,10 @@ var dd = {
 };
 document.body.addEventListener('drop', dd.drop, false);
 document.body.addEventListener('dragover', dd.dragover, false);
-
+/* confirm */
+background.receive('confirm', (obj) => {
+  confirm(obj.msg, () => obj.cmd && background.send(obj.cmd));
+});
 // manifest
 document.body.dataset.developer = manifest.developer;
 document.body.dataset.helper = manifest.helper;
