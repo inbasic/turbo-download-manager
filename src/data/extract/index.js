@@ -3,8 +3,11 @@
 
 var urls = {};
 var home = /url\=([^\&]+)/.exec(document.location.search);
+function format (url) {
+  return decodeURIComponent(url).replace('http---', 'http://').replace('https---', 'https://').replace('resource---', 'resource://');
+}
 if (home && home.length) {
-  home = decodeURIComponent(home[1]);
+  home = format(home[1]);
 }
 
 background.receive('media', function (obj) {

@@ -2,7 +2,10 @@
 'use strict';
 
 var link = /url\=([^\&]+)/.exec(document.location.search);
-link = link && link.length ? link[1] : null;
+function format (url) {
+  return decodeURIComponent(url).replace('http---', 'http://').replace('https---', 'https://').replace('resource---', 'resource://');
+}
+link = link && link.length ? format(link[1]) : null;
 
 document.querySelector('form').addEventListener('submit', function (e) {
   let folder = document.querySelector('[data-id=folder]').value;

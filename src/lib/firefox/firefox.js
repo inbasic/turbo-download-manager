@@ -436,7 +436,7 @@ exports.fileSystem = {
     toURL: function (file) {
       let res = Services.io.getProtocolHandler('resource').QueryInterface(Ci.nsIResProtocolHandler);
       res.setSubstitution(self.name, Services.io.newURI(Services.io.newFileURI(file).spec, null, null));
-      return resolve('resource---' + self.name);
+      return resolve('resource://' + self.name);
     }
   },
   root: {

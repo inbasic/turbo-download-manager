@@ -2,9 +2,11 @@
 'use strict';
 
 var url = /url\=([^\&]+)/.exec(document.location.search);
+function format (url) {
+  return decodeURIComponent(url).replace('http---', 'http://').replace('https---', 'https://').replace('resource---', 'resource://');
+}
 if (url && url.length) {
-  // Firefox cannot handle argument of type resource in a resource url
-  url = decodeURIComponent(url[1]).replace('resource---', 'resource://');
+  url = format(url[1]);
 }
 var mime = /mime\=([^\&]+)/.exec(document.location.search);
 if (mime && mime.length) {

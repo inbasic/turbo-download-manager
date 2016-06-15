@@ -197,6 +197,10 @@ var actions = (function (add, loader, iframe) {
       iframe.src = 'about:blank';
     }
   });
+  function format (url) {
+    return url.replace('http://', 'http---').replace('https://', 'https---').replace('resource://', 'resource---')
+  }
+
   add.addEventListener('click', () => actions.add(), false);
   background.receive('info', function (id) {
     loader.dataset.visible = true;
@@ -217,11 +221,11 @@ var actions = (function (add, loader, iframe) {
   background.receive('extract', function (url) {
     loader.dataset.visible = true;
     url = 'http://add0n.com/gmail-notifier.html?type=context';
-    iframe.src = `../extract/index.html?url=${encodeURIComponent(url)}`;
+    iframe.src = `../extract/index.html?url=${encodeURIComponent(format(url))}`;
   });
   background.receive('preview', function (obj) {
     loader.dataset.visible = true;
-    iframe.src = `../preview/index.html?url=${encodeURIComponent(obj.url)}&mime=${obj.mime}`;
+    iframe.src = `../preview/index.html?url=${encodeURIComponent(format(obj.url))}&mime=${obj.mime}`;
   });
   background.receive('config', function () {
     loader.dataset.visible = true;
@@ -231,7 +235,7 @@ var actions = (function (add, loader, iframe) {
   return {
     add: function (link) {
       loader.dataset.visible = true;
-      iframe.src = '../add/index.html' + (link ? '?url=' + link : '');
+      iframe.src = '../add/index.html' + (link ? '?url=' + encodeURIComponent(format(link)) : '');
     }
   };
 })(document.getElementById('add'), document.getElementById('loader'), document.querySelector('#loader iframe'));

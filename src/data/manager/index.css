@@ -9,6 +9,7 @@ body {
   min-width: 100px;
   min-height: 100px;
   overflow: auto;
+  height: 100%;
 }
 input {
   background: #fff;
