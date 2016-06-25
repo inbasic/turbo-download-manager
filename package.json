@@ -1,7 +1,7 @@
 {
   "name": "itdmanager",
   "title": "Turbo Download Manager",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "a download manager with multi-threading support",
   "scripts": {
   },
@@ -35,7 +35,6 @@
     "gulp-clean": "*",
     "gulp-zip": "*",
     "gulp-rename": "*",
-    "gulp-util": "*",
     "run-sequence": "*",
     "jpm": "*",
     "electron-packager": "*",

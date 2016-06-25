@@ -15,6 +15,7 @@
   },
   "permissions": {
     "private-browsing": true,
-    "unsafe-content-script": true
+    "unsafe-content-script": true,
+    "multiprocess": true
   }
 }

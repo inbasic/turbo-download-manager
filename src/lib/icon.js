@@ -138,6 +138,7 @@ var icon = typeof exports === 'undefined' ? {} : exports;
 
     return canvas.toDataURL('image/png');
   }
+  icon.register = () => canvas = app.canvas();
   icon.percent = (function () {
     var oValue, oType, id;
     return function (type, value, reset) {

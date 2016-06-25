@@ -1,23 +1,23 @@
-/* globals app */
+/* globals app, icon */
 'use strict';
 
 /* app.button */
 Object.defineProperty(app.button, 'icon', {
   set: function (path) {
-    chrome.runtime.sendMessage(app.runtime.id, {cmd: 'setIcon', path});
+    app.runtime.ids.forEach(id => chrome.runtime.sendMessage(id, {cmd: 'setIcon', path}));
   }
 });
 Object.defineProperty(app.button, 'label', {
   set: function (title) {
-    chrome.runtime.sendMessage(app.runtime.id, {cmd: 'setTitle', title});
+    app.runtime.ids.forEach(id => chrome.runtime.sendMessage(id, {cmd: 'setTitle', title}));
   }
 });
 Object.defineProperty(app.button, 'badge', {
   set: function (val) {
-    chrome.runtime.sendMessage(app.runtime.id, {
+    app.runtime.ids.forEach(id => chrome.runtime.sendMessage(id, {
       cmd: 'setBadgeText',
       text: (val ? val : '') + ''
-    });
+    }));
   }
 });
 /* app.tab */
@@ -30,8 +30,8 @@ app.platform = function () {
 };
 /* app.runtime */
 app.runtime = (function () {
+  let ids = [];
   chrome.app.runtime.onLaunched.addListener(() => app.runtime.launch());
-  let isInstalled = false;
 
   app.manager.receive('chrome:exit', function () {
     chrome.app.window.getAll()[0].close();
@@ -48,13 +48,6 @@ app.runtime = (function () {
   }
 
   return {
-    id: 'gnaepfhefefonbijmhcmnfjnchlcbnfc',
-    get isInstalled () {
-      return isInstalled;
-    },
-    set isInstalled (val) {
-      isInstalled = val;
-    },
     launch: function (callback) {
       chrome.app.window.create('data/manager/index.html', {
         id: 'tdm-manager',
@@ -67,27 +60,48 @@ app.runtime = (function () {
     suspend: {
       watch: () => chrome.runtime.onSuspend.addListener(listen),
       release: () => chrome.runtime.onSuspend.removeListener(listen)
+    },
+    register: (id) => {
+      ids.push(id);
+      ids = ids.filter((o, i, l) => l.indexOf(o) === i);
+    },
+    get ids () {
+      return ids;
     }
   };
 })();
-chrome.runtime.sendMessage(app.runtime.id, app.version());
+
 // communication
-chrome.runtime.onMessageExternal.addListener(function (request, sender) {
-  if (sender.id !== app.runtime.id) {
-    return;
-  }
-  app.runtime.isInstalled = true;
-  if (request.cmd === 'version') {
-    chrome.runtime.sendMessage(app.runtime.id, app.version());
-  }
-  if (request.cmd === 'download') {
-    app.emit('download', request);
-  }
-  if (request.cmd === 'open-manager') {
-    app.runtime.launch();
-  }
-});
-chrome.runtime.sendMessage(app.runtime.id, {cmd: 'version'});
+app.arguments = (function () {
+  let callbacks = [];
+  let requests = [];
+  chrome.runtime.onMessageExternal.addListener(function (request, sender) {
+    if (request.cmd === 'register') {
+      app.runtime.register(sender.id);
+      if (request.support && request.support.indexOf('icon') !== -1) {
+        // allow icon module to generate icons
+        app.canvas = () => document.createElement('canvas');
+        icon.register();
+      }
+    }
+    else {
+      if (callbacks.length) {
+        callbacks.forEach(c => c(request));
+      }
+      else {
+        requests.push(request);
+      }
+    }
+  });
+  // request helper extension to register itself (other applications need to request registration)
+  chrome.runtime.sendMessage('gnaepfhefefonbijmhcmnfjnchlcbnfc', {cmd: 'register'});
+
+  return function (c) {
+    callbacks.push(c);
+    requests.forEach(request => c(request));
+    requests = [];
+  };
+})();
 /* app.download */
 app.download = function (obj) {
   let a = document.createElement('a');

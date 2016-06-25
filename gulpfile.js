@@ -10,7 +10,6 @@ var wait = require('gulp-wait');
 var clean = require('gulp-clean');
 var zip = require('gulp-zip');
 var rename = require('gulp-rename');
-var util = require('gulp-util');
 var runSequence = require('run-sequence');
 
 /* clean */
@@ -172,6 +171,11 @@ gulp.task('chrome-build', function () {
   .pipe(json(true))
   .pipe(shadow('chrome'))
   .pipe(gulp.dest('builds/unpacked/chrome'))
+});
+gulp.task('chrome-pack', function () {
+  return gulp.src([
+    'builds/unpacked/chrome/**/*'
+  ])
   .pipe(zip('chrome.zip'))
   .pipe(gulp.dest('builds/packed'));
 });
@@ -196,7 +200,7 @@ gulp.task('opera-build', function () {
     if (f.relative.indexOf('firefox') !== -1 || f.relative.indexOf('android') !== -1 || f.relative.indexOf('electron') !== -1) {
       return false;
     }
-    if (f.relative.indexOf('chrome') !== -1 && f.relative.indexOf('chrome-cm.js') === -1 && f.relative.indexOf('chrome-br.js') === -1) {
+    if (f.relative.indexOf('chrome') !== -1 && f.relative.indexOf('opera/chrome-cm.js') === -1 && f.relative.indexOf('opera/chrome-br.js') === -1) {
       return false;
     }
     if (f.relative.split('/').length === 1) {
@@ -213,6 +217,11 @@ gulp.task('opera-build', function () {
   .pipe(json(true))
   .pipe(shadow('opera'))
   .pipe(gulp.dest('builds/unpacked/opera'))
+});
+gulp.task('opera-pack', function () {
+  return gulp.src([
+    'builds/unpacked/opera/**/*'
+  ])
   .pipe(zip('opera.zip'))
   .pipe(gulp.dest('builds/packed'));
 });
@@ -361,10 +370,10 @@ gulp.task('firefox-install', function () {
 /* */
 gulp.task('android', (callback) => runSequence('clean', 'android-build', 'android-pack', 'android-run', callback));
 gulp.task('android-travis', (callback) => runSequence('clean', 'android-build', 'android-pack', callback));
-gulp.task('chrome', (callback) => runSequence('clean', 'chrome-build', 'chrome-install', callback));
-gulp.task('chrome-travis', (callback) => runSequence('clean', 'chrome-build', callback));
-gulp.task('opera', (callback) => runSequence('clean', 'opera-build', callback));
-gulp.task('opera-travis', (callback) => runSequence('clean', 'opera-build', callback));
+gulp.task('chrome', (callback) => runSequence('clean', 'chrome-build', 'chrome-pack', 'chrome-install', callback));
+gulp.task('chrome-travis', (callback) => runSequence('clean', 'chrome-build', 'chrome-pack', callback));
+gulp.task('opera', (callback) => runSequence('clean', 'opera-build', 'opera-pack', callback));
+gulp.task('opera-travis', (callback) => runSequence('clean', 'opera-build', 'opera-pack', callback));
 gulp.task('firefox', (callback) => runSequence('clean', 'firefox-build', 'firefox-pack', 'firefox-install', callback));
 gulp.task('firefox-travis', (callback) => runSequence('clean', 'firefox-build', 'firefox-pack', callback));
 gulp.task('electron', (callback) => runSequence('clean', 'electron-build', 'electron-pack', 'electron-install', callback));
