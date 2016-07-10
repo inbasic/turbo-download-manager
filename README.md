@@ -48,6 +48,9 @@ itdmanager uses [GulpJS](http://gulpjs.com/) to build executable files for all p
     1. `electron-packager . "Turbo Download Manager" --platform=linux --arch=x64 --version=0.37.7 --overwrite`
     2. `electron-packager . "Turbo Download Manager" --platform=linux --arch=ia32 --version=0.37.7 --overwrite`
 
+### Preview (YouTube)
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/Uf4C733-bYU/0.jpg)](https://www.youtube.com/watch?v=Uf4C733-bYU)
+
 ### Technical notes:
 
   1. To inspect the webkit related projects use [chrome://inspect/#devices](chrome://inspect/#devices)

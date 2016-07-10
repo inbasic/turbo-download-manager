@@ -559,6 +559,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       }
     });
     event.on('rename', function (name) {
+      name = name.trim();
       if (name && internals.name !== name) {
         internals.file.rename(name).then(() => {
           internals.name = name;
