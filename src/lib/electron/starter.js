@@ -62,6 +62,7 @@ var contextmenu = (function () {
     {type: 'separator'},
     {label: 'Adjust Triggers', click: () => mainWindow.webContents.send('open', 'triggers')},
     {label: 'Configuration Editor', click: () => mainWindow.webContents.send('open', 'config')},
+    {label: 'History', click: () => mainWindow.webContents.send('open', 'logs')},
     {label: 'Developer Tools', accelerator: 'CmdOrCtrl+Shift+J', click: () => mainWindow.webContents.send('open', 'developer')},
     {type: 'separator'},
     {label: 'Quit', accelerator: 'Command+Q', click: function () {

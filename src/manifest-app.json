@@ -29,6 +29,8 @@
         "lib/io.js",
         "lib/wget.js",
         "lib/icon.js",
+        "lib/dexie.js",
+        "lib/session.js",
         "lib/mwget.js"
       ]
     }

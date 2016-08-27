@@ -66,7 +66,7 @@ app.fileSystem = {
     create: (root, name) => new Promise(function (resolve) {
       // 'wx+' - Open file for reading and writing. It fails if path exists.
       let url = electron.path.join(root, name);
-      electron.fs.open(url, 'wx+', function (err, fd) {
+      electron.fs.open(url, 'a+', function (err, fd) {
         if (err) {
           throw err;
         }
@@ -217,7 +217,6 @@ app.runtime = (function () {
     }
   };
 })();
-
 
 /* proxy */
 app.storage.on('pref.network.proxy-server', electron.proxy);

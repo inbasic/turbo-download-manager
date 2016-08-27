@@ -145,13 +145,14 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     return d.promise;
   };
 
-  function aget (obj) {
+  function aget (obj, restore) {
     obj.threads = obj.threads || 1;
     obj.retries = obj.retries || 30;
     obj.alternatives = (obj.alternatives || []).filter(url => url);
     obj.urls = [];
 
-    let event = new app.EventEmitter(), d = app.Promise.defer(), info, segments = [], lastCount = 0;
+    let event = new app.EventEmitter(), d = app.Promise.defer(), segments = [], info, lastCount = 0;
+
     let internals = {};
     let buffers = [];
     let idSchedule;
@@ -184,9 +185,19 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     utils.assign(internals, 'status', event)
          .assign(internals, 'retries', event, 0)
          .assign(internals, 'available', event, true);
-    internals.status = 'head';  // 'head', 'download', 'error', 'done', 'pause'
 
     event.on('status', (s) => event.emit('add-log', `Download status is changed to **${s}**`));
+
+
+    if (restore) {
+      info = restore.info;
+      internals.status = 'pause';
+      event.emit('info', info);
+    }
+    else {
+      internals.status = 'head';  // 'head', 'download', 'error', 'done', 'pause'
+    }
+
 
     function count () {
       let c = segments.filter(s => s.status === 'downloading').length;
@@ -413,7 +424,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         name = name.replace(se[0], '');
       }
       // removing exceptions
-      name = name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-');
+      name = name.replace(/[\\\/\:\*\?\"<\>\|\"]/g, '-');
       // removing trimming white spaces
       name = name.trim();
       if (se && se.length) {
@@ -438,40 +449,52 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       if (info.encoding) {
         event.emit('add-log', '\`info.encoding\` is not null', {type: 'warning'});
       }
-      (function (len) {
-        len = Math.max(len, obj['min-segment-size'] || 50 * 1024);
-        len = Math.min(len, obj['max-segment-size'] || 100 * 1024 * 1024);
-        len = Math.min(info.length, len);
-
-        let threads = Math.floor(info.length / len);
-        if (!info['multi-thread']) {
-          threads = 1;
-        }
-        let arr = Array.from(new Array(threads), (x, i) => i);
-        internals.ranges = arr.map((a, i, l) => ({
-          start: a * len,
-          end: l.length === i + 1 ? info.length - 1 : (a + 1) * len - 1
-        }));
+      if (restore) {
+        internals.ranges = restore.internals.ranges;
         internals.locks = [];
-      })(Math.floor(info.length / obj.threads));
+        internals.status = 'pause';
+        internals.name = restore.file.name;
 
-      if (info['simple-mode']) {
-        internals.ranges[0].end = Infinity;
-        event.emit('add-log', 'Server does not support multi-threading; Either file-size is not defined or file is encoded', {type: 'warning'});
+      }
+      else {
+        (function (len) {
+          len = Math.max(len, obj['min-segment-size'] || 50 * 1024);
+          len = Math.min(len, obj['max-segment-size'] || 100 * 1024 * 1024);
+          len = Math.min(info.length, len);
+
+          let threads = Math.floor(info.length / len);
+          if (!info['multi-thread']) {
+            threads = 1;
+          }
+          let arr = Array.from(new Array(threads), (x, i) => i);
+          internals.ranges = arr.map((a, i, l) => ({
+            start: a * len,
+            end: l.length === i + 1 ? info.length - 1 : (a + 1) * len - 1
+          }));
+          internals.locks = [];
+        })(Math.floor(info.length / obj.threads));
+
+        if (info['simple-mode']) {
+          internals.ranges[0].end = Infinity;
+          event.emit('add-log', 'Server does not support multi-threading; Either file-size is not defined or file is encoded', {type: 'warning'});
+        }
+
+        internals.status = 'download';
+
+        internals.name = guess(Object.assign({
+          mime: info.mime,
+          disposition: info.disposition
+        }, obj));
+
       }
 
-      internals.status = 'download';
-
-      internals.name = guess(Object.assign({
-        mime: info.mime,
-        disposition: info.disposition
-      }, obj));
       event.emit('mime', info.mime);
       internals.file = new io.File({
         name: internals.name,
         mime: info.mime,
         path: obj.folder,
-        length: info.length
+        length: info.length,
+        append: restore ? true : false
       });
       event.emit('name', 'Allocating space ...');
 
@@ -503,7 +526,11 @@ var wget = typeof exports === 'undefined' ? {} : exports;
             obj.urls = obj.urls.concat(urls);
           });
         }
-        if (obj['auto-pause']) {
+        if (restore) {
+          event.emit('add-log', 'This job is restored from session manager');
+          event.emit('pause');
+        }
+        else if (obj['auto-pause']) {
           event.emit('pause');
           if (internals.ranges.length > 1) {
             validateMirrors();
@@ -529,7 +556,10 @@ var wget = typeof exports === 'undefined' ? {} : exports;
             });
           }
         }
-      }).catch((e) => d.reject(e));
+      }).catch((e) => {
+        event.emit('add-log', `Cannot open file; ${e.message || e}`, {type: 'error'});
+        done('error');
+      });
     });
     // pause
     event.on('pause', function () {
@@ -539,6 +569,11 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       internals.status = 'pause';
       segments.forEach(s => s.event.emit('abort'));
       count();
+      // write all leftovers
+      app.Promise.all(buffers.map(b => internals.file.write(b.start, b.segments))).catch(e => {
+        event.emit('add-log', `Cannot open file; ${e.message || e}`, {type: 'error'});
+        done('error');
+      });
     });
     event.on('resume', function () {
       if (internals.status === 'pause') {
@@ -572,6 +607,13 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         });
       }
     });
+    event.on('info', () => {
+      event.emit('add-log', `File mime type is **${info.mime}**`);
+      event.emit('add-log', `File encoding is **${info.encoding}**`);
+      event.emit('add-log', `Server multi-threading support status is **${info['multi-thread']}**`);
+      event.emit('add-log', `File length in bytes is **${info.length}**`);
+      event.emit('add-log', `Actual downloadable URL is ${obj.urls[0]}`);
+    });
 
     // getting header
     // if use-native is true, app.sandbox finds the actual downloadable url
@@ -602,11 +644,6 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         info = i;
         obj.urls = [info && info.url ? info.url : obj.url]; // bypass redirects
         event.emit('info', info);
-        event.emit('add-log', `File mime type is **${info.mime}**`);
-        event.emit('add-log', `File encoding is **${info.encoding}**`);
-        event.emit('add-log', `Server multi-threading support status is **${info['multi-thread']}**`);
-        event.emit('add-log', `File length in bytes is **${info.length}**`);
-        event.emit('add-log', `Actual downloadable URL is ${obj.urls[0]}`);
       },
       (e) => {
         event.emit('add-log', `Cannot get file information form server; ${e.message}`, {type: 'error'});
@@ -637,8 +674,10 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     return {
       event,
       promise,
+      session: restore ? restore.id : null,
       resolve: d.resolve,
       reject: d.reject,
+      get segments () {return segments;},
       get threads () {return lastCount;},
       get status () {return internals.status;},
       get retries () {return internals.retries;},
@@ -648,7 +687,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         obj.threads = uo.threads || obj.threads;
         obj.timeout = uo.timeout ? uo.timeout * 1000 : obj.timeout;
         if (uo.name !== internals.name) {
-          event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"\<\>\|\"]/g, '-')); // removing exceptions
+          event.emit('rename', uo.name.replace(/[\\\/\:\*\?\"<\>\|\"]/g, '-')); // removing exceptions
         }
         if (uo.url && obj.urls.indexOf(uo.url) === -1) {
           app.Promise.race([uo.url, uo.url, uo.url].map(url => head({url, referrer: obj.referrer}))).then(
@@ -673,12 +712,12 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     };
   }
   /* handling IO */
-  function bget (obj) {
-    return aget(obj);
+  function bget (obj, restore) {
+    return aget(obj, restore);
   }
   /* handling speed measurement */
-  function cget (obj) {
-    let b = bget(obj), id, stats = [0];
+  function cget (obj, restore) {
+    let b = bget(obj, restore), id, stats = [0];
     let zeroReport = false;
     obj.update = obj.update || 1000;
 
@@ -721,7 +760,9 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       done();
     });
     b.event.on('resume', start);
-    start();
+    if (!restore) {
+      start();
+    }
 
     b.promise = utils.spy(b.promise, done);
 
@@ -733,8 +774,8 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     return b;
   }
   //listeners clean up
-  function vget (obj) {
-    let c = cget(obj);
+  function vget (obj, restore) {
+    let c = cget(obj, restore);
 
     c.promise = utils.spy(c.promise, function () {
       app.timer.setTimeout(() => c.event.removeAllListeners(), 5000);

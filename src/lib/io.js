@@ -9,6 +9,7 @@ io.File = function (obj) {
   this.name = obj.name || 'unknown';
   this.length = obj.length;
   this.path = obj.path;
+  this.append = obj.append;
   this.internal = false;
   this.writers = 0;
   this.flushed = null;
@@ -27,12 +28,12 @@ io.File.prototype.open = function () {
   ).then(function (root) {
     me.root = root;
     let name = me.name;
-    function check (index) {
+    function check (index, ignore) {
       if (index) {
         name = me.name.replace(/((\.[^\.]{1,3}){0,1}\.[^\.]+)$/, '-' + index + '$1');
       }
       return app.fileSystem.file.exists(root, name).then(function (bol) {
-        if (bol) {
+        if (bol && !ignore) {
           return check((index || 0) + 1);
         }
         else {
@@ -41,10 +42,10 @@ io.File.prototype.open = function () {
         }
       });
     }
-    return check();
+    return check(null, me.append);
   })
   .then((file) => me.file = file)
-  .then(() => app.fileSystem.file.truncate(me.file, me.length))
+  .then(() => me.append ? null : app.fileSystem.file.truncate(me.file, me.length))
   .then(() => me.name);
 };
 io.File.prototype.write = function (offset, arr) {

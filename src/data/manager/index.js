@@ -94,9 +94,12 @@ var toolbar = (function (search) {
   }
   search.addEventListener('input', filter);
   return {
-    set search (value) {
+    set search (value) { // jshint ignore:line
       search.value = value;
-      search.dispatchEvent(new Event('input'));
+      try {
+        search.dispatchEvent(new Event('input'));
+      }
+      catch (e) {}
     }
   };
 })(document.querySelector('#toolbar input[type=search]'));
@@ -198,7 +201,9 @@ var actions = (function (add, loader, iframe) {
     }
   });
   function format (url) {
-    return url.replace('http://', 'http---').replace('https://', 'https---').replace('resource://', 'resource---')
+    return url.replace('http://', 'http---')
+      .replace('https://', 'https---')
+      .replace('resource://', 'resource---');
   }
 
   add.addEventListener('click', () => actions.add(), false);
@@ -231,6 +236,11 @@ var actions = (function (add, loader, iframe) {
     loader.dataset.visible = true;
     iframe.src = '../config/index.html';
   });
+  background.receive('logs', function () {
+    loader.dataset.visible = true;
+    iframe.src = '../logs/index.html';
+  });
+  background.receive('job', url => actions.add(url));
 
   return {
     add: function (link) {
@@ -257,6 +267,7 @@ function remove(id) {
 }
 background.receive('remove', remove);
 background.receive('add', function (obj) {
+  console.error('add', obj);
   let item = add(obj.id);
   item.percent = obj.percent || 0;
   item.size = obj.size;
@@ -272,7 +283,8 @@ background.receive('add', function (obj) {
     item.partial(id, stat.start * 100, stat.width * 100, id);
   }
 });
-background.receive('new', function (id) {
+background.receive('new', (id) => {
+  console.error('new', id);
   add(id);
 });
 background.receive('percent', function (obj) {
@@ -341,6 +353,7 @@ background.receive('progress', function (obj) {
   }
 });
 background.send('init');
+background.receive('session:load', () => background.send('init'));
 
 /* user interaction */
 document.addEventListener('click', function (e) {

@@ -15,11 +15,12 @@ var self          = require('sdk/self'),
     runtime       = require('sdk/system/runtime'),
     array         = require('sdk/util/array'),
     unload        = require('sdk/system/unload'),
-    events        = require('sdk/system/events'),
     xpcom         = require('sdk/platform/xpcom'),
     {Page}        = require('sdk/page-worker'),
     {Class}       = require('sdk/core/heritage'),
-    {all, defer, race, resolve, reject}  = require('sdk/core/promise'),
+    {indexedDB, IDBKeyRange} = require('sdk/indexed-db'),
+    {all, defer, race, resolve, reject} = require('sdk/core/promise'),
+    {Sandbox, evaluate} = require('toolkit/loader'),
     {Ci, Cc, Cu, components}  = require('chrome');
 
 var utils = require('../utils');
@@ -58,6 +59,8 @@ exports.Promise.resolve = resolve;
 
 exports.XMLHttpRequest = xhr.XMLHttpRequest;
 exports.URL = urls.URL;
+exports.indexedDB = indexedDB;
+exports.IDBKeyRange = IDBKeyRange;
 
 exports.mimes = require('../../data/assets/mime.json');
 
@@ -331,7 +334,9 @@ exports.fileSystem = {
       file.append(name);
       let d = defer();
       try {
-        file.create(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
+        if (!file.exists()) {
+          file.create(Ci.nsIFile.NORMAL_FILE_TYPE, FileUtils.PERMS_FILE);
+        }
         d.resolve(file);
       }
       catch (e) {
@@ -592,6 +597,10 @@ exports.OS = (function () {
     data.url('config/index.html'),
     [data.url('./config/firefox/firefox.js'), data.url('./config/index.js')]
   );
+  exports.logs = attach(
+    data.url('logs/index.html'),
+    [data.url('./logs/firefox/firefox.js'), data.url('./logs/index.js')]
+  );
 })(function (include, contentScriptFile) {
   let workers = [], contentScripts = [];
   pageMod.PageMod({
@@ -754,7 +763,12 @@ exports.runtime = (function () {
       aSubject.data = !bol;
     }
   };
-  unload.when(() => observerService.removeObserver(listen, 'quit-application-requested'));
+  unload.when(() => {
+    try {
+      observerService.removeObserver(listen, 'quit-application-requested');
+    }
+    catch (e) {}
+  });
 
   return {
     suspend: {
@@ -763,6 +777,26 @@ exports.runtime = (function () {
     }
   };
 })();
+
+// custom require
+exports.crequire = function (name, arr, extra) {
+  let options = {
+    name: 'tdm-sandbox',
+    wantXrays: false,
+    prototype: {
+      console: {
+         log: console.log.bind(console),
+         info: console.info.bind(console),
+         warn: console.warn.bind(console),
+         error: console.error.bind(console)
+      }
+    }
+  };
+  options.prototype = Object.assign(options.prototype, extra);
+  let sandbox = new Sandbox(options);
+  arr.forEach(n => evaluate(sandbox, 'resource://' + self.id.replace('@', '-at-') + '/lib/' + n + '.js'));
+  return sandbox;
+};
 
 /*
 var {WebRequest} = Cu.import('resource://gre/modules/WebRequest.jsm');

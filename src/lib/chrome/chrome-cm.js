@@ -231,6 +231,21 @@ app.config = (function () {
   };
 })();
 
+// logs
+app.logs = (function () {
+  return {
+    send: (id, data) => chrome.runtime.sendMessage({
+      method: id + '@lg',
+      data
+    }),
+    receive: (id, callback) => chrome.runtime.onMessage.addListener(function (message, sender) {
+      if (id + '@lg' === message.method && sender.url !== document.location.href) {
+        callback.call(sender.tab, message.data);
+      }
+    })
+  };
+})();
+
 app.disk = {
   browse: function () {
     return new Promise(function (resolve, reject) {

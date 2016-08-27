@@ -1,0 +1,59 @@
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>History - Turbo Download Manager</title>
+    <link rel="stylesheet" href="../fonts/fontello.css">
+    <link rel="stylesheet" href="index.css">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, target-densityDpi=device-dpi"/>
+  </head>
+  <body>
+    <div id="container">
+      <div id="toolbar">
+        <input type="button" data-cmd="clear-week" value="Clear more than a week old items">
+        <input type="button" data-cmd="clear-completed" value="Clear completed items">
+        <input type="button" data-cmd="clear-failed" value="Clear failed items">
+        <input type="button" data-cmd="clear-all" value="Clear all">
+      </div>
+      <table id="ref" style="display: none;">
+        <tbody>
+          <tr>
+            <td>completed</td>
+            <td>2016/01/01 20:32:32</td>
+            <td>Sample File name</td>
+            <td>121212</td>
+            <td>http://server-location/file-name</td>
+            <td>Downloads</td>
+            <td><input data-cmd="download" type="button" title="Add as a new job" value="&#xe81a;"></td>
+            <td><input data-cmd="delete" type="button" title="Delete entry from history" value="&#xe802;"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table id="history">
+        <col width="80px"/>
+        <col width="140px"/>
+        <col/>
+        <col width="60px"/>
+        <col/>
+        <col/>
+        <col width="30px"/>
+        <col width="30px"/>
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th>Date</th>
+            <th>Filename</th>
+            <th>Size</th>
+            <th>URL</th>
+            <th>Location</th>
+            <th>C</th>
+            <th>D</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      </table>
+    </div>
+    <script src="shadow_index.js"></script>
+  </body>
+</html>

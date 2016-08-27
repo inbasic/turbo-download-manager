@@ -56,7 +56,9 @@ actions.open = {
   extract: (url) => app.manager.send('extract', url),
   preview: (obj) => app.manager.send('preview', obj),
   config: () => app.manager.send('config'),
-  about: () => app.manager.send('about')
+  about: () => app.manager.send('about'),
+  logs: () => app.manager.send('logs'),
+  job: (url) => app.manager.send('job', url)
 };
 actions.update = (function () {
   function fetch (url) {
@@ -426,6 +428,47 @@ app.config.receive('reset', function (name) {
 });
 /* preview ui */
 app.preview.receive('open', url => app.tab.open(url));
+/* history ui */
+(function (init) {
+  app.logs.receive('init', init);
+  app.logs.receive('download', actions.open.job);
+  app.logs.receive('delete', obj => {
+    mwget.session.kill.id[obj.type](obj.id).catch(e => app.notification(e.message || e));
+  });
+  app.logs.receive('clear-all', () => app.Promise.all([
+    mwget.session.kill.all.completed(),
+    mwget.session.kill.all.failed()
+  ]).then(
+    init,
+    e => app.notification(e.message || e)
+  ));
+  app.logs.receive('clear-completed', () => {
+    return mwget.session.kill.all.completed().then(init).catch(e => app.notification(e.message || e));
+  });
+  app.logs.receive('clear-failed', () => {
+    return mwget.session.kill.all.failed().then(init).catch(e => app.notification(e.message || e));
+  });
+  app.logs.receive('clear-week', () => {
+    return app.Promise.all([
+      mwget.session.kill.days.failed(7),
+      mwget.session.kill.days.completed(7),
+    ]).then(
+      init,
+      e => app.notification(e.message || e)
+    );
+  });
+})(() => {
+  app.Promise.all([
+    mwget.session.list.completed(),
+    mwget.session.list.failed()
+  ]).then(([completed, failed]) => {
+    app.logs.send('init', {
+      completed: completed.map(o => Object.assign(o, {date: o.date.toLocaleString()})),
+      failed: failed.map(o => Object.assign(o, {date: o.date.toLocaleString()}))
+    });
+  }).catch(e => app.notification(e.message || e));
+});
+
 /* startup */
 app.startup(function () {
   // FAQs page

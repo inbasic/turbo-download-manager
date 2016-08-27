@@ -5,6 +5,7 @@ var wget = wget || require('./wget');
 var config = config || require('./config');
 var utils = utils || require('./utils');
 var icon = icon || require('./icon');
+var session = session || require('./session');
 var mwget = typeof exports === 'undefined' ? {} : exports;
 
 (function () {
@@ -56,10 +57,14 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
     callbacks['total-percent'].forEach(c => c(tmp));
   }, config.mwget.percent['rate-total'] * 1000);
 
-  mwget.download = function (obj) {
+  mwget.download = function (obj, restore) {
     if (utils.validate(obj.url)) {
-      let instance = wget.download(obj);
-      instance.stats = {};
+      let instance = wget.download(obj, restore);
+      instance.stats = restore ? restore.stats : {};
+      if (restore) {
+        instance.remained = restore.internals.ranges.reduce((p, c) => p += c.end - c.start, 0);
+      }
+      session.register(instance);
       instance.log = (function () {
         let arr = [];
         return {
@@ -129,7 +134,9 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
         callbacks.percent.forEach(p => p(index, remained, size));
         percent();
       });
-      callbacks.add.forEach(d => d(index));
+      if (!restore) {
+        callbacks.add.forEach(d => d(index));
+      }
       app.timer.setTimeout(count, 0);
       return index;
     }
@@ -140,7 +147,7 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
   mwget.list = () => instances;
   mwget.get = (id) => instances[id];
   mwget.id = (obj) => instances.indexOf(obj);
-  mwget.count = () => count(),
+  mwget.count = () => count();
   mwget.log = (id) => instances[id].log.get();
   mwget.stats = function (index) {
     let wget = instances[index];
@@ -198,4 +205,11 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
       }
     }
   };
+  app.on('session:load', arr => {
+    mwget.list().forEach(instance => session.register(instance));
+    arr.forEach(restore => mwget.download(restore.obj, restore));
+    app.manager.send('session:load');
+  });
+  mwget.session = session;
+  app.timer.setTimeout(session.init, config.session.init * 1000);
 })();
