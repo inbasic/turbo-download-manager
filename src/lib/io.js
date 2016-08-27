@@ -28,9 +28,23 @@ io.File.prototype.open = function () {
   ).then(function (root) {
     me.root = root;
     let name = me.name;
+    let ext = [].concat.apply([], Object.values(app.mimes))
+      .filter(e => name.endsWith(e))
+      // longest one
+      .sort((a, b) => b.length - a.length)[0] || '';
+    if (ext) {
+      ext = '.' + ext;
+    }
+    else {
+      let tmp = /\.[^\.]+$/.exec(name);
+      if (tmp && tmp.length) {
+        ext = tmp[0];
+      }
+    }
+
     function check (index, ignore) {
       if (index) {
-        name = me.name.replace(/((\.[^\.]{1,3}){0,1}\.[^\.]+)$/, '-' + index + '$1');
+        name = me.name.replace(ext, '') + '-' + index + ext;
       }
       return app.fileSystem.file.exists(root, name).then(function (bol) {
         if (bol && !ignore) {
