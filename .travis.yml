@@ -8,6 +8,11 @@ android:
   - extra-google-m2repository
   - extra-android-m2repository
   - addon-google_apis-google-23
+addons:
+  apt:
+    packages:
+    - wine
+    - p7zip-full
 before_install:
   - nvm install 4.2
   - nvm use 4.2
@@ -29,8 +34,6 @@ before_deploy:
   - mv builds/TDM/www/config.xml builds/TDM
   - gulp android-apk
   # electron
-  - sudo apt-get install p7zip-full
-  - sudo apt-get install wine
   - unzip builds/packed/electron.zip -d builds/unpacked/electron
   - gulp electron-packager
 deploy:
