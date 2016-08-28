@@ -267,7 +267,6 @@ function remove(id) {
 }
 background.receive('remove', remove);
 background.receive('add', function (obj) {
-  console.error('add', obj);
   let item = add(obj.id);
   item.percent = obj.percent || 0;
   item.size = obj.size;
@@ -284,7 +283,6 @@ background.receive('add', function (obj) {
   }
 });
 background.receive('new', (id) => {
-  console.error('new', id);
   add(id);
 });
 background.receive('percent', function (obj) {

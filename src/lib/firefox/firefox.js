@@ -779,9 +779,12 @@ exports.runtime = (function () {
 })();
 
 // custom require
-exports.crequire = function (name, arr, extra) {
+exports.crequire = function (name, arr, extra, post) {
+  post = post || function (a) {
+    return a;
+  };
   let options = {
-    name: 'tdm-sandbox',
+    name,
     wantXrays: false,
     prototype: {
       console: {
@@ -795,7 +798,7 @@ exports.crequire = function (name, arr, extra) {
   options.prototype = Object.assign(options.prototype, extra);
   let sandbox = new Sandbox(options);
   arr.forEach(n => evaluate(sandbox, 'resource://' + self.id.replace('@', '-at-') + '/lib/' + n + '.js'));
-  return sandbox;
+  return resolve(post(sandbox));
 };
 
 /*

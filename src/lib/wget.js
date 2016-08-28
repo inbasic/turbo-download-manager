@@ -504,9 +504,14 @@ var wget = typeof exports === 'undefined' ? {} : exports;
         if (name && name !== internals.name) {
           internals.name = name;
           event.emit('name', internals.name);
-          event.emit('add-log', 'File with the same name already exist. Pausing the download for user attention.', {type: 'warning'});
-          app.notification('You new download is paused as a file with the same name exists. Resume if needed.');
-          obj['auto-pause'] = true;
+          if (obj['pause-on-exists']) {
+            event.emit('add-log', 'File with the same name already exists. Pausing the download for user attention.', {type: 'warning'});
+            app.notification('You new download is paused as a file with the same name exists. Resume if needed.');
+            obj['auto-pause'] = true;
+          }
+          else {
+            event.emit('add-log', 'File with the same name already exists. Still downloading due to "pause-on-exists" argument.', {type: 'warning'});
+          }
         }
 
         function validateMirrors () {

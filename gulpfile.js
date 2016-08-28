@@ -261,7 +261,8 @@ gulp.task('android-build', function () {
     return f.path.endsWith('.js') &&
       !f.relative.endsWith('EventEmitter.js') &&
       !f.relative.endsWith('video.js') &&
-      !f.relative.endsWith('showdown.js');
+      !f.relative.endsWith('showdown.js') &&
+      !f.relative.endsWith('dexie.js');
   }, babel({
     presets: ['es2015']
   })))

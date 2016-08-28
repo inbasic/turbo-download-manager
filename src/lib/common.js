@@ -33,6 +33,7 @@ actions.download = function (obj) {
   obj.folder = obj.folder || config.wget.directory;
   obj['min-segment-size'] = obj['min-segment-size'] || config.wget['min-segment-size'];
   obj['max-segment-size'] = obj['max-segment-size'] || config.wget['max-segment-size'];
+  obj['pause-on-exists'] = obj['pause-on-exists'] || config.wget['pause-on-exists'];
 
   // pause trigger
   obj['auto-pause'] = obj['auto-pause'] ||

@@ -399,3 +399,13 @@ app.webRequest = (function () {
     media: (c) => callbacks.media = c
   };
 })();
+/* app.crequire */
+app.crequire = function (name, arr) {
+  return new Promise(function (resolve, reject) {
+    let script = document.createElement('script');
+    script.src = app.getURL('') + '../lib/' + arr[0] + '.js';
+    script.onload = () => resolve(window[name]);
+    script.onerorr = () => reject();
+    document.body.appendChild(script);
+  });
+};

@@ -2,16 +2,6 @@
 
 var app = app || require('./firefox/firefox');
 var config = config || require('./config');
-var Dexie = Dexie || (function (sandbox) {
-  let Dexie = sandbox.Dexie;
-  Dexie.dependencies.indexedDB = app.indexedDB;
-  Dexie.dependencies.IDBKeyRange = app.IDBKeyRange;
-  return Dexie;
-})(app.crequire('dexie', ['dexie'], {
-  global: {},
-  setTimeout: app.timer.setTimeout,
-  clearTimeout: app.timer.clearTimeout
-}));
 var session = typeof exports === 'undefined' ? {} : exports;
 
 app.on('session:error', e => {
@@ -41,22 +31,35 @@ Object.defineProperty(session, 'db', (function () {
 })());
 
 session.init = () => {
-  session.db = new Dexie(config.session.name + '-' + config.session.id);
-  session.db.version(config.session.version).stores({
-    completed: '++id, date, urls, name, path, size, encoding, mime, threading',
-    inprogress: '++id, date, info, obj, internals, file, segments',
-    failed: '++id, date, urls, name, size, error'
-  });
-  session.db.open().then(() => session.db.inprogress.toArray())
-    .then(arr => {
-      app.emit('session:load', arr);
-      // Clean up
-      app.Promise.all([
-        session.kill.days.failed(config.session.expire.failed),
-        session.kill.days.completed(config.session.expire.completed)
-      ]).catch(e => console.error('session:error', e));
-    })
-    .catch((e) => app.emit('session:error', e));
+  app.crequire('Dexie', ['dexie'], {
+    global: {},
+    setTimeout: app.timer.setTimeout,
+    clearTimeout: app.timer.clearTimeout
+  }, function (sandbox) {
+    let Dexie = sandbox.Dexie;
+    Dexie.dependencies.indexedDB = app.indexedDB;
+    Dexie.dependencies.IDBKeyRange = app.IDBKeyRange;
+    return Dexie;
+  }).then((Dexie) => {
+    console.error(Dexie)
+    session.db = new Dexie(config.session.name + '-' + config.session.id);
+    session.db.version(config.session.version).stores({
+      completed: '++id, date, urls, name, path, size, encoding, mime, threading',
+      inprogress: '++id, date, info, obj, internals, file, segments',
+      failed: '++id, date, urls, name, size, error'
+    });
+    session.db.open().then(() => session.db.inprogress.toArray())
+      .then(arr => {
+        app.emit('session:load', arr);
+        // Clean up
+        app.Promise.all([
+          session.kill.days.failed(config.session.expire.failed),
+          session.kill.days.completed(config.session.expire.completed)
+        ]).catch(e => console.error('session:error', e));
+      })
+      .catch((e) => app.emit('session:error', e));
+  })
+  .catch((e) => app.emit('session:error', e));
 };
 
 session.list = {

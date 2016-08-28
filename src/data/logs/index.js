@@ -54,7 +54,6 @@ document.addEventListener('click', (e) => {
 
 background.receive('init', (obj) => {
   tbody.textContent = '';
-  console.error(obj);
   obj.failed.forEach(o => add(o, 'failed'));
   obj.completed.forEach(o => add(o, 'completed'));
 });

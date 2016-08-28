@@ -178,6 +178,7 @@ config.defineInt('wget.max-segment-size', 100 * 1024 * 1024, 100 * 1024); // byt
 config.defineInt('wget.max-size-md5', 500 * 1024 * 1024, 1, 500 * 1024 * 1024); // bytes
 config.define('wget.directory', '');
 config.define('wget.notice-download', true);
+config.define('wget.pause-on-exists', true);
 
 /* config.icon */
 config.defineInt('icon.timeout', 5); // seconds
