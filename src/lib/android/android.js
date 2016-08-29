@@ -108,15 +108,6 @@ if (!Array.from) {
     };
   }());
 }
-if (!Object.values) {
-  Object.values = function (obj) {
-    let tmp = [];
-    for (let n in obj) {
-      tmp.push(obj[n]);
-    }
-    return tmp;
-  };
-}
 /* app.globals */
 app.globals.browser = 'android';
 app.globals.folder = false;

@@ -3,6 +3,17 @@
 
 var app = new utils.EventEmitter();
 
+if (!Object.values) {
+  Object.values = function (obj) {
+    let tmp = [];
+    for (let n in obj) {
+      tmp.push(obj[n]);
+    }
+    return tmp;
+  };
+}
+
+
 app.globals = {
   browser: 'chrome',
   extension: false,
