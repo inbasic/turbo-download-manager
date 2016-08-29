@@ -1,6 +1,4 @@
 language: android
-sudo: required
-dist: trusty
 android:
   components:
   - platform-tools
@@ -34,7 +32,7 @@ before_deploy:
   # electron
   - sudo dpkg --add-architecture i386
   - sudo apt-get update
-  - sudo apt-get install -y wine p7zip-full
+  - sudo apt-get install -y wine1.6 p7zip-full
   - unzip builds/packed/electron.zip -d builds/unpacked/electron
   - gulp electron-packager
 deploy:
