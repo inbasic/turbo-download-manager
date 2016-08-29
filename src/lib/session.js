@@ -5,9 +5,10 @@ var config = config || require('./config');
 var session = typeof exports === 'undefined' ? {} : exports;
 
 app.on('session:error', e => {
+  app.notification(e.message || e);
   console.error('error', e, new Error().stack);
 });
-app.on('session:warning', e => console.error('warning', e));
+app.on('session:warning', function () {});
 
 Object.defineProperty(session, 'db', (function () {
   let _db = {
@@ -41,7 +42,6 @@ session.init = () => {
     Dexie.dependencies.IDBKeyRange = app.IDBKeyRange;
     return Dexie;
   }).then((Dexie) => {
-    console.error(Dexie)
     session.db = new Dexie(config.session.name + '-' + config.session.id);
     session.db.version(config.session.version).stores({
       completed: '++id, date, urls, name, path, size, encoding, mime, threading',

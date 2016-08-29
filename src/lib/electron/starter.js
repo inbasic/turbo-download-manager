@@ -126,7 +126,7 @@ function createWindow () {
       }
     });
     let props = {};
-    let userAgent = storage.getItem('pref.electron.user-agent');
+    let userAgent = storage.getItemSync('pref.electron.user-agent');
     if (userAgent) {
       props.userAgent = userAgent;
     }
@@ -173,7 +173,7 @@ electron.app.on('ready', () => {
 electron.app.on('window-all-closed', function () {
   // synchronizing storage
   storage.initSync({dir: global.constants.storage});
-  if (storage.getItem('pref.electron.exit-on-close') !== false) {
+  if (storage.getItemSync('pref.electron.exit-on-close') !== false) {
     electron.app.quit();
   }
 });

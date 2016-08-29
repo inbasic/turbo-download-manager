@@ -9,10 +9,10 @@ app.globals.reveal = true;
 app.storage = (function () {
   let callbacks = {};
   return {
-    read: (id) => electron.storage.getItem(id),
+    read: (id) => electron.storage.getItemSync(id),
     write: (id, data) => {
-      if (electron.storage.getItem(id) !== data) {
-        electron.storage.setItem(id, data);
+      if (electron.storage.getItemSync(id) !== data) {
+        electron.storage.setItemSync(id, data);
         (callbacks[id] || []).forEach(c => c(data));
       }
     },
