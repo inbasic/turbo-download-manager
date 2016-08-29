@@ -267,19 +267,22 @@ function remove(id) {
 }
 background.receive('remove', remove);
 background.receive('add', function (obj) {
-  let item = add(obj.id);
-  item.percent = obj.percent || 0;
-  item.size = obj.size;
-  item.threads = obj.threads;
-  item.name = obj.name;
-  item.mime = obj.mime;
-  item.status = obj.status;
-  item.speed = obj.speed;
-  item.retries = obj.retries;
-  item.chunkable = obj.chunkable;
-  for (let id in obj.stats) {
-    let stat = obj.stats[id];
-    item.partial(id, stat.start * 100, stat.width * 100, id);
+  let item = get(obj.id);
+  if (!item) {
+    item = add(obj.id);
+    item.percent = obj.percent || 0;
+    item.size = obj.size;
+    item.threads = obj.threads;
+    item.name = obj.name;
+    item.mime = obj.mime;
+    item.status = obj.status;
+    item.speed = obj.speed;
+    item.retries = obj.retries;
+    item.chunkable = obj.chunkable;
+    for (let id in obj.stats) {
+      let stat = obj.stats[id];
+      item.partial(id, stat.start * 100, stat.width * 100, id);
+    }
   }
 });
 background.receive('new', (id) => {

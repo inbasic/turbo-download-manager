@@ -89,32 +89,40 @@ session.kill = (function () {
   };
 })();
 
+session.assign = function (wget) {
+  if (wget.session) {
+    return;
+  }
+  session.db.inprogress.add({
+    'date': new Date(),
+    'info': wget.info,
+    'stats': wget.stats,
+    'obj': wget.obj,
+    'internals': {
+      ranges: wget.internals.ranges
+    },
+    'file': {
+      name: wget.internals.file.name,
+      path: wget.internals.file.path
+    },
+    'segments': {}
+  })
+    .then(id => wget.session = id)
+    .catch(e => app.emit('session:error', e));
+};
+
 session.register = function (wget) {
   if (session.db.dummy) {
     return;
   }
-  wget.event.on('info', () => {
-    if (wget.session) {
-      return;
-    }
-    session.db.inprogress.add({
-      'date': new Date(),
-      'info': wget.info,
-      'stats': wget.stats,
-      'obj': wget.obj,
-      'internals': {
-        ranges: wget.internals.ranges
-      },
-      'file': {
-        name: wget.internals.file.name,
-        path: wget.internals.file.path
-      },
-      'segments': {}
-    }).then(
-      id => wget.session = id,
-      e => app.emit('session:error', e)
-    );
-  });
+  // assign session id to wget
+  if (wget.info) {
+    session.assign(wget);
+  }
+  else {
+    wget.event.once('info', () => session.assign(wget));
+  }
+  // update name
   wget.event.on('name', () => {
     if (wget.session) {
       session.db.inprogress.where('id').equals(wget.session).modify(obj => {

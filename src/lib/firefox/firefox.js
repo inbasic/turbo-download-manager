@@ -759,7 +759,7 @@ exports.runtime = (function () {
   let listen = {
     observe: function (aSubject) {
       aSubject.QueryInterface(Ci.nsISupportsPRBool);
-      let bol = Services.prompt.confirm(null, 'Turbo Download Manager', 'There are still some unfinished jobs that cannot be resumed after closing Firefox. Are you sure you want to exit Firefox?');
+      let bol = Services.prompt.confirm(null, 'Turbo Download Manager', 'There are still some ongoing jobs that cannot be resumed after closing Firefox. Note that only paused jobs are resumed after suspension. Are you sure you want to exit Firefox?');
       aSubject.data = !bol;
     }
   };

@@ -234,7 +234,7 @@ config.define('network.proxy-server', '', function (proxy) { // example: socks5:
 
 /* config.session */
 config.defineInt('session.init', 2, 1); // seconds
-config.defineInt('session.id', 21, 1); // int
+config.defineInt('session.id', 1, 1); // int
 config.defineInt('session.expire.completed', 10, 1); // delete completed items older than n days old
 config.defineInt('session.expire.failed', 10, 1); // delete failed items older than n days old
 config.defineInt('session.version', 1, 1); // int

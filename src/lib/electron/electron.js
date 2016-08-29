@@ -203,8 +203,7 @@ app.confirm = window.confirm;
 
 app.runtime = (function () {
   function warn (e) {
-    console.error(e);
-    if (!window.confirm('There are still some unfinished jobs that cannot be resumed if Turbo Download Manager is closed. Are you sure you want to exit?')) {
+    if (!window.confirm('There are still some ongoing jobs that cannot be resumed if Turbo Download Manager is closed. Note that only paused jobs are resumed after suspension. Are you sure you want to exit?')) {
       e.preventDefault();
       return 'true';
     }

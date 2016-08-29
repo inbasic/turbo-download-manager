@@ -41,7 +41,7 @@ app.runtime = (function () {
   function listen () {
     app.runtime.launch(function () {
       window.setTimeout(() => app.manager.send('confirm', {
-        msg: 'Turbo Download Manager was about to be suspended. There are still some unfinished jobs that cannot be resumed after suspension. Are you sure you want to close the manager?',
+        msg: 'Turbo Download Manager was about to be suspended while there are still some ongoing jobs. Note that only paused jobs are resumed after suspension. Are you sure you want to close the manager?',
         cmd: 'chrome:exit'
       }), 1000);
     });

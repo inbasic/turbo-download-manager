@@ -24,14 +24,13 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
   let suspend = false;
   function count () {
     let c = instances.filter(i => i.status === 'download' || i.status === 'head').length;
-    let d = instances.filter(i => i.status === 'download' || i.status === 'head' || i.status === 'pause').length;
     callbacks.count.forEach(a => a(c));
     // watch for suspension
-    if (d && !suspend) {
+    if (c && !suspend) {
       app.runtime.suspend.watch();
       suspend = true;
     }
-    if (!d && suspend) {
+    if (!c && suspend) {
       app.runtime.suspend.release();
       suspend = false;
     }
