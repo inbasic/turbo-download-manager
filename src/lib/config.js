@@ -153,6 +153,14 @@ config.urls = {
   bug: 'https://github.com/inbasic/turbo-download-manager/',
   faq: 'http://add0n.com/turbo-download-manager.html',
   helper: 'https://chrome.google.com/webstore/detail/turbo-download-manager-he/gnaepfhefefonbijmhcmnfjnchlcbnfc',
+  get bulk () {
+    let urls = {
+      chrome: 'https://chrome.google.com/webstore/detail/bulk-media-downloader/ehfdcgbfcboceiclmjaofdannmjdeaoi',
+      firefox: 'https://addons.mozilla.org/firefox/addon/bulk-media-downloader/',
+      opera: ''
+    };
+    return urls[app.globals.browser] || urls.chrome;
+  },
   sourceforge: 'https://sourceforge.net/projects/turbo-download-manager/files/?source=navbar',
   releases: 'https://github.com/inbasic/turbo-download-manager/releases/',
   api: {
@@ -164,6 +172,7 @@ config.urls = {
 /* config.mwget */
 config.defineInt('mwget.percent.rate-total', 1); //seconds
 config.defineInt('mwget.percent.rate-individual', 1); //seconds
+config.define('mwget.notice-batch-download', true);
 
 /* config.wget */
 config.defineInt('wget.threads', 3); //int

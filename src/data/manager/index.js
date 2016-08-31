@@ -47,6 +47,21 @@ var confirm = (function (parent, ok, cancel, span) {
   document.querySelector('#confirm span')
 );
 
+var notify = (function (parent, span, button) {
+  button.addEventListener('click', () => parent.dataset.visible = false);
+
+  return function (msg) {
+    console.error(msg)
+    span.textContent = msg;
+    parent.dataset.visible = true;
+  };
+})(
+  document.getElementById('notify'),
+  document.querySelector('#notify span:nth-child(2)'),
+  document.querySelector('#notify input')
+);
+background.receive('notify', notify);
+
 // menu
 (function (button, menu) {
   // clear

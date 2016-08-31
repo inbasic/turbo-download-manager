@@ -50,6 +50,7 @@ actions.open = {
   bug: () => app.tab.open(config.urls.bug),
   faq: () => app.tab.open(config.urls.faq),
   helper: () => app.tab.open(config.urls.helper),
+  bulk: () => app.tab.open(config.urls.bulk),
   sourceforge: () => app.tab.open(config.urls.sourceforge),
   releases: () => app.tab.open(config.urls.releases),
   developer: () => app.developer.console(),
@@ -201,6 +202,11 @@ app.manager.receive('init', function () {
       'retries': instance.retries
     });
   });
+  //
+  if (['chrome'].indexOf(app.globals.browser) !== -1 && config.mwget['notice-batch-download']) {
+    app.manager.send('notify', 'For media detection and batch file downloading,\ninstall "Bulk Media Downloader" form the 3-dots menu');
+    config.mwget['notice-batch-download'] = false;
+  }
 });
 app.manager.receive('cmd', function (obj) {
   if (obj.cmd === 'pause') {

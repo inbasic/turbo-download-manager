@@ -410,11 +410,13 @@ item[data-type=done] div[data-type=partial]>div {
   justify-content: center;
   transition: visibility 0s linear 0.2s, opacity 0.2s ease-in-out;
 }
+#notify[data-visible=false],
 #confirm[data-visible=false],
 #loader[data-visible=false] {
   opacity: 0;
   visibility: hidden;
 }
+#notify[data-visible=true],
 #confirm[data-visible=true],
 #loader[data-visible=true] {
   transition-delay: 0s;
@@ -453,6 +455,56 @@ item[data-type=done] div[data-type=partial]>div {
   flex: 1;
   display: flex;
   flex-direction: row-reverse;
+}
+#notify {
+  position: fixed;
+  margin: 0 auto;
+  left: 0;
+  right: 0;
+  bottom: 50px;
+  width: 80%;
+  max-width: 500px;
+  height: 100px;
+  background-color: #ede9c1;
+  display: flex;
+  flex-direction: row;
+  z-index: 3;
+  transition: visibility 0s linear 0.2s, opacity 0.2s ease-in-out;
+}
+#notify>span:first-child {
+  font-size: 150%;
+  display: flex;
+  align-items: center;
+  margin: 20px 0;
+  padding: 0 20px;
+  border-right: 2px solid #fff;
+  color: #c0a730;
+}
+#notify>span:nth-child(2) {
+  margin: auto 10px;
+  text-align: justify;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: pre;
+  flex:  1;
+}
+#notify>div {
+  display: flex;
+  align-items: center;
+  padding-right: 20px;
+}
+#notify input {
+  font-family: fontello;
+  font-size: 150%;
+  color: #c0a730;
+  background-color: transparent;
+  border: none;
+  outline: none;
+}
+@media (max-width: 500px) {
+  #notify>span:first-child {
+    display: none;
+  }
 }
 /* animation */
 .animated {
