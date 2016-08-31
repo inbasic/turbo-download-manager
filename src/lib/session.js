@@ -140,7 +140,7 @@ session.register = function (wget) {
         'date': new Date(),
         'urls': wget.obj.urls,
         'name': wget.internals.file.name,
-        'path': wget.internals.file.path,
+        'path': wget.internals.file.path || wget.internals.file.root.path,
         'size': wget.info.length,
         'encoding': wget.info.encoding,
         'mime': wget.info.mime,
