@@ -1,4 +1,4 @@
-/* globals app, cordova, config */
+/* globals app, cordova, config, mwget */
 'use strict';
 
 if (!Object.assign) {
@@ -301,12 +301,30 @@ document.addEventListener('deviceready', function () {
 }, false);
 
 // internals
+
 document.addEventListener('deviceready', function () {
-  let admobid = {};
-  if ('AdMob' in window && /(android)/i.test(navigator.userAgent) && false) {
-    admobid = {
-      banner: 'ca-app-pub-8474379789882900/4565165323'
-    };
+  let admobid = {
+    banner: 'ca-app-pub-8474379789882900/4565165323',
+    interstitial: 'ca-app-pub-8474379789882900/3701924924'
+  };
+  function prepare () {
+    window.AdMob.prepareInterstitial({
+      adId: admobid.interstitial,
+      autoShow: false
+    });
+  }
+  if ('AdMob' in window && /(android)/i.test(navigator.userAgent)) {
+    let count = 0;
+    prepare();
+    document.addEventListener('onAdDismiss', e => e.adType === 'interstitial' && prepare());
+
+    mwget.addEventListener('done', () => {
+      count += 1;
+      if (count % 2 === 0) {
+        window.AdMob.isInterstitialReady(isready => isready && window.AdMob.showInterstitial());
+      }
+    });
+    /*
     window.AdMob.createBanner({
       adId: admobid.banner,
       position: window.AdMob.AD_POSITION.TOP_CENTER,
@@ -314,11 +332,12 @@ document.addEventListener('deviceready', function () {
       success:function () {},
       error: function () {}
     });
+    */
   }
 }, false);
 
 // Intent
-document.addEventListener('deviceReady', function (){
+document.addEventListener('deviceReady', function () {
   window.plugins.intent.setNewIntentHandler(function (Intent) {
     if (Intent.action === 'android.intent.action.VIEW') {
       app.emit('command-line', {

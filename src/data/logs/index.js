@@ -30,8 +30,6 @@ function add (obj, type) {
   tr.dataset.type = type;
   tr.dataset.url = obj.urls[0];
 
-  console.error(obj, type)
-
   tbody.appendChild(tr);
 }
 
