@@ -195,7 +195,7 @@ config.defineInt('icon.timeout', 5); // seconds
 /* config.triggers */
 config.define('triggers.pause.enabled', true);
 config.defineInt('triggers.pause.value', 3, 1, 10); // int
-config.define('triggers.start.enabled', false);
+config.define('triggers.start.enabled', true);
 config.defineInt('triggers.start.value', 3, 1, 10); // int
 config.define('triggers.success.enabled', false);
 config.defineInt('triggers.success.value', 60, 10); // seconds

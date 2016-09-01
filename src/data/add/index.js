@@ -21,7 +21,7 @@ document.querySelector('form').addEventListener('submit', function (e) {
     'timeout': +document.querySelector('[data-id=timeout]').value,
     'threads': +document.querySelector('[data-id=threads]').value,
     'folder': document.querySelector('[data-id=folder]').value,
-    'auto-pause': document.querySelector('[data-id="auto-pause"]').checked,
+    'persistent-pause': document.querySelector('[data-id="auto-pause"]').checked,
     'use-native': document.querySelector('[data-id="use-native"]').checked
   });
   e.preventDefault();

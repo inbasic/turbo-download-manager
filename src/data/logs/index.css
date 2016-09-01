@@ -1,11 +1,8 @@
 body {
-  display: flex;
-  flex-direction: column;
   height: 100%;
   margin: 0;
   box-sizing: border-box;
   padding: 0;
-  overflow: auto;
 }
 body,
 table,
@@ -38,10 +35,9 @@ input:invalid {
 }
 
 #container {
-  flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: auto;
+  height: 100%;
 }
 #container table input {
   font-family: fontello;
@@ -113,7 +109,18 @@ tr[data-type=failed] td:first-child {
   color:  red;
 }
 
+#history {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+#history>div:last-child {
+  overflow-y: overlay;
+}
+
 #toolbar {
+  overflow: hidden;
   height: 38px;
   display: flex;
   align-items: center;

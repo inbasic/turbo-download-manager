@@ -36,7 +36,7 @@ actions.download = function (obj) {
   obj['pause-on-exists'] = obj['pause-on-exists'] || config.wget['pause-on-exists'];
 
   // pause trigger
-  obj['auto-pause'] = obj['auto-pause'] ||
+  obj['temporary-pause'] = obj['temporary-pause'] ||
     (config.triggers.pause.enabled && mwget.count() >= config.triggers.pause.value);
 
   // on Android and Opera, there is no directory selection
@@ -109,7 +109,7 @@ app.on('download', actions.download);
       }))],
       ['Bypass page redirection then pause', (obj) => actions.download(Object.assign(obj, {
         'use-native': true,
-        'auto-pause': true
+        'persistent-pause': true
       }))]
     );
   }
@@ -117,7 +117,7 @@ app.on('download', actions.download);
 })([
   ['Download now', actions.download],
   ['Download later', (obj) => actions.download(Object.assign(obj, {
-    'auto-pause': true
+    'persistent-pause': true
   }))]
 ]);
 
@@ -139,7 +139,11 @@ mwget.addEventListener('details', function (id, type, value) {
   if (type === 'status' && config.triggers.start.enabled) {
     if (value === 'error' || value === 'pause' || value === 'done') {
       if (mwget.count() < config.triggers.start.value) {
-        let instance = mwget.list().filter(i => i.status === 'pause' && i.internals.available).shift();
+        let instance = mwget.list().filter(
+          i => i.status === 'pause' &&
+          i !== mwget.get(id) &&
+          i.isAvailable()
+        ).shift();
         if (instance) {
           mwget.resume(mwget.id(instance));
         }
@@ -210,7 +214,7 @@ app.manager.receive('init', function () {
 });
 app.manager.receive('cmd', function (obj) {
   if (obj.cmd === 'pause') {
-    mwget.pause(obj.id);
+    mwget.pause(obj.id, true);
   }
   if (obj.cmd === 'resume') {
     mwget.resume(obj.id);

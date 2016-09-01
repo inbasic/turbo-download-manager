@@ -301,7 +301,6 @@ document.addEventListener('deviceready', function () {
 }, false);
 
 // internals
-
 document.addEventListener('deviceready', function () {
   let admobid = {
     banner: 'ca-app-pub-8474379789882900/4565165323',

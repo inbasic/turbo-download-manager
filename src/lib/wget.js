@@ -11,7 +11,8 @@ var wget = typeof exports === 'undefined' ? {} : exports;
 // @param  {[type]} obj.folder        [folder path to store download link to (Firefox only)]
 // @param  {[type]} obj.name          [overwrite suggested file-name]
 // @param  {[type]} obj.timeout       [timeout]
-// @param  {[type]} obj['auto-pause'] [auto-pause after retrieving file info]
+// @param  {[type]} obj['persistent-pause'] [persistent-pause = true is not being triggered automatically for resume]
+// @param  {[type]} obj['temporary-pause'] [pause it for mow but can be resumed by resume triggers]
 // @param  {[type]} obj.retries       [number of retries; 50]
 // @param  {[type]} obj.headers       [headers; {}]
 // @param  {[type]} obj.pause         [delay in between multiple schedule calls; 100 mSecs]
@@ -183,8 +184,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     }
 
     utils.assign(internals, 'status', event)
-         .assign(internals, 'retries', event, 0)
-         .assign(internals, 'available', event, true);
+         .assign(internals, 'retries', event, 0);
 
     event.on('status', (s) => event.emit('add-log', `Download status is changed to **${s}**`));
 
@@ -507,7 +507,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
           if (obj['pause-on-exists']) {
             event.emit('add-log', 'File with the same name already exists. Pausing the download for user attention.', {type: 'warning'});
             app.notification('You new download is paused as a file with the same name exists. Resume if needed.');
-            obj['auto-pause'] = true;
+            obj['persistent-pause'] = true;
           }
           else {
             event.emit('add-log', 'File with the same name already exists. Still downloading due to "pause-on-exists" argument.', {type: 'warning'});
@@ -535,7 +535,8 @@ var wget = typeof exports === 'undefined' ? {} : exports;
           event.emit('add-log', 'This job is restored from session manager');
           event.emit('pause');
         }
-        else if (obj['auto-pause']) {
+        else if (obj['temporary-pause'] || obj['persistent-pause']) {
+          console.error('we are here')
           event.emit('pause');
           if (internals.ranges.length > 1) {
             validateMirrors();
@@ -567,10 +568,11 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       });
     });
     // pause
-    event.on('pause', function () {
+    event.on('pause', function (manual) {
       // do not let triggers to resume the download when it goes to the pause mode
-      internals.available = false;
-      app.timer.setTimeout(() => internals.available = true, 10 * 1000);
+      if (manual) {
+        obj['persistent-pause'] = true;
+      }
       internals.status = 'pause';
       segments.forEach(s => s.event.emit('abort'));
       count();
@@ -688,6 +690,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       get retries () {return internals.retries;},
       get info () {return info;},
       get internals () {return internals;},
+      isAvailable: () => obj['persistent-pause'] ? false : true,
       modify: function (uo) {
         obj.threads = uo.threads || obj.threads;
         obj.timeout = uo.timeout ? uo.timeout * 1000 : obj.timeout;

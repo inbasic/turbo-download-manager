@@ -1,7 +1,7 @@
 /* globals background */
 'use strict';
 
-var tbody = document.querySelector('#history tbody');
+var tbody = document.querySelector('#history table:last-child tbody');
 var ref = document.querySelector('#ref tr');
 
 function bytesToSize(bytes) {

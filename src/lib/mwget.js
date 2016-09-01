@@ -154,10 +154,10 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
       return wget.stats;
     }
   };
-  mwget.pause = function (index) {
+  mwget.pause = function (index, manual) {
     let wget = instances[index];
     if (wget) {
-      wget.event.emit('pause');
+      wget.event.emit('pause', manual);
     }
   };
   mwget.resume = function (index) {
@@ -206,7 +206,10 @@ var mwget = typeof exports === 'undefined' ? {} : exports;
   };
   app.on('session:load', arr => {
     mwget.list().forEach(instance => session.register(instance));
-    arr.forEach(restore => mwget.download(restore.obj, restore));
+    // all downloads from session restore will go to the persistent paused mode
+    arr.forEach(restore => mwget.download(
+      Object.assign(restore.obj, {'persistent-pause': true}), restore)
+    );
     app.manager.send('session:load');
   });
   mwget.session = session;
