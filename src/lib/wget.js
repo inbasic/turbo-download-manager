@@ -536,7 +536,6 @@ var wget = typeof exports === 'undefined' ? {} : exports;
           event.emit('pause');
         }
         else if (obj['temporary-pause'] || obj['persistent-pause']) {
-          console.error('we are here')
           event.emit('pause');
           if (internals.ranges.length > 1) {
             validateMirrors();

@@ -64,7 +64,7 @@ app.fileSystem = {
   file: {
     exists: (root, name) => new Promise((resolve) => electron.fs.exists(electron.path.join(root, name), resolve)),
     create: (root, name) => new Promise(function (resolve) {
-      // 'wx+' - Open file for reading and writing. It fails if path exists.
+      // 'a+' - Open file for reading and appending. The file is created if it does not exist.
       let url = electron.path.join(root, name);
       electron.fs.open(url, 'a+', function (err, fd) {
         if (err) {
@@ -74,31 +74,32 @@ app.fileSystem = {
       });
     }),
     truncate: () => Promise.resolve(),
-    write: function (file, offset, arr) {
-      function write (offset, ab) {
-        let buffer = electron.Buffer.from(ab);
-        return new Promise(function (resolve, reject) {
-          electron.fs.write(file.fd, buffer, 0, buffer.length, offset, function (err, written, buffer) {
-            if (err) {
-              throw err;
-            }
-            if (written !== buffer.length) {
-              return reject(new Error('written length does not match to the actual buffer size'));
-            }
-            resolve();
-          });
+    // only single instance of write is allowed at a time
+    write: function (file, start, arr) {
+      let d = app.Promise.defer();
+
+      let blob = new Blob(arr, {type: 'application/octet-stream'});
+      let reader = new FileReader();
+      reader.onloadend = function () {
+        let buffer = electron.Buffer.from(reader.result);
+        let writeable = electron.fs.createWriteStream(file.path, {
+          flags: 'r+',
+          start
         });
-      }
-      let m = [];
-      let c = offset;
-      for (let i = 0; i < arr.length; i++) {
-        m.push(write(c, arr[i]));
-        c += arr[i].length;
-      }
-      return Promise.all(m);
+        writeable.on('error', e => d.reject(e));
+        writeable.on('finish', () => {
+          d.resolve();
+        });
+        writeable.on('close', () => writeable.close());
+        writeable.end(buffer, null);
+      };
+      reader.readAsArrayBuffer(blob);
+
+      return d.promise;
     },
     md5: (file) => new Promise(function (resolve) {
-      electron.fs.readFile(file.fd, function (err, buf) {
+      // readFile(file.fd) => [] on Windows
+      electron.fs.readFile(file.path, function (err, buf) {
         if (err) {
           throw err;
         }
@@ -158,7 +159,6 @@ app.fileSystem = {
     })
   }
 };
-
 app.sandbox = function (url, options) {
   let d = Promise.defer();
   let webview = document.createElement('webview');

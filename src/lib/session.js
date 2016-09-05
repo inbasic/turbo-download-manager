@@ -135,17 +135,22 @@ session.register = function (wget) {
   });
   wget.event.on('status', (status) => {
     if (status === 'done' || status === 'error') {
-      session.db.inprogress.where('id').equals(wget.session).delete().catch(e => app.emit('session:error', e));
-      session.db[status === 'done' ? 'completed' : 'failed'].add({
-        'date': new Date(),
-        'urls': wget.obj.urls,
-        'name': wget.internals.file.name,
-        'path': wget.internals.file.path || wget.internals.file.root.path,
-        'size': wget.info.length,
-        'encoding': wget.info.encoding,
-        'mime': wget.info.mime,
-        'threading': wget.info['multi-thread']
-      }).catch(e => app.emit('session:error', e));
+      if (wget.session) {
+        session.db.inprogress.where('id').equals(wget.session).delete().catch(e => app.emit('session:error', e));
+        session.db[status === 'done' ? 'completed' : 'failed'].add({
+          'date': new Date(),
+          'urls': wget.obj.urls,
+          'name': wget.internals.file.name,
+          'path': wget.internals.file.path || wget.internals.file.root.path,
+          'size': wget.info.length,
+          'encoding': wget.info.encoding,
+          'mime': wget.info.mime,
+          'threading': wget.info['multi-thread']
+        }).catch(e => app.emit('session:error', e));
+      }
+      else {
+        app.emit('session:warning', 'wget.session is not yet created');
+      }
     }
     if (status === 'pause') {
       if (wget.session) {
