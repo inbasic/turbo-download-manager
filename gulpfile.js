@@ -30,12 +30,19 @@ function json (clean) {
   if (clean) {
     version = version.replace(/.beta*/, '');
   }
+
+  function code (version) {
+    let [a, b, c] = version.split('.');
+    return (+b) * 1000 + (+c) * 10 + 1;
+  }
+
   return gulpif(f => f.relative.endsWith('.json') || f.relative.endsWith('.xml'), change(content => content
     .replace('%title;', config.title)
     .replace('%name;', config.name)
     .replace('%description;', config.description)
     .replace('%license;', config.license)
     .replace('%version;', version)
+    .replace('%version-code;', code(version))
     .replace('%author;', config.author)
     .replace('%email;', config.email)
     .replace('%homepage;', config.homepage)
