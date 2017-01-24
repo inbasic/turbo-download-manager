@@ -100,6 +100,10 @@ var wget = typeof exports === 'undefined' ? {} : exports;
   var head = function (obj, forced, d) {
     let req = new app.XMLHttpRequest();
     d = d || app.Promise.defer();
+    // Fixing Google redirect
+    if (obj.url.startsWith('https://www.google.com/url?') && obj.url.indexOf('&url=') !== -1) {
+      obj.url = decodeURIComponent(obj.url.split('&url=')[1].split('&')[0])
+    }
 
     req.open(forced ? 'GET' : 'HEAD', obj.url, true);
     req.setRequestHeader('Cache-Control', 'max-age=0');
@@ -112,7 +116,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       let length = +req.getResponseHeader('Content-Length');
       let contentEncoding = req.getResponseHeader('Content-Encoding');
       let lengthComputable = req.getResponseHeader('Length-Computable');
-      // console.error(req.getAllResponseHeaders(), obj)
+      // console.error(req.getAllResponseHeaders(), req.status, req, obj)
       if (req.getResponseHeader('Content-Length') === null && !forced) {
         head(obj, true, d);
       }

@@ -1,4 +1,4 @@
-/* globals app, icon */
+/* globals app */
 'use strict';
 
 /* app.button */
@@ -68,38 +68,6 @@ app.runtime = (function () {
     get ids () {
       return ids;
     }
-  };
-})();
-
-// communication
-app.arguments = (function () {
-  let callbacks = [];
-  let requests = [];
-  chrome.runtime.onMessageExternal.addListener(function (request, sender) {
-    if (request.cmd === 'register') {
-      app.runtime.register(sender.id);
-      if (request.support && request.support.indexOf('icon') !== -1) {
-        // allow icon module to generate icons
-        app.canvas = () => document.createElement('canvas');
-        icon.register();
-      }
-    }
-    else {
-      if (callbacks.length) {
-        callbacks.forEach(c => c(request));
-      }
-      else {
-        requests.push(request);
-      }
-    }
-  });
-  // request helper extension to register itself (other applications need to request registration)
-  chrome.runtime.sendMessage('gnaepfhefefonbijmhcmnfjnchlcbnfc', {cmd: 'register'});
-
-  return function (c) {
-    callbacks.push(c);
-    requests.forEach(request => c(request));
-    requests = [];
   };
 })();
 /* app.download */

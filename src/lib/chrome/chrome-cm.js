@@ -1,4 +1,4 @@
-/* globals CryptoJS, utils, config */
+/* globals CryptoJS, utils, config, icon */
 'use strict';
 
 var app = new utils.EventEmitter();
@@ -282,7 +282,39 @@ app.play = (src) => {
   audio.play();
 };
 /* app.arguments */
-app.arguments = function () {};
+app.arguments = (function () {
+  let callbacks = [];
+  let requests = [];
+  if (chrome.runtime && chrome.runtime.onMessageExternal) {
+    chrome.runtime.onMessageExternal.addListener(function (request, sender) {
+      if (request.cmd === 'register') {
+        app.runtime.register(sender.id);
+        if (request.support && request.support.indexOf('icon') !== -1) {
+          // allow icon module to generate icons
+          app.canvas = () => document.createElement('canvas');
+          icon.register();
+        }
+      }
+      else {
+        if (callbacks.length) {
+          callbacks.forEach(c => c(request));
+        }
+        else {
+          requests.push(request);
+        }
+      }
+    });
+  }
+  // request helper extension to register itself (other applications need to request registration)
+  // Chrome Only
+  chrome.runtime.sendMessage('gnaepfhefefonbijmhcmnfjnchlcbnfc', {cmd: 'register'});
+
+  return function (c) {
+    callbacks.push(c);
+    requests.forEach(request => c(request));
+    requests = [];
+  };
+})();
 /* app.fileSystem */
 window.requestFileSystem = window.requestFileSystem || window.webkitRequestFileSystem;
 app.fileSystem = {

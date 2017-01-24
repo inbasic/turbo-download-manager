@@ -51,7 +51,6 @@ var notify = (function (parent, span, button) {
   button.addEventListener('click', () => parent.dataset.visible = false);
 
   return function (msg) {
-    console.error(msg)
     span.textContent = msg;
     parent.dataset.visible = true;
   };
@@ -421,7 +420,9 @@ var dd = {
   dragover: function (e) {
     e.preventDefault();
     let types = Array.from(e.dataTransfer.types);
-    e.dataTransfer.dropEffect = types.indexOf('text/uri-list') !== -1 ? 'link' : 'none';
+    e.dataTransfer.dropEffect = (
+      types.indexOf('text/uri-list') !== -1
+    )  ? 'link' : 'none';
   }
 };
 document.body.addEventListener('drop', dd.drop, false);

@@ -32,7 +32,7 @@ var {Downloads} = Cu.import('resource://gre/modules/Downloads.jsm');
 
 var dnldMgr = Cc['@mozilla.org/download-manager;1'].getService(Ci.nsIDownloadManager);
 
-var desktop = ['winnt', 'linux', 'darwin', 'openbsd'].indexOf(platform) !== -1;
+var desktop = platform !== 'android';
 var xhr = {
   XMLHttpRequest: function () {
     return Cc['@mozilla.org/xmlextras/xmlhttprequest;1'].createInstance(Ci.nsIXMLHttpRequest);
