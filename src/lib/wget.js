@@ -116,7 +116,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       let length = +req.getResponseHeader('Content-Length');
       let contentEncoding = req.getResponseHeader('Content-Encoding');
       let lengthComputable = req.getResponseHeader('Length-Computable');
-      console.error(req.getAllResponseHeaders(), req.status, req, obj)
+      // console.error(req.getAllResponseHeaders(), req.status, req, obj)
       if (req.getResponseHeader('Content-Length') === null && !forced) {
         head(obj, true, d);
       }
@@ -192,7 +192,6 @@ var wget = typeof exports === 'undefined' ? {} : exports;
 
     event.on('status', (s) => event.emit('add-log', `Download status is changed to **${s}**`));
 
-
     if (restore) {
       info = restore.info;
       internals.status = 'pause';
@@ -201,7 +200,6 @@ var wget = typeof exports === 'undefined' ? {} : exports;
     else {
       internals.status = 'head';  // 'head', 'download', 'error', 'done', 'pause'
     }
-
 
     function count () {
       let c = segments.filter(s => s.status === 'downloading').length;
@@ -226,6 +224,7 @@ var wget = typeof exports === 'undefined' ? {} : exports;
       idSchedule = app.timer.setTimeout(schedule, time || obj.pause || 500);
     }
     event.on('call-schedule', callSchedule);
+
     function schedule () {
       if (['error', 'pause', 'done'].indexOf(internals.status) !== -1) {
         return;
@@ -592,6 +591,10 @@ var wget = typeof exports === 'undefined' ? {} : exports;
           internals.locks = [];
         }
         internals.status = 'download';
+        // bug #56 (make sure the initial URL is still being evaluated)
+        obj.urls.push(obj.url);
+        obj.urls = obj.urls.filter((u, i, l) => l.indexOf(u) === i);
+
         schedule();
       }
     });
