@@ -208,7 +208,7 @@ app.manager.receive('init', function () {
   });
   //
   if (['chrome'].indexOf(app.globals.browser) !== -1 && config.mwget['notice-batch-download']) {
-    app.manager.send('notify', 'For media detection and batch file downloading,\ninstall "Bulk Media Downloader" form the 3-dots menu');
+    app.manager.send('notify', 'For media detection and batch file downloading,\ninstall "Bulk Media Downloader" from the 3-dots menu');
     config.mwget['notice-batch-download'] = false;
   }
 });
