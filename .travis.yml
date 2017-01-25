@@ -12,6 +12,10 @@ android:
 before_install:
   - nvm install 6.2
   - nvm use 6.2
+addons:
+  apt:
+    packages:
+      - oracle-java8-installer
 before_script:
   - npm install
 script:
