@@ -4,11 +4,11 @@ android:
   components:
   - platform-tools
   - tools
-  - android-24
+  - android-23
   - extra-google-google_play_services
   - extra-google-m2repository
   - extra-android-m2repository
-  - addon-google_apis-google-24
+  - addon-google_apis-google-23
 before_install:
   - nvm install 6.2
   - nvm use 6.2
@@ -31,6 +31,8 @@ before_deploy:
   - sudo apt-get update -qq
   - sudo apt-get install -y wine1.6 p7zip-full
   # android
+  - mkdir "%ANDROID_HOME%\licenses"
+  - echo |set /p="8933bad161af4178b1185d1a37fbf41ea5269c55" > "%ANDROID_HOME%\licenses\android-sdk-license"
   - gulp android-travis
   - cordova create builds/TDM com.add0n.downloader "Turbo Download Manager"
   - rm -r builds/TDM/www
