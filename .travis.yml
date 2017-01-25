@@ -4,11 +4,11 @@ android:
   components:
   - platform-tools
   - tools
-  - android-23
+  - android-24
   - extra-google-google_play_services
   - extra-google-m2repository
   - extra-android-m2repository
-  - addon-google_apis-google-23
+  - addon-google_apis-google-24
 before_install:
   - nvm install 6.2
   - nvm use 6.2
