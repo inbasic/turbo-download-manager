@@ -2,10 +2,10 @@ language: android
 sudo: required
 android:
   components:
-  - platform-tools
   - tools
-  - build-tools-25.0.1
-  - android-25
+  - platform-tools
+  - build-tools-24.0.2
+  - android-24
   - android-23
   - extra-google-google_play_services
   - extra-google-m2repository
@@ -13,18 +13,14 @@ android:
   - addon-google_apis-google-23
   - add-on
   - extra
-  licenses:
+licenses:
   - 'android-sdk-preview-license-.+'
   - 'android-sdk-license-.+'
   - 'google-gdk-license-.+'
-
+jdk: oraclejdk8
 before_install:
   - nvm install 6.2
   - nvm use 6.2
-addons:
-  apt:
-    packages:
-      - oracle-java8-set-default
 before_script:
   - npm install
 script:
