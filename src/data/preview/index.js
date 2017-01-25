@@ -13,8 +13,6 @@ if (mime && mime.length) {
   mime = decodeURIComponent(mime[1]);
 }
 
-var aaa;
-
 if (mime.split('/')[0] === 'video' && url) {
   document.getElementById('video').style.display = 'flex';
   window.videojs('video-player', {}, function () {
@@ -23,7 +21,6 @@ if (mime.split('/')[0] === 'video' && url) {
       'type': mime,
       'src': url
     }]);
-    aaa = this;
   });
 }
 else if (mime.split('/')[0] === 'audio' && url) {
@@ -40,6 +37,11 @@ else if (mime.split('/')[0] === 'image' && url) {
   let image = document.querySelector('img');
   image.src = url;
   document.getElementById('image').style.display = 'flex';
+}
+else if (mime === 'application/pdf') {
+  let object = document.querySelector('object');
+  object.data = url;
+  document.getElementById('pdf').style.display = 'flex';
 }
 else {
   document.getElementById('not-supported').style.display = 'flex';
