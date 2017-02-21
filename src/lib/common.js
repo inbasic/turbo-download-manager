@@ -78,17 +78,34 @@ actions.update = (function () {
   };
 })();
 
-// supporting comma separated or array of urls
+// supporting comma separated, WildCard and array of urls
 (function (pointer) {
   actions.download = function (obj) {
     let urls = obj.url;
+    console.log(urls);
     if (typeof urls === 'string') {
       urls = urls.replace(/\s*\,\s*http/g, String.fromCharCode(0) + 'http').split(String.fromCharCode(0));
     }
+    // Supporting WildCard
+    urls = urls.map(url => {
+      console.log(url)
+      if (/\{\d+\.\.\d+\}/.test(url)) {
+        let r = /\{(\d+)\.\.(\d+)\}/.exec(url);
+        let start = +r[1];
+        let end = +r[2];
+        console.log(start, end)
+        return Array(end - start + 1).fill().map((x, i) => i + start).map(i => url.replace(r[0], i));
+      }
+      return url;
+    }).reduce((a, b) => a.concat(b));
+
+    console.log(urls)
+
     if (urls.length > 1) {
       obj.alternatives = [];
       obj.name = '';
     }
+    console.log(urls);
     urls.map(url => Object.assign({}, obj, {url})).forEach(pointer);
   };
 })(actions.download);
@@ -208,7 +225,10 @@ app.manager.receive('init', function () {
   });
   //
   if (['chrome'].indexOf(app.globals.browser) !== -1 && config.mwget['notice-batch-download']) {
-    app.manager.send('notify', 'For media detection and batch file downloading,\ninstall "Bulk Media Downloader" from the 3-dots menu');
+    app.manager.send(
+      'notify',
+      'For media detection and batch file downloading,\ninstall "Bulk Media Downloader" from the 3-dots menu'
+    );
     config.mwget['notice-batch-download'] = false;
   }
 });

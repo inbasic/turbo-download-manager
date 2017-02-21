@@ -16,7 +16,14 @@
               <table id="t2">
                 <tbody>
                   <tr>
-                    <td><input data-id="url" type="text" placeholder="http(s)://comma-separated-list-of-downloadable-links" autofocus></td>
+                    <td>
+                      <input
+                        data-id="url"
+                        type="text"
+                        placeholder="http(s)://comma-separated-list-of-downloadable-links or http(s)://download.example.com/name-{00..05}.jpg"
+                        title="Acceptable formats: 1. http(s)://a-downloadable-link or http(s)://comma-separated-list-of-downloadable-links or http(s)://a-downloadable-link/name-{00..05}.jpg"
+                        autofocus>
+                    </td>
                     <td><span data-cmd="plus" class="icon-" title="Add a mirror link"></span></td>
                   </tr>
                   <tr>

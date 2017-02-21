@@ -3,7 +3,10 @@
 
 var link = /url\=([^\&]+)/.exec(document.location.search);
 function format (url) {
-  return decodeURIComponent(url).replace('http---', 'http://').replace('https---', 'https://').replace('resource---', 'resource://');
+  return decodeURIComponent(url)
+    .replace('http---', 'http://')
+    .replace('https---', 'https://')
+    .replace('resource---', 'resource://');
 }
 link = link && link.length ? format(link[1]) : null;
 
