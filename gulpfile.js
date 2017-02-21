@@ -91,7 +91,7 @@ gulp.task('electron-build', function () {
     }
     return path;
   }))
-  .pipe(json())
+  .pipe(json(true))
   .pipe(gulpif(function (f) {
     return f.path.indexOf('.js') !== -1 && f.path.indexOf('.json') === -1;
   }, change(function (content) {
