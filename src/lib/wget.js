@@ -100,10 +100,6 @@ var wget = typeof exports === 'undefined' ? {} : exports;
   var head = function (obj, forced, d) {
     let req = new app.XMLHttpRequest();
     d = d || app.Promise.defer();
-    // Fixing Google redirect
-    if (obj.url.startsWith('https://www.google.com/url?') && obj.url.indexOf('&url=') !== -1) {
-      obj.url = decodeURIComponent(obj.url.split('&url=')[1].split('&')[0])
-    }
 
     req.open(forced ? 'GET' : 'HEAD', obj.url, true);
     req.setRequestHeader('Cache-Control', 'max-age=0');

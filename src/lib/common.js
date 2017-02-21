@@ -82,24 +82,29 @@ actions.update = (function () {
 (function (pointer) {
   actions.download = function (obj) {
     let urls = obj.url;
-    console.log(urls);
+    console.log(typeof urls)
     if (typeof urls === 'string') {
       urls = urls.replace(/\s*\,\s*http/g, String.fromCharCode(0) + 'http').split(String.fromCharCode(0));
     }
+    console.log(urls);
     // Supporting WildCard
-    urls = urls.map(url => {
-      console.log(url)
+    urls = [].concat.apply([], urls.map(url => {
       if (/\{\d+\.\.\d+\}/.test(url)) {
         let r = /\{(\d+)\.\.(\d+)\}/.exec(url);
         let start = +r[1];
         let end = +r[2];
-        console.log(start, end)
         return Array(end - start + 1).fill().map((x, i) => i + start).map(i => url.replace(r[0], i));
       }
       return url;
-    }).reduce((a, b) => a.concat(b));
-
-    console.log(urls)
+    }));
+    console.log(urls);
+    // Fixing Google redirect
+    urls = urls.map(url => {
+      if (url.startsWith('https://www.google.') && url.indexOf('&url=') !== -1) {
+        return decodeURIComponent(url.split('&url=')[1].split('&')[0]);
+      }
+      return url;
+    });
 
     if (urls.length > 1) {
       obj.alternatives = [];
